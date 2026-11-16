@@ -44,14 +44,14 @@ namespace SolidModelBrowser
                     var prim = scene.GlbPrimitives[p];
                     int baseIndex = Positions.Count;
 
-                    // Unpack flat float array (X, Y, Z triplets)
+                    // Unpack flat float array (X, Y, Z triplets, OpenSkp glTF meters -> CAD millimeters)
                     if (prim.Positions != null)
                     {
                         for (int i = 0; i < prim.Positions.Length; i += 3)
                         {
-                            float x = prim.Positions[i];
-                            float y = prim.Positions[i + 1];
-                            float z = prim.Positions[i + 2];
+                            float x = prim.Positions[i] * 1000.0f;
+                            float y = prim.Positions[i + 1] * 1000.0f;
+                            float z = prim.Positions[i + 2] * 1000.0f;
                             Positions.Add(new Point3D(x, y, z));
                         }
                     }

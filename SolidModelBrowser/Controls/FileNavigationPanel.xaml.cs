@@ -50,9 +50,8 @@ namespace SolidModelBrowser
         private string getSelectedItemPath()
         {
             if (listBoxFiles.SelectedItem == null) return null;
-            TextBlock t = listBoxFiles.SelectedItem as TextBlock;
-            if (t == null) return null;
-            return t.Tag as string;
+            if (listBoxFiles.SelectedItem is FrameworkElement fe) return fe.Tag as string;
+            return null;
         }
 
         private void ListBoxFiles_PreviewMouseDoubleClick(object sender, MouseButtonEventArgs e)
@@ -83,7 +82,7 @@ namespace SolidModelBrowser
             if (e.Key == Key.Enter) TryEnterSelectedFolder();
             if (e.Key == Key.Back && listBoxFiles.Items.Count > 0)
             {
-                if ((listBoxFiles.Items[0] as TextBlock)?.Text == "..")
+                if ((listBoxFiles.Items[0] as FrameworkElement)?.Tag as string == "..")
                 {
                     listBoxFiles.SelectedIndex = 0;
                     TryEnterSelectedFolder();
@@ -97,26 +96,31 @@ namespace SolidModelBrowser
         {
             try
             {
-                TextBlock t = listBoxFiles.SelectedItem as TextBlock;
-                if (t != null)
+                if (listBoxFiles.SelectedItem is FrameworkElement fe)
                 {
-                    if (t.Text == "..")
+                    string itemTag = fe.Tag as string;
+                    if (itemTag == "..")
                     {
                         DirectoryInfo dir = new DirectoryInfo(path);
                         string dirname = dir.Name;
-                        path = dir.Parent.FullName;
-                        fill();
-
-                        foreach (var li in listBoxFiles.Items) if ((li as TextBlock)?.Text == dirname) listBoxFiles.SelectedItem = li;
-                    }
-                    else
-                    {
-                        string testpath = System.IO.Path.Combine(path, t.Text);
-                        if (Directory.Exists(testpath))
+                        if (dir.Parent != null)
                         {
-                            path = testpath;
+                            path = dir.Parent.FullName;
                             fill();
+                            foreach (var li in listBoxFiles.Items)
+                            {
+                                if ((li as FrameworkElement)?.Tag as string == System.IO.Path.Combine(path, dirname))
+                                {
+                                    listBoxFiles.SelectedItem = li;
+                                    break;
+                                }
+                            }
                         }
+                    }
+                    else if (!string.IsNullOrEmpty(itemTag) && Directory.Exists(itemTag))
+                    {
+                        path = itemTag;
+                        fill();
                     }
                 }
                 if (listBoxFiles.Items.Count > 0)
@@ -131,8 +135,84 @@ namespace SolidModelBrowser
             catch { }
         }
 
-        
-        //SolidColorBrush folderBrush = new SolidColorBrush(Color.FromArgb(255, 200, 200, 240));
+        static readonly Dictionary<string, System.Windows.Media.Imaging.BitmapImage> iconCache = new Dictionary<string, System.Windows.Media.Imaging.BitmapImage>();
+        private static System.Windows.Media.Imaging.BitmapImage getExtensionIcon(string ext)
+        {
+            if (iconCache.TryGetValue(ext, out var cached)) return cached;
+            try
+            {
+                var uri = new Uri($"pack://application:,,,/Icons/{ext}.png", UriKind.Absolute);
+                var bmp = new System.Windows.Media.Imaging.BitmapImage(uri);
+                bmp.Freeze();
+                iconCache[ext] = bmp;
+                return bmp;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private FrameworkElement createItem(string fullPath, string displayText, bool isFolder, string ext = null)
+        {
+            var sp = new StackPanel
+            {
+                Orientation = Orientation.Horizontal,
+                Margin = new Thickness(2, 2, 2, 2),
+                Tag = fullPath
+            };
+
+            if (isFolder)
+            {
+                var vb = new Viewbox { Width = 16, Height = 16, Margin = new Thickness(0, 0, 6, 0), VerticalAlignment = VerticalAlignment.Center };
+                var canvas = new Canvas { Width = 16, Height = 16 };
+                var p = new System.Windows.Shapes.Path
+                {
+                    Data = Geometry.Parse("M1.5,3.5 L6,3.5 L7.5,5.5 L14.5,5.5 A1,1 0 0,1 15.5,6.5 L15.5,13.5 A1,1 0 0,1 14.5,14.5 L1.5,14.5 A1,1 0 0,1 0.5,13.5 L0.5,4.5 A1,1 0 0,1 1.5,3.5 Z"),
+                    Fill = new SolidColorBrush(Color.FromRgb(225, 175, 70))
+                };
+                canvas.Children.Add(p);
+                vb.Child = canvas;
+                sp.Children.Add(vb);
+            }
+            else
+            {
+                var bmp = getExtensionIcon(ext);
+                if (bmp != null)
+                {
+                    var img = new Image
+                    {
+                        Source = bmp,
+                        Width = 16,
+                        Height = 16,
+                        Margin = new Thickness(0, 0, 6, 0),
+                        VerticalAlignment = VerticalAlignment.Center,
+                        SnapsToDevicePixels = true
+                    };
+                    RenderOptions.SetBitmapScalingMode(img, BitmapScalingMode.NearestNeighbor);
+                    sp.Children.Add(img);
+                }
+            }
+
+            var tb = new TextBlock
+            {
+                Text = displayText,
+                VerticalAlignment = VerticalAlignment.Center,
+                TextTrimming = TextTrimming.CharacterEllipsis
+            };
+
+            if (isFolder)
+            {
+                tb.FontWeight = FontWeights.SemiBold;
+            }
+            else if (!string.IsNullOrEmpty(ext) && extensionsColors.ContainsKey(ext))
+            {
+                tb.Foreground = extensionsColors[ext];
+            }
+
+            sp.Children.Add(tb);
+            return sp;
+        }
 
         private void fill() => fill(false);
         private void fill(bool keepSelectedItem)
@@ -143,17 +223,16 @@ namespace SolidModelBrowser
 
             listBoxFiles.Items.Clear();
 
-            if ((new DirectoryInfo(path)).Parent != null) listBoxFiles.Items.Add(new TextBlock() { Text = ".." });
+            if ((new DirectoryInfo(path)).Parent != null)
+            {
+                listBoxFiles.Items.Add(createItem("..", "..", true));
+            }
 
             string[] dirs = Directory.GetDirectories(path).OrderBy(d => d).ToArray();
             for (int c = 0; c < dirs.Length; c++)
             {
-                TextBlock t = new TextBlock();
-                t.Text = System.IO.Path.GetFileName(dirs[c]);
-                t.Tag = dirs[c];
-                t.FontWeight = FontWeights.Bold;
-                //t.Foreground = folderBrush;
-                listBoxFiles.Items.Add(t);
+                string dirName = System.IO.Path.GetFileName(dirs[c]);
+                listBoxFiles.Items.Add(createItem(dirs[c], dirName, true));
             }
 
             string[] files = Directory.GetFiles(path);
@@ -164,17 +243,14 @@ namespace SolidModelBrowser
                 string ext = System.IO.Path.GetExtension(files[c]).Trim('.').ToLower();
                 if (extensions.Contains(ext) || !UseExtensionFilter)
                 {
-                    TextBlock t = new TextBlock();
-                    if (extensionsColors.ContainsKey(ext)) t.Foreground = extensionsColors[ext];
-                    t.Text = System.IO.Path.GetFileName(files[c]);
-                    t.Tag = files[c];
-                    listBoxFiles.Items.Add(t);
+                    string fileName = System.IO.Path.GetFileName(files[c]);
+                    listBoxFiles.Items.Add(createItem(files[c], fileName, false, ext));
                 }
             }
 
             if (keepSelectedItem)
             {
-                var li = listBoxFiles.Items.OfType<TextBlock>().FirstOrDefault(t => t.Tag?.ToString() == si);
+                var li = listBoxFiles.Items.OfType<FrameworkElement>().FirstOrDefault(t => t.Tag?.ToString() == si);
                 listBoxFiles.SelectedItem = li;
             }
         }
@@ -184,7 +260,8 @@ namespace SolidModelBrowser
             if (!File.Exists(filepath)) return;
             Path = System.IO.Path.GetDirectoryName(filepath);
             foreach (var f in listBoxFiles.Items)
-                if (f is TextBlock t && (t.Tag as string) == filepath)
+            {
+                if (f is FrameworkElement fe && (fe.Tag as string) == filepath)
                 {
                     listBoxFiles.SelectedItem = f;
                     if (focusControl)
@@ -193,7 +270,9 @@ namespace SolidModelBrowser
                         var listBoxItem = (ListBoxItem)listBoxFiles.ItemContainerGenerator.ContainerFromItem(listBoxFiles.SelectedItem);
                         listBoxItem?.Focus();
                     }
+                    break;
                 }
+            }
         }
 
         public void Reselect()

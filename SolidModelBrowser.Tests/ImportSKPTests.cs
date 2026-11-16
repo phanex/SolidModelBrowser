@@ -36,5 +36,27 @@ namespace SolidModelBrowser.Tests
 
             Assert.IsNotNull(Import.ExceptionMessage, "ExceptionMessage should capture the failure without crashing.");
         }
+
+        [Test]
+        public void ImportSKP_ScalesMetersToMillimeters()
+        {
+            string testFile = @"C:\Desmond\Documents\3D-Print\autoramka\autoramka_test.skp";
+            if (!File.Exists(testFile)) return;
+
+            Import.SelectImporter(testFile);
+            var importer = Import.CurrentImport;
+            importer.Initialize();
+            importer.Load(testFile);
+
+            Assert.IsTrue(Import.Positions.Count > 0, "Loaded SKP should have vertices.");
+            double minZ = double.MaxValue, maxZ = double.MinValue;
+            foreach (var pos in Import.Positions)
+            {
+                if (pos.Z < minZ) minZ = pos.Z;
+                if (pos.Z > maxZ) maxZ = pos.Z;
+            }
+            double sizeZ = maxZ - minZ;
+            Assert.IsTrue(sizeZ > 10.0, $"SKP model dimensions must be in millimeters (got {sizeZ} mm, expected > 10 mm).");
+        }
     }
 }

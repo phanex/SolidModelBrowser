@@ -190,6 +190,14 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="icon3a.ico" />
+    <Resource Include="app.ico" />
+    <Resource Include="Icons\3mf.png" />
+    <Resource Include="Icons\gcode.png" />
+    <Resource Include="Icons\obj.png" />
+    <Resource Include="Icons\ply.png" />
+    <Resource Include="Icons\skp.png" />
+    <Resource Include="Icons\stl.png" />
+    <Resource Include="Icons\app.png" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

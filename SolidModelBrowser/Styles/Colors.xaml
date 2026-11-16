@@ -17,12 +17,12 @@
         <GradientStop Color="#FF2B2B2B" Offset="1" />
     </LinearGradientBrush-->
 
-    <SolidColorBrush x:Key="WindowBack" Color="#303030" />
-    <SolidColorBrush x:Key="PanelBack" Color="#383838" />
-    <SolidColorBrush x:Key="InfoPanel" Color="#A0404040" />
-    <SolidColorBrush x:Key="WindowFore" Color="#A0A0A0" />
+    <SolidColorBrush x:Key="WindowBack" Color="#252528" />
+    <SolidColorBrush x:Key="PanelBack" Color="#1E1E20" />
+    <SolidColorBrush x:Key="InfoPanel" Color="#D0202022" />
+    <SolidColorBrush x:Key="WindowFore" Color="#E0E0E0" />
 
-    <SolidColorBrush x:Key="Separator" Color="#40606060" />
+    <SolidColorBrush x:Key="Separator" Color="#33FFFFFF" />
 
     <SolidColorBrush x:Key="TransparentHandle" Color="#01000000" />
 
