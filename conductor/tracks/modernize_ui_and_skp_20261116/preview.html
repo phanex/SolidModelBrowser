@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="uk" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SolidModelBrowser Redesign Preview</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+    body { font-family: 'Inter', system-ui, sans-serif; user-select: none; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+    /* Snap Layouts tooltip simulation */
+    .snap-flyout {
+      display: none;
+    }
+    .snap-trigger:hover .snap-flyout {
+      display: grid;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col p-4 md:p-8 transition-colors duration-200">
+
+  <!-- Outer Window Container (Simulating a Windows 11 Desktop Window) -->
+  <div class="max-w-6xl w-full mx-auto bg-slate-900 border border-slate-700/80 rounded-xl shadow-2xl overflow-hidden flex flex-col transition-all duration-200" id="appWindow">
+
+    <!-- Windows 11 Native-Style Titlebar -->
+    <div class="h-10 bg-slate-950/80 border-b border-slate-800 px-3 flex items-center justify-between text-xs font-medium select-none text-slate-300">
+      <div class="flex items-center gap-2">
+        <!-- 3D Cube App Icon -->
+        <svg class="w-4 h-4 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="m21 16-9 5-9-5V8l9-5 9 5v8Z"/>
+          <path d="m3.3 7 8.7 5 8.7-5"/>
+          <path d="M12 12v9"/>
+        </svg>
+        <span>Solid Model Browser — <span class="text-slate-400 font-normal">v0.7.0 (Mod with .SKP Support)</span></span>
+      </div>
+
+      <!-- Native Windows 11 Caption Controls -->
+      <div class="flex items-center -mr-3 h-full">
+        <!-- Minimize -->
+        <button class="h-full px-3.5 hover:bg-slate-800 transition-colors flex items-center justify-center text-slate-400 hover:text-slate-200" title="Згорнути">
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none"><path d="M5 12h14"/></svg>
+        </button>
+
+        <!-- Maximize with Windows 11 Snap Layouts Flyout -->
+        <div class="relative h-full snap-trigger flex items-center">
+          <button class="h-full px-3.5 hover:bg-slate-800 transition-colors flex items-center justify-center text-slate-400 hover:text-slate-200" title="Розгорнути">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none"><rect width="18" height="18" x="3" y="3" rx="2"/></svg>
+          </button>
+          
+          <!-- Snap Layouts Popup Simulation -->
+          <div class="snap-flyout absolute right-0 top-10 bg-slate-800/95 backdrop-blur-md border border-slate-600 rounded-lg p-3 shadow-2xl z-50 grid grid-cols-2 gap-2 w-56">
+            <div class="text-[11px] font-semibold text-slate-400 col-span-2 pb-1 border-b border-slate-700/60 flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
+              Windows 11 Snap Layouts
+            </div>
+            <!-- Layout 1: 50 / 50 -->
+            <div class="border border-slate-600 rounded p-1.5 hover:bg-cyan-950/60 hover:border-cyan-500 cursor-pointer transition-all flex gap-1 h-14">
+              <div class="w-1/2 bg-slate-700/50 rounded-sm hover:bg-cyan-500/30"></div>
+              <div class="w-1/2 bg-slate-700/50 rounded-sm hover:bg-cyan-500/30"></div>
+            </div>
+            <!-- Layout 2: 70 / 30 -->
+            <div class="border border-slate-600 rounded p-1.5 hover:bg-cyan-950/60 hover:border-cyan-500 cursor-pointer transition-all flex gap-1 h-14">
+              <div class="w-2/3 bg-slate-700/50 rounded-sm hover:bg-cyan-500/30"></div>
+              <div class="w-1/3 bg-slate-700/50 rounded-sm hover:bg-cyan-500/30"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Close -->
+        <button class="h-full px-4 hover:bg-red-600 transition-colors flex items-center justify-center text-slate-400 hover:text-white" title="Закрити">
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Main Application Toolbar (Lucide Icons) -->
+    <div class="h-11 bg-slate-900 border-b border-slate-800 px-3 flex items-center justify-between gap-1 text-slate-300">
+      <!-- Left Action Buttons -->
+      <div class="flex items-center gap-1">
+        <button class="p-2 rounded-md hover:bg-slate-800 hover:text-cyan-400 transition-colors" title="Перезавантажити модель [F5]">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+        </button>
+        <button class="p-2 rounded-md hover:bg-slate-800 hover:text-cyan-400 transition-colors" title="Експортувати в інший формат [Ctrl+S]">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+        </button>
+        <button class="p-2 rounded-md hover:bg-slate-800 hover:text-cyan-400 transition-colors" title="Зберегти скріншот [F6]">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
+        </button>
+        <button class="p-2 rounded-md hover:bg-slate-800 hover:text-cyan-400 transition-colors" title="Відкрити у слайсері (OrcaSlicer/Bambu) [F7]">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
+        </button>
+
+        <div class="h-4 w-[1px] bg-slate-700 mx-1"></div>
+
+        <!-- 3D Rotation Controls -->
+        <button class="p-2 rounded-md hover:bg-slate-800 hover:text-amber-400 transition-colors text-xs font-semibold flex items-center gap-1" title="Повернути навколо осі X [W, S]">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+          <span class="text-[11px] text-rose-400">X</span>
+        </button>
+        <button class="p-2 rounded-md hover:bg-slate-800 hover:text-emerald-400 transition-colors text-xs font-semibold flex items-center gap-1" title="Повернути навколо осі Y [Q, E]">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+          <span class="text-[11px] text-emerald-400">Y</span>
+        </button>
+        <button class="p-2 rounded-md hover:bg-slate-800 hover:text-cyan-400 transition-colors text-xs font-semibold flex items-center gap-1" title="Повернути навколо осі Z [A, D]">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+          <span class="text-[11px] text-cyan-400">Z</span>
+        </button>
+
+        <div class="h-4 w-[1px] bg-slate-700 mx-1"></div>
+
+        <!-- Render Modes -->
+        <button class="p-2 rounded-md bg-slate-800/80 text-cyan-400 transition-colors" title="Каркас (Wireframe) [Ctrl+W]">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+        </button>
+        <button class="p-2 rounded-md hover:bg-slate-800 hover:text-cyan-400 transition-colors" title="Інформація про модель [I]">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+        </button>
+      </div>
+
+      <!-- Right Controls: Theme Toggle & Settings -->
+      <div class="flex items-center gap-1">
+        <button id="themeToggleBtn" class="p-2 rounded-md hover:bg-slate-800 text-slate-300 hover:text-amber-300 transition-colors flex items-center gap-1.5 text-xs font-medium" title="Перемкнути тему">
+          <svg id="themeIcon" class="w-4 h-4 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+          <span class="hidden sm:inline" id="themeText">Темна</span>
+        </button>
+        <button class="p-2 rounded-md hover:bg-slate-800 hover:text-cyan-400 transition-colors" title="Налаштування">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- App Body: Sidebar + 3D Viewport -->
+    <div class="flex flex-1 min-h-[460px]">
+
+      <!-- Left File Navigation Sidebar -->
+      <div class="w-64 bg-slate-950/60 border-r border-slate-800 flex flex-col p-2 select-none text-xs">
+        
+        <!-- Drive Pills -->
+        <div class="flex items-center gap-1 mb-2 px-1">
+          <button class="px-2.5 py-1 rounded bg-cyan-600 text-white font-medium shadow-sm">C:\</button>
+          <button class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium transition-colors">D:\</button>
+          <div class="text-[11px] text-slate-400 ml-auto mono">3D-Print/</div>
+        </div>
+
+        <!-- File List with Lucide Icons and Badges -->
+        <div class="flex-1 overflow-y-auto space-y-0.5 pr-1" id="fileList">
+
+          <!-- Parent Directory -->
+          <div class="flex items-center gap-2 px-2.5 py-1.5 rounded hover:bg-slate-800/80 cursor-pointer text-slate-400 font-medium transition-colors">
+            <svg class="w-4 h-4 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+            <span>..</span>
+          </div>
+
+          <!-- Folders -->
+          <div class="flex items-center gap-2 px-2.5 py-1.5 rounded hover:bg-slate-800/80 cursor-pointer text-slate-200 font-medium transition-colors group">
+            <svg class="w-4 h-4 text-amber-400 shrink-0 group-hover:scale-110 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></svg>
+            <span class="truncate">printer_cabinet_feet</span>
+          </div>
+
+          <div class="flex items-center gap-2 px-2.5 py-1.5 rounded hover:bg-slate-800/80 cursor-pointer text-slate-200 font-medium transition-colors group">
+            <svg class="w-4 h-4 text-amber-400 shrink-0 group-hover:scale-110 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></svg>
+            <span class="truncate">autoramka</span>
+          </div>
+
+          <!-- Divider -->
+          <div class="h-[1px] bg-slate-800/80 my-1"></div>
+
+          <!-- SKP File (New feature!) -->
+          <div class="flex items-center justify-between px-2.5 py-1.5 rounded bg-cyan-950/50 border border-cyan-800/60 cursor-pointer text-cyan-200 font-medium transition-colors group">
+            <div class="flex items-center gap-2 min-w-0">
+              <svg class="w-4 h-4 text-red-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21 16-9 5-9-5V8l9-5 9 5v8Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 12v9"/></svg>
+              <span class="truncate text-white">bookshelf_bracket.skp</span>
+            </div>
+            <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-red-950 text-red-300 border border-red-700/50 ml-1">SKP</span>
+          </div>
+
+          <!-- STL File -->
+          <div class="flex items-center justify-between px-2.5 py-1.5 rounded hover:bg-slate-800/80 cursor-pointer text-slate-300 transition-colors group">
+            <div class="flex items-center gap-2 min-w-0">
+              <svg class="w-4 h-4 text-cyan-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+              <span class="truncate">foot_base_v2.stl</span>
+            </div>
+            <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-700/50 ml-1">STL</span>
+          </div>
+
+          <!-- 3MF File -->
+          <div class="flex items-center justify-between px-2.5 py-1.5 rounded hover:bg-slate-800/80 cursor-pointer text-slate-300 transition-colors group">
+            <div class="flex items-center gap-2 min-w-0">
+              <svg class="w-4 h-4 text-emerald-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 12v9"/></svg>
+              <span class="truncate">cabinet_feet_plate.3mf</span>
+            </div>
+            <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-700/50 ml-1">3MF</span>
+          </div>
+
+          <!-- GCODE File -->
+          <div class="flex items-center justify-between px-2.5 py-1.5 rounded hover:bg-slate-800/80 cursor-pointer text-slate-300 transition-colors group">
+            <div class="flex items-center gap-2 min-w-0">
+              <svg class="w-4 h-4 text-purple-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+              <span class="truncate">feet_all_layers.gcode</span>
+            </div>
+            <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-purple-950 text-purple-300 border border-purple-700/50 ml-1">GCODE</span>
+          </div>
+
+        </div>
+
+        <!-- Sidebar Footer Status -->
+        <div class="mt-2 pt-2 border-t border-slate-800/80 text-[11px] text-slate-400 flex items-center justify-between px-1">
+          <span>Файлів: 4</span>
+          <span class="text-cyan-400">OpenSKP Engine</span>
+        </div>
+      </div>
+
+      <!-- 3D Viewport Area -->
+      <div class="flex-1 relative bg-gradient-to-b from-slate-900 to-slate-950 flex flex-col overflow-hidden">
+        
+        <!-- Interactive 3D Canvas -->
+        <canvas id="canvas3d" class="flex-1 cursor-grab active:cursor-grabbing w-full h-full"></canvas>
+
+        <!-- On-Screen Model Stats Overlay (Top-Left) -->
+        <div class="absolute top-3 left-3 bg-slate-900/80 backdrop-blur border border-slate-700/60 rounded-lg p-2.5 text-xs text-slate-300 space-y-1 shadow-lg pointer-events-none">
+          <div class="font-semibold text-white flex items-center gap-2">
+            <span>bookshelf_bracket.skp</span>
+            <span class="text-[10px] bg-red-950 text-red-300 px-1 rounded border border-red-800">SketchUp</span>
+          </div>
+          <div class="text-[11px] text-slate-400 mono">Полігонів: 14,820 · Вершин: 7,412</div>
+          <div class="text-[11px] text-slate-400 mono">Габарити: 120.0 × 85.4 × 35.0 мм</div>
+        </div>
+
+        <!-- Vertical Slicing Slider (Right Edge) -->
+        <div class="absolute right-3 top-3 bottom-3 flex items-center gap-2">
+          <div class="bg-slate-900/80 backdrop-blur border border-slate-700/60 rounded-lg px-2 py-3 flex flex-col items-center gap-2 h-64 text-xs shadow-lg">
+            <span class="text-[10px] font-bold text-cyan-400">Z-Slice</span>
+            <input type="range" min="0" max="100" value="100" class="h-40 accent-cyan-400 -rotate-90 origin-center my-auto cursor-pointer" id="zSliceRange">
+            <span class="text-[10px] mono text-slate-400" id="sliceVal">100%</span>
+          </div>
+        </div>
+
+        <!-- Viewport Controls & Hint (Bottom-Center) -->
+        <div class="absolute bottom-3 left-1/2 -translate-x-1/2 bg-slate-900/80 backdrop-blur border border-slate-700/60 rounded-full px-4 py-1 text-[11px] text-slate-400 flex items-center gap-3 shadow-lg pointer-events-none">
+          <span><kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300">ЛКМ</kbd> Обертання</span>
+          <span><kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300">Коліщатко</kbd> Зум</span>
+          <span><kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300">F7</kbd> OrcaSlicer</span>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Interactive Demo Controls & Comparison -->
+  <div class="max-w-6xl w-full mx-auto mt-6 bg-slate-900/90 border border-slate-800 rounded-xl p-5 text-sm space-y-4">
+    <div class="flex items-center justify-between">
+      <h3 class="font-semibold text-white flex items-center gap-2">
+        <svg class="w-5 h-5 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12h20"/><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-6"/><path d="m9 4 3 3-3 3"/><path d="M12 7h8a2 2 0 0 1 2 2v3"/></svg>
+        Що саме тут покращено відносно оригіналу:
+      </h3>
+      <span class="text-xs text-slate-400">Інтерактивний макет без жодного запуску GitHub Actions</span>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+      <div class="bg-slate-950/60 p-3.5 rounded-lg border border-slate-800 space-y-1.5">
+        <div class="font-semibold text-cyan-400 flex items-center gap-1.5">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></svg>
+          1. Розділення файлів та папок
+        </div>
+        <p class="text-slate-400 leading-relaxed">
+          В оригіналі був голий список із жирним текстом. Тут додано векторні іконки Lucide, папки з підсвіткою та кольорові бейджі типів файлів (STL, 3MF, SKP, GCODE).
+        </p>
+      </div>
+
+      <div class="bg-slate-950/60 p-3.5 rounded-lg border border-slate-800 space-y-1.5">
+        <div class="font-semibold text-red-400 flex items-center gap-1.5">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21 16-9 5-9-5V8l9-5 9 5v8Z"/><path d="M12 12v9"/></svg>
+          2. Нативна підтримка SketchUp (.skp)
+        </div>
+        <p class="text-slate-400 leading-relaxed">
+          Модуль <code class="text-red-300">ImportSKP.cs</code> через NuGet <code class="text-red-300">OpenSkp</code> відкриває моделі SketchUp напряму поруч із STL/3MF без конвертерів.
+        </p>
+      </div>
+
+      <div class="bg-slate-950/60 p-3.5 rounded-lg border border-slate-800 space-y-1.5">
+        <div class="font-semibold text-emerald-400 flex items-center gap-1.5">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"/></svg>
+          3. Рідний Windows 11 Snap Layouts
+        </div>
+        <p class="text-slate-400 leading-relaxed">
+          Повернення системної обробки <code class="text-emerald-300">WM_NCHITTEST (HTMAXBUTTON)</code> дозволяє при наведенні на кнопку «Розгорнути» отримувати стандартне меню розкладок вікон Win11.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- 3D Interactive Canvas Simulation ---
+    const canvas = document.getElementById('canvas3d');
+    const ctx = canvas.getContext('2d');
+    
+    function resizeCanvas() {
+      canvas.width = canvas.clientWidth * window.devicePixelRatio;
+      canvas.height = canvas.clientHeight * window.devicePixelRatio;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    // 3D Object Definition (Corner Bracket with Holes)
+    let rotX = 0.5, rotY = 0.6;
+    let isDragging = false, lastMouseX = 0, lastMouseY = 0;
+    let sliceZ = 1.0;
+
+    canvas.addEventListener('mousedown', (e) => {
+      isDragging = true;
+      lastMouseX = e.clientX;
+      lastMouseY = e.clientY;
+    });
+
+    window.addEventListener('mouseup', () => isDragging = false);
+    window.addEventListener('mousemove', (e) => {
+      if (!isDragging) return;
+      const dx = e.clientX - lastMouseX;
+      const dy = e.clientY - lastMouseY;
+      rotY += dx * 0.01;
+      rotX += dy * 0.01;
+      lastMouseX = e.clientX;
+      lastMouseY = e.clientY;
+      draw();
+    });
+
+    document.getElementById('zSliceRange').addEventListener('input', (e) => {
+      sliceZ = e.target.value / 100;
+      document.getElementById('sliceVal').innerText = `${e.target.value}%`;
+      draw();
+    });
+
+    // Simple 3D wireframe bracket rendering
+    function project(x, y, z) {
+      // Rotate around X
+      let y1 = y * Math.cos(rotX) - z * Math.sin(rotX);
+      let z1 = y * Math.sin(rotX) + z * Math.cos(rotX);
+      // Rotate around Y
+      let x2 = x * Math.cos(rotY) + z1 * Math.sin(rotY);
+      let z2 = -x * Math.sin(rotY) + z1 * Math.cos(rotY);
+      
+      const scale = 220 / (z2 + 400);
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2;
+      return { x: cx + x2 * scale * 2.2, y: cy + y1 * scale * 2.2, z: z2 };
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw Ground Grid
+      ctx.strokeStyle = document.documentElement.classList.contains('light') ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.06)';
+      ctx.lineWidth = 1;
+      const gridSize = 100;
+      for (let i = -gridSize; i <= gridSize; i += 25) {
+        let p1 = project(i, 80, -gridSize);
+        let p2 = project(i, 80, gridSize);
+        ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
+        let p3 = project(-gridSize, 80, i);
+        let p4 = project(gridSize, 80, i);
+        ctx.beginPath(); ctx.moveTo(p3.x, p3.y); ctx.lineTo(p4.x, p4.y); ctx.stroke();
+      }
+
+      // 3D Bracket Model Vertices
+      const isLight = document.documentElement.classList.contains('light');
+      const boxColor = isLight ? '#0284c7' : '#38bdf8';
+      const wireColor = isLight ? '#0369a1' : '#7dd3fc';
+
+      // Simple bracket representation (L-shape)
+      const h = (80 - (-40)) * sliceZ;
+      const topY = 80 - h;
+
+      const vertices = [
+        // Base plate
+        [-60, 80, -50], [60, 80, -50], [60, 80, 50], [-60, 80, 50],
+        [-60, Math.max(topY, 60), -50], [60, Math.max(topY, 60), -50], [60, Math.max(topY, 60), 50], [-60, Math.max(topY, 60), 50],
+        // Upright plate
+        [-60, topY, -50], [60, topY, -50], [60, topY, -30], [-60, topY, -30]
+      ];
+
+      const proj = vertices.map(v => project(v[0], v[1], v[2]));
+
+      // Draw model lines
+      ctx.strokeStyle = boxColor;
+      ctx.lineWidth = 2.5;
+
+      function line(i, j) {
+        ctx.beginPath();
+        ctx.moveTo(proj[i].x, proj[i].y);
+        ctx.lineTo(proj[j].x, proj[j].y);
+        ctx.stroke();
+      }
+
+      line(0, 1); line(1, 2); line(2, 3); line(3, 0); // bottom
+      line(4, 5); line(5, 6); line(6, 7); line(7, 4); // base top
+      line(0, 4); line(1, 5); line(2, 6); line(3, 7); // base pillars
+
+      if (topY < 60) {
+        line(8, 9); line(9, 10); line(10, 11); line(11, 8); // upright top
+        line(4, 8); line(5, 9); line(6, 10); line(7, 11);
+      }
+
+      // Axis Indicator (XYZ in corner)
+      const origin = project(-100, 70, -80);
+      const xAx = project(-70, 70, -80);
+      const yAx = project(-100, 40, -80);
+      const zAx = project(-100, 70, -50);
+
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = '#f43f5e'; ctx.beginPath(); ctx.moveTo(origin.x, origin.y); ctx.lineTo(xAx.x, xAx.y); ctx.stroke();
+      ctx.strokeStyle = '#10b981'; ctx.beginPath(); ctx.moveTo(origin.x, origin.y); ctx.lineTo(yAx.x, yAx.y); ctx.stroke();
+      ctx.strokeStyle = '#06b6d4'; ctx.beginPath(); ctx.moveTo(origin.x, origin.y); ctx.lineTo(zAx.x, zAx.y); ctx.stroke();
+    }
+    draw();
+
+    // --- Theme Switcher Logic ---
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
+    const themeIcon = document.getElementById('themeIcon');
+    const themeText = document.getElementById('themeText');
+    const appWindow = document.getElementById('appWindow');
+
+    themeToggleBtn.addEventListener('click', () => {
+      const isDark = document.documentElement.classList.toggle('dark');
+      if (isDark) {
+        document.documentElement.classList.remove('light');
+        document.body.className = "bg-slate-950 text-slate-100 min-h-screen flex flex-col p-4 md:p-8 transition-colors duration-200";
+        appWindow.className = "max-w-6xl w-full mx-auto bg-slate-900 border border-slate-700/80 rounded-xl shadow-2xl overflow-hidden flex flex-col transition-all duration-200";
+        themeText.innerText = "Темна";
+        themeIcon.innerHTML = '<circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>';
+        themeIcon.className = "w-4 h-4 text-amber-400";
+      } else {
+        document.documentElement.classList.add('light');
+        document.body.className = "bg-slate-200 text-slate-800 min-h-screen flex flex-col p-4 md:p-8 transition-colors duration-200";
+        appWindow.className = "max-w-6xl w-full mx-auto bg-white border border-slate-300 rounded-xl shadow-2xl overflow-hidden flex flex-col transition-all duration-200";
+        themeText.innerText = "Світла";
+        themeIcon.innerHTML = '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>';
+        themeIcon.className = "w-4 h-4 text-indigo-500";
+      }
+      draw();
+    });
+  </script>
+</body>
+</html>
