@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Effects;
 using System.Windows.Media.Media3D;
@@ -37,25 +38,61 @@ namespace SolidModelBrowser
             ButtonReloadModel.Click += (s, e) => { clearView(); loadFile(lastFilename); };
             ButtonSaveImage.Click += (s, e) => Utils.SaveImagePNG(scene.Viewport3D, settings.SaveImageDPI);
             ButtonOpenExtApp.Click += (s, e) => Utils.RunExternalApp(settings.ExternalApp, settings.ExternalAppArguments, lastFilename);
+            ButtonOpenExtAppDropdown.Click += (s, e) =>
+            {
+                populateExternalAppsMenu();
+                ButtonOpenExtAppDropdown.ContextMenu.PlacementTarget = ButtonOpenExtAppDropdown;
+                ButtonOpenExtAppDropdown.ContextMenu.IsOpen = true;
+            };
+            MenuSaveSnapshotPNG.Click += (s, e) => Utils.SaveImagePNG(scene.Viewport3D, settings.SaveImageDPI);
+
             ButtonRotateX.Click += (s, e) => addRotation(settings.ModelRotationAngle, 0, 0);
             ButtonRotateY.Click += (s, e) => addRotation(0, settings.ModelRotationAngle, 0);
             ButtonRotateZ.Click += (s, e) => addRotation(0, 0, settings.ModelRotationAngle);
+
+            ButtonWireframe.Click += (s, e) => updateMeshes(false);
+            ButtonShadingDropdown.Click += (s, e) =>
+            {
+                MenuBacksideColor.IsChecked = ButtonBacksideDiffuseMaterial.IsChecked == true;
+                ButtonShadingDropdown.ContextMenu.PlacementTarget = ButtonShadingDropdown;
+                ButtonShadingDropdown.ContextMenu.IsOpen = true;
+            };
+            MenuRecreateUnsmoothed.Click += (s, e) => { meshBase = Utils.UnsmoothMesh(meshBase); ButtonWireframe.IsChecked = false; updateMeshes(true); };
+            MenuWireframeOnly.Click += (s, e) => { ButtonWireframe.IsChecked = true; updateMeshes(false); };
+            MenuBacksideColor.Click += (s, e) => { ButtonBacksideDiffuseMaterial.IsChecked = MenuBacksideColor.IsChecked; applyMaterials(); };
+
+            ButtonSelectCamera.Click += (s, e) => updateCameraModes();
+            ButtonGround.Click += (s, e) => scene.IsGroundVisible = ButtonGround.IsChecked.Value;
+            ButtonShowModelInfo.Click += (s, e) => updateModelInfo();
+
+            ButtonMore.Click += (s, e) =>
+            {
+                MenuAxes.IsChecked = ButtonAxes.IsChecked == true;
+                MenuFishEye.IsChecked = ButtonFishEyeFOV.IsChecked == true;
+                ButtonMore.ContextMenu.PlacementTarget = ButtonMore;
+                ButtonMore.ContextMenu.IsOpen = true;
+            };
+            MenuAxes.Click += (s, e) => { ButtonAxes.Toggle(); scene.IsAxesVisible = ButtonAxes.IsChecked.Value; };
+            MenuCenterGC.Click += (s, e) => scene.Camera.TurnAt(modelCenter);
+            MenuCenterMC.Click += (s, e) => scene.Camera.TurnAt(modelPointsAvgCenter);
+            MenuFishEye.Click += (s, e) => { ButtonFishEyeFOV.Toggle(); updateCameraModes(); };
+            MenuSwapNormals.Click += (s, e) => { Utils.InvertNormals(meshBase); updateMeshes(true); };
+            MenuRemoveNormals.Click += (s, e) => { meshBase.Normals.Clear(); updateMeshes(true); };
+            MenuFlipFaces.Click += (s, e) => { Utils.InvertVertexOrder(meshBase); updateMeshes(true); };
+            MenuSettings.Click += (s, e) => runSettings();
+
             ButtonDiffuseMaterial.Click += (s, e) => applyMaterials();
             ButtonSpecularMaterial.Click += (s, e) => applyMaterials();
             ButtonEmissiveMaterial.Click += (s, e) => applyMaterials();
             ButtonBacksideDiffuseMaterial.Click += (s, e) => applyMaterials();
-            ButtonSelectCamera.Click += (s, e) => updateCameraModes();
             ButtonCenterCameraAtModelGC.Click += (s, e) => scene.Camera.TurnAt(modelCenter);
             ButtonCenterCameraAtModelMC.Click += (s, e) => scene.Camera.TurnAt(modelPointsAvgCenter);
             ButtonFishEyeFOV.Click += (s, e) => updateCameraModes();
             ButtonAxes.Click += (s, e) => scene.IsAxesVisible = ButtonAxes.IsChecked.Value;
-            ButtonGround.Click += (s, e) => scene.IsGroundVisible = ButtonGround.IsChecked.Value;
             ButtonSwapNormals.Click += (s, e) => { Utils.InvertNormals(meshBase); updateMeshes(true); };
             ButtonRemoveNormals.Click += (s, e) => { meshBase.Normals.Clear(); updateMeshes(true); };
             ButtonChangeVerticesOrder.Click += (s, e) => { Utils.InvertVertexOrder(meshBase); updateMeshes(true); };
             ButtonRecreateUnsmoothed.Click += (s, e) => { meshBase = Utils.UnsmoothMesh(meshBase); updateMeshes(true); };
-            ButtonWireframe.Click += (s, e) => updateMeshes(false);
-            ButtonShowModelInfo.Click += (s, e) => updateModelInfo();
             ButtonSettings.Click += (s, e) => runSettings();
             ButtonExport.Click += (s, e) => export();
 
@@ -107,7 +144,13 @@ namespace SolidModelBrowser
 
         void showInfo(string info) { textBlockInfo.Text = info; infoContainer.Visibility = Visibility.Visible; }
         void hideInfo() => infoContainer.Visibility = Visibility.Collapsed;
-        void showModelInfo() => showInfo($"File: {lastFilename}\r\n\r\nVertices: {scene.Mesh.Positions.Count}\r\nTriangles: {scene.Mesh.TriangleIndices.Count / 3}\r\nNormals: {scene.Mesh.Normals.Count}\r\n\r\nSize X:{modelSize.X.ToString("0.00")}, Y:{modelSize.Y.ToString("0.00")}, Z:{modelSize.Z.ToString("0.00")}\r\nGeometric Center X:{modelCenter.X.ToString("0.00")}, Y:{modelCenter.Y.ToString("0.00")}, Z:{modelCenter.Z.ToString("0.00")}\r\nPoints Average Center X:{modelPointsAvgCenter.X.ToString("0.00")}, Y:{modelPointsAvgCenter.Y.ToString("0.00")}, Z:{modelPointsAvgCenter.Z.ToString("0.00")}");
+        void showModelInfo()
+        {
+            string fname = string.IsNullOrEmpty(lastFilename) ? "" : Path.GetFileName(lastFilename);
+            int tris = scene.Mesh != null ? scene.Mesh.TriangleIndices.Count / 3 : 0;
+            int verts = scene.Mesh != null ? scene.Mesh.Positions.Count : 0;
+            showInfo($"{fname}\r\nDimensions: {modelSize.X:0.0} × {modelSize.Y:0.0} × {modelSize.Z:0.0} mm\r\nTriangles: {tris:N0}  |  Vertices: {verts:N0}");
+        }
 
 
         private void LoadingTimer_Tick(object sender, EventArgs e)
@@ -132,11 +175,19 @@ namespace SolidModelBrowser
                 if (settings.IgnoreOriginalNormals) Import.Normals.Clear();
                 meshBase = Utils.FillMeshFromImport();
                 meshWireframe = null;
-                if (settings.UnsmoothAfterLoading) meshBase = Utils.UnsmoothMesh(meshBase);
+                if (Utils.ShouldUnsmoothMesh(lastFilename, settings.UnsmoothAfterLoading))
+                    meshBase = Utils.UnsmoothMesh(meshBase);
                 Utils.FillMesh(meshBase, scene.Mesh);
                 Utils.GetModelCenterAndSize(meshBase, out modelCenter, out modelPointsAvgCenter, out modelSize);
                 scene.Camera.LookCenter = settings.DefaultLookAtModelPointsAvgCenter ? modelPointsAvgCenter : modelCenter;
                 scene.Camera.DefaultPosition(modelSize.Length, settings.CameraInitialShift);
+
+                if (!string.IsNullOrEmpty(lastFilename))
+                {
+                    string bareName = Path.GetFileName(lastFilename);
+                    textBlockTitle.Text = bareName;
+                    this.Title = bareName;
+                }
 
                 if (Import.CurrentImport.InitialXRotationNeeded) addRotation(90.0, 0, 0);
                 if (ButtonShowModelInfo.IsChecked.Value) showModelInfo();
@@ -253,6 +304,8 @@ namespace SolidModelBrowser
         
         void clearView()
         {
+            textBlockTitle.Text = "Solid Model Browser";
+            this.Title = "Solid Model Browser";
             if (meshBase == null) return;
             meshBase.TriangleIndices.Clear();
             meshBase.Positions.Clear();
@@ -343,6 +396,82 @@ namespace SolidModelBrowser
             Utils.SliceMesh(ButtonWireframe.IsChecked.Value ? meshWireframe : meshBase, scene.Mesh, sliderSliceHeight.Value);
             if (scene.Mesh.TriangleIndices.Count == 0) { scene.Mesh.TriangleIndices.Add(0); }
             //showInfo($"ms: {Utils.sw.ElapsedMilliseconds}\r\nticks: {Utils.sw.ElapsedTicks}\r\nheight: {sliderSliceHeight.Value}, slicescount {++slicescount}, tris: {mesh.TriangleIndices.Count}");
+        }
+
+        void populateExternalAppsMenu()
+        {
+            MenuExternalApps.Items.Clear();
+
+            if (!string.IsNullOrWhiteSpace(settings.ExternalApp) && File.Exists(settings.ExternalApp))
+            {
+                string appName = Path.GetFileNameWithoutExtension(settings.ExternalApp);
+                var itemExt = new MenuItem { Header = $"Open with {appName} [F7]" };
+                itemExt.Click += (s, e) => Utils.RunExternalApp(settings.ExternalApp, settings.ExternalAppArguments, lastFilename);
+                MenuExternalApps.Items.Add(itemExt);
+            }
+
+            var itemChoose = new MenuItem { Header = "Open with... (Choose app)" };
+            itemChoose.Click += (s, e) =>
+            {
+                if (File.Exists(lastFilename))
+                {
+                    try
+                    {
+                        System.Diagnostics.Process.Start("rundll32.exe", $"shell32.dll,OpenAs_RunDLL \"{lastFilename}\"");
+                    }
+                    catch (Exception ex)
+                    {
+                        Utils.MessageWindow(ex.Message);
+                    }
+                }
+            };
+            MenuExternalApps.Items.Add(itemChoose);
+
+            MenuExternalApps.Items.Add(new Separator());
+
+            var itemPng = new MenuItem { Header = "Save snapshot to PNG image [F6]" };
+            itemPng.Click += (s, e) => Utils.SaveImagePNG(scene.Viewport3D, settings.SaveImageDPI);
+            MenuExternalApps.Items.Add(itemPng);
+        }
+
+        protected override void OnSourceInitialized(EventArgs e)
+        {
+            base.OnSourceInitialized(e);
+            HwndSource source = PresentationSource.FromVisual(this) as HwndSource;
+            source?.AddHook(WndProc);
+        }
+
+        private const int WM_NCHITTEST = 0x0084;
+        private const int HTMAXBUTTON = 9;
+        private const int WM_NCLBUTTONUP = 0x00A2;
+
+        private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+        {
+            if (msg == WM_NCHITTEST && ButtonMaximize != null && ButtonMaximize.IsVisible)
+            {
+                try
+                {
+                    int x = unchecked((short)(long)lParam);
+                    int y = unchecked((short)((long)lParam >> 16));
+                    Point screenPoint = new Point(x, y);
+
+                    Point buttonPos = ButtonMaximize.PointToScreen(new Point(0, 0));
+                    Rect buttonRect = new Rect(buttonPos.X, buttonPos.Y, ButtonMaximize.ActualWidth, ButtonMaximize.ActualHeight);
+
+                    if (buttonRect.Contains(screenPoint))
+                    {
+                        handled = true;
+                        return new IntPtr(HTMAXBUTTON);
+                    }
+                }
+                catch { }
+            }
+            else if (msg == WM_NCLBUTTONUP && wParam.ToInt32() == HTMAXBUTTON)
+            {
+                WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+                handled = true;
+            }
+            return IntPtr.Zero;
         }
 
         void export()

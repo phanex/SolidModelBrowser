@@ -33,5 +33,19 @@ namespace SolidModelBrowser.Tests
             var settings = new Settings();
             Assert.IsTrue(settings.UnsmoothAfterLoading, "CAD Flat Shading (UnsmoothAfterLoading) must be enabled by default.");
         }
+
+        [TestCase("model.stl", true, ExpectedResult = true)]
+        [TestCase("model.3mf", true, ExpectedResult = true)]
+        [TestCase("model.skp", true, ExpectedResult = true)]
+        [TestCase("model.obj", true, ExpectedResult = true)]
+        [TestCase("model.ply", true, ExpectedResult = true)]
+        [TestCase("model.gcode", true, ExpectedResult = false)]
+        [TestCase("model.gco", true, ExpectedResult = false)]
+        [TestCase("model.stl", false, ExpectedResult = false)]
+        [TestCase("model.gcode", false, ExpectedResult = false)]
+        public bool ShouldUnsmoothMesh_GCodeStaysSmoothByDefault_CADIsFlat(string filename, bool unsmoothSetting)
+        {
+            return Utils.ShouldUnsmoothMesh(filename, unsmoothSetting);
+        }
     }
 }

@@ -279,6 +279,14 @@ namespace SolidModelBrowser
         //    mesh.Normals = storedMeshNormals;
         //}
 
+        public static bool ShouldUnsmoothMesh(string filename, bool unsmoothSetting)
+        {
+            if (!unsmoothSetting) return false;
+            if (string.IsNullOrEmpty(filename)) return true;
+            string ext = Path.GetExtension(filename).TrimStart('.').ToLowerInvariant();
+            return ext != "gcode" && ext != "gco";
+        }
+
         public static double MinMax(this double value, double min, double max)
         {
             if (value < min) value = min;
