@@ -1,15 +1,18 @@
 # Implementation Plan: Modernize UI & SKP Support
 
 ## Phase 1: CI/CD Setup & Build Baseline
-- [ ] Create `.github/workflows/build.yml` with MSBuild and NuGet restore.
+- [x] Create `.github/workflows/build.yml` with MSBuild and NuGet restore.
 - [ ] Verify clean build on GitHub Actions runner.
-- [ ] Configure automatic artifact generation for Release binaries.
+- [x] Configure automatic artifact generation for Release binaries.
 
-## Phase 2: SKP Format Support
-- [ ] Add `OpenSkp` NuGet package to `SolidModelBrowser.csproj` / `packages.config`.
-- [ ] Create `Imports/ImportSKP.cs` inheriting from `Imports/Import`.
-- [ ] Implement geometry extraction (vertices, normals, triangles) into `Positions`, `Indices`, `Normals`.
-- [ ] Test loading sample `.skp` files and verify proper viewport orientation and scaling.
+## Phase 2: SKP Format Support & File Panel Overhaul
+- [x] Add `OpenSkp` NuGet package to `SolidModelBrowser.csproj` / `packages.config`.
+- [x] Create `Imports/ImportSKP.cs` inheriting from `Imports/Import`.
+- [x] Implement geometry extraction (vertices, normals, triangles) into `Positions`, `Indices`, `Normals`.
+- [x] Make File Navigation Panel non-transparent (solid `#383838` background, idle opacity = 1.0).
+- [x] Make File Navigation Panel hidden by default (`ShowFilePanel = false`) for file association workflow.
+- [x] Add toggle button and shortcuts (`Tab`, `F9`, `Ctrl+B`) for showing/hiding file panel.
+- [ ] Verify loading sample `.skp` files and verify proper viewport orientation and scaling in live build.
 
 ## Phase 3: Modern UI & Icon Integration
 - [ ] Add user's pixel-perfect icons from `Assets/Icons/` to `SolidModelBrowser.csproj` as WPF Resources.

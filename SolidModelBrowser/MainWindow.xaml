@@ -20,6 +20,10 @@
                 </Grid.ColumnDefinitions>
 
                 <WrapPanel Grid.Column="0" DockPanel.Dock="Left" Margin="0,0,50,0">
+                    <ToggleButton x:Name="ButtonToggleFilePanel" ToolTip="Toggle file browser panel [Tab / B]" Width="30" Height="30">
+                        <local:TextEncodedImage EncodedImage="?OO?????_~BO?ACO?~BO?ACO?~BO?ACO?~BO?ACO?????" Width="16" Height="16" EncodedImageColor="{DynamicResource MenuButton_Default}"></local:TextEncodedImage>
+                    </ToggleButton>
+                    <Rectangle Width="2" Fill="{DynamicResource Separator}" />
                     <Button x:Name="ButtonReloadModel" ToolTip="Reload model and reset camera [F5]" Width="30" Height="30">
                         <local:TextEncodedImage EncodedImage="?OO???O??K?of?qOOCGC?A@_O?GC?A@a_oCO}??B?_????" Width="16" Height="16" EncodedImageColor="{DynamicResource MenuButton_ReloadModel}"></local:TextEncodedImage>
                     </Button>

@@ -38,8 +38,11 @@ namespace SolidModelBrowser
         [PropertyInfo(Category = "Main Window", Description = "Width of file panel")]
         public double FilePanelWidth { get; set; } = 200;
 
+        [PropertyInfo(Category = "Main Window", Description = "Show file navigation panel by default", MenuLabel = "Show file panel")]
+        public bool ShowFilePanel { get; set; } = false;
+
         [PropertyInfo(Category = "Main Window", Description = "Opacity of file panel when it is not in use", MenuLabel = "File panel idle opacity", Min = 0.0, Max = 1.0, Increment = 0.1)]
-        public double FilePanelIdleOpacity { get; set; } = 0.2;
+        public double FilePanelIdleOpacity { get; set; } = 1.0;
 
 
         [PropertyInfo(Category = "Utils", Description = "External application to open current viewed file", MenuLabel = "External Application")]

@@ -22,7 +22,9 @@ jobs:
       uses: NuGet/setup-nuget@v2
 
     - name: Restore NuGet packages
-      run: nuget restore SolidModelBrowser.sln
+      run: |
+        nuget restore SolidModelBrowser.sln
+        msbuild SolidModelBrowser.sln /t:restore
 
     - name: Build Solution
       run: msbuild SolidModelBrowser.sln /p:Configuration=Release /p:Platform="Any CPU" /m

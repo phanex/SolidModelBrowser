@@ -31,6 +31,7 @@ CTRL+F - Recreate smooth mesh in flat mode (flat polygon lighting)
 CTRL+W - Wireframe mode
 CTRL+S - Export current model
 I - show/hide model info
+Tab, F9, CTRL+B - Show/hide file browser panel
 LeftShift - hold left shift to drag window by viewport
 
 Grigoriy E. (questfulcat) 2025 (C)";

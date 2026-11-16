@@ -67,11 +67,12 @@ namespace SolidModelBrowser
             scene.ShiftAndDrag += (s, e) => this.DragMove();
             sliderSliceHeight.ValueChanged += (s, e) => slice();
 
+            ButtonToggleFilePanel.Click += (s, e) => setFilePanelVisibility(ButtonToggleFilePanel.IsChecked == true);
+
             filePanel.IsIgnoringLetterKeysNavigation = true;
             filePanel.Extensions = new List<string>();
             foreach (Import importer in Import.Imports) filePanel.Extensions.AddRange(importer.Extensions);
-            filePanel.MouseEnter += (s, e) => filePanel.Opacity = 1.0;
-            filePanel.MouseLeave += (s, e) => filePanel.Opacity = settings.FilePanelIdleOpacity;
+            filePanel.Opacity = 1.0;
             filePanel.SelectionChanged += (s, e) => clearView();
             filePanel.FileNavigated += (s, filename) => loadFile(filename);
 
@@ -88,14 +89,18 @@ namespace SolidModelBrowser
             MaxWidth = settings.MaxWidth < 1 ? scrsize.Width : Math.Max(settings.MaxWidth, MinWidth);
             MaxHeight = settings.MaxHeight < 1 ? scrsize.Height : Math.Max(settings.MaxHeight, MinHeight);
 
-            showInfo($"Solid Model Browser v {version}\r\nSTL, OBJ, 3MF, PLY, GCODE formats supported\r\n\r\nquestfulcat 2025 (C)\r\nhttps://github.com/questfulcat/solidmodelbrowser\r\nDistributed under MIT License\r\n\r\nF1 - keymap help");
+            showInfo($"Solid Model Browser v {version}\r\nSTL, OBJ, 3MF, PLY, SKP, GCODE formats supported\r\n\r\nquestfulcat 2025 (C)\r\nhttps://github.com/questfulcat/solidmodelbrowser\r\nDistributed under MIT License\r\n\r\nF1 - keymap help");
             this.ContentRendered += windowRendered;
         }
 
         void windowRendered(object s, EventArgs a)
         {
             var args = Environment.GetCommandLineArgs();
-            if (args.Length == 2 && File.Exists(args[1]) && Import.SelectImporter(args[1])) filePanel.SelectFile(args[1], true);
+            if (args.Length == 2 && File.Exists(args[1]) && Import.SelectImporter(args[1]))
+            {
+                filePanel.SelectFile(args[1], false);
+                loadFile(args[1]);
+            }
             this.ContentRendered -= windowRendered;
         }
         
@@ -199,6 +204,8 @@ namespace SolidModelBrowser
             
             if (CAS == "") // no modifier keys
             {
+                if (e.Key == Key.Tab || e.Key == Key.F9) { setFilePanelVisibility(filePanel.Visibility != Visibility.Visible); e.Handled = true; return; }
+
                 double ra = settings.ModelRotationAngle;
                 if (e.Key == Key.A) addRotation(0, 0, ra);
                 if (e.Key == Key.D) addRotation(0, 0, -ra);
@@ -237,6 +244,7 @@ namespace SolidModelBrowser
 
             if (CAS == "C") // CTRL
             {
+                if (e.Key == Key.B) { setFilePanelVisibility(filePanel.Visibility != Visibility.Visible); e.Handled = true; return; }
                 if (e.Key == Key.F) { meshBase = Utils.UnsmoothMesh(meshBase); updateMeshes(true); }
                 if (e.Key == Key.W) { ButtonWireframe.Toggle(); updateMeshes(false); }
                 if (e.Key == Key.S) export();

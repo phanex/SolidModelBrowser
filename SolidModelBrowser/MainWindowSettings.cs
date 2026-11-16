@@ -17,7 +17,9 @@ namespace SolidModelBrowser
                 settings.Height = this.Height;
             }
             settings.WindowState = this.WindowState;
-            settings.FilePanelWidth = FilePanelColumn.Width.Value;
+            settings.ShowFilePanel = filePanel.Visibility == Visibility.Visible;
+            if (settings.ShowFilePanel && FilePanelColumn.Width.Value > 20)
+                settings.FilePanelWidth = FilePanelColumn.Width.Value;
             settings.SelectedPath = filePanel.Path;
 
             settings.IsDiffuseEnabled = ButtonDiffuseMaterial.IsChecked.Value;
@@ -45,7 +47,7 @@ namespace SolidModelBrowser
             this.Width = settings.Width;
             this.Height = settings.Height;
             this.WindowState = settings.WindowState;
-            FilePanelColumn.Width = new GridLength(settings.FilePanelWidth);
+            setFilePanelVisibility(settings.ShowFilePanel);
             filePanel.SortFilesByExtensions = settings.SortFilesByExtensions;
             filePanel.Path = settings.SelectedPath;
             filePanel.Refresh();
@@ -80,6 +82,27 @@ namespace SolidModelBrowser
 
             scene.CreateAxes(settings.AxesLength);
             scene.CreateGround(settings.GroundRectangle, settings.GroundCheckerSize, settings.GroundDiffuseColor.Color, settings.GroundEmissiveColor.Color);
+        }
+
+        void setFilePanelVisibility(bool isVisible)
+        {
+            if (isVisible)
+            {
+                double w = settings.FilePanelWidth > 50 ? settings.FilePanelWidth : 200;
+                FilePanelColumn.Width = new GridLength(w);
+                filePanel.Visibility = Visibility.Visible;
+                FilePanelSplitter.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                if (filePanel.Visibility == Visibility.Visible && FilePanelColumn.Width.Value > 20)
+                    settings.FilePanelWidth = FilePanelColumn.Width.Value;
+                FilePanelColumn.Width = new GridLength(0);
+                filePanel.Visibility = Visibility.Collapsed;
+                FilePanelSplitter.Visibility = Visibility.Collapsed;
+            }
+            if (ButtonToggleFilePanel != null)
+                ButtonToggleFilePanel.IsChecked = isVisible;
         }
     }
 }
