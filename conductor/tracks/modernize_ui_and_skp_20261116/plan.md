@@ -1,33 +1,34 @@
 # Implementation Plan: Modernize UI & SKP Support
 
-## Phase 1: CI/CD Setup & Build Baseline
+## Phase 1: CI/CD & TDD Test Project Setup
 - [x] Create `.github/workflows/build.yml` with MSBuild and NuGet restore.
-- [ ] Verify clean build on GitHub Actions runner.
-- [x] Configure automatic artifact generation for Release binaries.
+- [x] Create `SolidModelBrowser.Tests/SolidModelBrowser.Tests.csproj` (NUnit / net48) and link to `SolidModelBrowser.sln`.
+- [x] Add unit tests for `Settings` defaults (opaque file panel, hidden by default).
+- [x] Add unit tests for `ImportSKP` contract (positions, triangles, error resilience).
+- [x] Update `build.yml` to run `dotnet test` on GitHub Actions runner.
 
-## Phase 2: SKP Format Support & File Panel Overhaul
-- [x] Add `OpenSkp` NuGet package to `SolidModelBrowser.csproj` / `packages.config`.
-- [x] Create `Imports/ImportSKP.cs` inheriting from `Imports/Import`.
-- [x] Implement geometry extraction (vertices, normals, triangles) into `Positions`, `Indices`, `Normals`.
-- [x] Make File Navigation Panel non-transparent (solid `#383838` background, idle opacity = 1.0).
-- [x] Make File Navigation Panel hidden by default (`ShowFilePanel = false`) for file association workflow.
-- [x] Add toggle button and shortcuts (`Tab`, `F9`, `Ctrl+B`) for showing/hiding file panel.
-- [ ] Verify loading sample `.skp` files and verify proper viewport orientation and scaling in live build.
+## Phase 2: Verified SKP Format Implementation
+- [x] Add `PackageReference Include="OpenSkp" Version="1.5.0"` to `SolidModelBrowser.csproj` (clean PackageReference, remove obsolete packages.config).
+- [x] Implement `Imports/ImportSKP.cs` using verified `OpenSkp.Scene.GlbPrimitives` flat float arrays.
+- [ ] Verify test suite passes green for SKP parsing.
 
-## Phase 3: Modern UI & Icon Integration
-- [ ] Add user's pixel-perfect icons from `Assets/Icons/` to `SolidModelBrowser.csproj` as WPF Resources.
-- [ ] Refactor icon loading from legacy `TextEncodedImage.cs` to resource-based vectors/bitmaps.
-- [ ] Update `Colors.xaml` with modern Dark Slate and Clean Light palettes.
-- [ ] Update `FileNavigationPanel.xaml`:
-  - Add icons for folders vs supported file types.
-  - Implement badge styling for `.stl`, `.3mf`, `.skp`, `.obj`, `.ply`, `.gcode`.
+## Phase 3: CAD Shading & Slicer Polish
+- [x] Set Flat Shading (unsmoothed mesh) as default on model load (`UnsmoothAfterLoading = true`).
+- [x] Implement circular Thumb style for the vertical Z-slicer slider.
+- [ ] Wire optional Model Info HUD (toggleable via `I`).
 
-## Phase 4: Native Windows 11 Chrome & Snap Layouts
-- [ ] Implement `WM_NCHITTEST` interop in `MainWindow.xaml.cs`.
-- [ ] Map Maximize button rectangle to `HTMAXBUTTON` (9) to trigger Windows 11 Snap Layouts flyout.
-- [ ] Verify minimize, restore, maximize, and drag interactions on Windows 10 & 11.
+## Phase 4: Toolbar & SplitButtons Architecture
+- [ ] Build Shading SplitButton (Flat CAD $\leftrightarrow$ Wireframe, dropdown for smooth/overlays).
+- [ ] Build External App SplitButton (icon-only 38px, context menu with app choices + separator + Save PNG `[F6]`).
+- [ ] Build Camera Button (Persp $\leftrightarrow$ Ortho, dropdown for Fish-Eye & Center).
+- [ ] Implement compact X/Y/Z rotation button cluster.
+- [ ] Embed pixel-perfect 16x16 vector/duotone icons from `Assets/Icons/`.
 
-## Phase 5: Verification & Packaging
-- [ ] Trigger CI build and download artifact.
-- [ ] Verify standalone execution without external dependencies.
-- [ ] Update documentation and `README.md` with screenshots and features.
+## Phase 5: Opaque Sidebar & Window Chrome
+- [ ] Finalize `FileNavigationPanel`: solid background, zero startup flash, sharp 1:1 folder/file icons.
+- [ ] Single-load fix in `windowRendered` for file association launches.
+- [ ] Restore Windows 11 Snap Layouts hover on Maximize button (`WM_NCHITTEST` / `HTMAXBUTTON`).
+
+## Phase 6: Live Verification & Cloud Build
+- [ ] Update `conductor/tracks/modernize_ui_and_skp_20261116/preview.html` with real XAML-matched layout.
+- [ ] Run full CI build with tests in GitHub Actions and verify downloadable release artifact.

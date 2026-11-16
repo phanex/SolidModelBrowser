@@ -2,61 +2,59 @@
 
 ## 1. Overview & Goals
 SolidModelBrowser is an ultra-fast, lightweight 3D model viewer for Windows built with .NET Framework 4.8 and WPF.
-This track accomplishes four major enhancements:
-1. **SketchUp (.skp) Support**: Integrate pure-managed `.skp` reading via `OpenSkp` (NuGet) without requiring SketchUp or heavyweight native CAD SDKs.
-2. **Icon & Visual Facelift**: Replace legacy 1-bit ASCII string icons (`TextEncodedImage.cs`) with pixel-perfect modern vector/raster icons (16px to 96px/256px) created for file formats (`STL`, `3MF`, `SKP`, `OBJ`, `PLY`, `GCODE`) and application chrome.
-3. **Themes & Navigation Improvements**: Update `Colors.xaml` with modern dark slate and crisp light palettes; enhance `FileNavigationPanel` so folders and files are instantly distinguishable with format badges.
-4. **Windows 11 Window Chrome Fix**: Restore native Windows 11 Snap Layouts hover menu on the maximize button while keeping the custom minimalist titlebar.
-5. **Zero-Install Cloud Build**: Configure GitHub Actions workflow to build release-ready standalone binaries on GitHub runners.
+This track delivers a comprehensive engineering facelift and format expansion:
+1. **SketchUp (.skp) Support**: Pure-managed integration via `OpenSkp` (NuGet) extracting world-space triangulated geometry without SketchUp installation or native SDK dependencies.
+2. **CAD-Grade Flat Shading by Default**: Unsmooth/flat polygon rendering by default on import to eliminate distorted/mangled shading on raw CAD/STL models, with optional smooth normals.
+3. **Streamlined Engineering Toolbar & SplitButtons**:
+   - Compact **Shading SplitButton** (38px): Click toggles Flat CAD Shaded $\leftrightarrow$ Wireframe; dropdown controls Shaded+Wireframe, Smooth Normals, and Backside color.
+   - Compact **External App SplitButton** (38px, icon only): Context-filtered apps by file extension (e.g. OrcaSlicer, SketchUp) + dropdown separator with **Save Snapshot to PNG [F6]**.
+   - Compact **Camera button** (30px): Quick Persp $\leftrightarrow$ Ortho toggle (`F8`), with Fish-Eye FOV and Center at Model in dropdown.
+   - Rotations X / Y / Z compact colored block.
+   - Rare actions (mesh inversion, settings) housed in an overflow `[ ⋯ ]` More menu.
+4. **Opaque & Hidden-by-Default File Navigation Panel**:
+   - Solid background (`#252528` dark / `#F0F0F0` light) with `Opacity = 1.0` (no dimming).
+   - Hidden by default (`ShowFilePanel = false`) for seamless file association launching.
+   - Instant toggle via `Tab` / `Ctrl+B` or toolbar button.
+   - Sharp 1:1 pixel-perfect folder and format icons from `Assets/Icons/`.
+5. **Interactive Height Slicer (Z-Cross-Section)**:
+   - Kept right-aligned in viewport with modern circular Thumb styling.
+6. **Optional Model Info HUD**:
+   - Hidden by default, toggled via `I` key showing concise Bounding Box dimensions in mm ($X \times Y \times Z$), triangle count, and manifold status.
+7. **Clean Titlebar**:
+   - Bare file name (`autoramka_test.3mf`), Windows 11 Snap Layouts via `WM_NCHITTEST` on Maximize button.
+8. **Automated CI/CD & Test Baseline (TDD)**:
+   - Separate test project `SolidModelBrowser.Tests` running in GitHub Actions workflow.
 
 ---
 
-## 2. Detailed Requirements
+## 2. Technical Contracts & Requirements
 
 ### 2.1 SKP Importer (`Imports/ImportSKP.cs`)
-- Subclass `Imports/Import` base class.
-- The base class automatically discovers importers via reflection:
-  ```csharp
-  var types = System.Reflection.Assembly.GetExecutingAssembly().GetTypes()
-      .Where(t => t.IsSubclassOf(typeof(Import)));
-  ```
-- File extensions: `.skp`.
-- Extraction of triangle meshes (vertices, normals, indices) and population of `Positions`, `Indices`, and `Normals`.
-- Managed package: `OpenSkp` via NuGet.
+- Subclass `Imports/Import`.
+- Uses `OpenSkp.SkpFile.BuildScene(filename)` returning `OpenSkp.Scene`.
+- Iterates `scene.GlbPrimitives`:
+  - `float[] Positions`: 3-tuple floats mapped to `Positions.Add(new Point3D(x, y, z))`.
+  - `float[] Normals`: 3-tuple floats mapped to `Normals.Add(new Vector3D(nx, ny, nz))`.
+  - `uint[] Indices`: Triangle vertex indices mapped with `baseIndex` offsets.
+- Progress updates per primitive, error resilience with `ExceptionMessage`.
 
-### 2.2 Visual Assets & Pixel-Perfect Icons
-- Pixel-perfect icons stored in `Assets/Icons/`:
-  - `App` (16, 20, 24, 32, 40, 48, 64, 96 px)
-  - `STL` (16, 20, 24, 32, 40, 48, 64, 96 px)
-  - `3MF` (16, 20, 24, 32, 40, 48, 64, 96 px)
-  - `SKP` (16, 20, 24, 32, 40, 48, 64, 96 px)
-  - `OBJ` (16, 20, 24, 32, 40, 48, 64, 96 px)
-  - `PLY` (16, 20, 24, 32, 40, 48, 64, 96 px)
-  - `Gcode` (16, 20, 24, 32, 40, 48, 64, 96 px)
-  - High-res app / file type branding (256 px).
-- Replace hardcoded 1-bit ASCII strings in `TextEncodedImage.cs` with clean WPF `BitmapImage` or `DrawingImage` resources.
+### 2.2 Shading Logic
+- In `loadFile()`: default mesh post-processing uses `Utils.UnsmoothMesh(meshBase)` to guarantee clean flat facets unless smooth shading is explicitly requested.
 
-### 2.3 UI Themes & File Tree (`FileNavigationPanel.xaml`)
-- Update `Colors.xaml`:
-  - **Dark Mode**: Neutral slate tones (`#18181B` base, `#27272A` panels, `#3F3F46` borders, `#3B82F6` accents).
-  - **Light Mode**: Clean minimalist neutrals (`#F8FAFC` base, `#FFFFFF` panels, `#E2E8F0` borders).
-- Enhance TreeView / ListView in `FileNavigationPanel.xaml`:
-  - Differentiate folder nodes (folder icon) from 3D model files (format-specific badge/icon).
-  - Clean font hierarchy, subtle selection highlights.
+### 2.3 External App SplitButton
+- Configurable dictionary mapping extensions to executable candidates.
+- Primary click launches current default application for extension.
+- Dropdown menu lists alternative tools followed by `Separator` and `Save Image to PNG... (F6)`.
 
-### 2.4 Windows 11 Snap Layouts Support
-- The app uses `WindowStyle="None"` with custom window controls.
-- To allow Windows 11 Snap Layouts to open when hovering over the Maximize button:
-  - Hook `HwndSource.AddHook` to handle `WM_NCHITTEST` (`0x0084`).
-  - When the cursor coordinate falls within the Maximize button bounds, return `HTMAXBUTTON` (`9`).
-  - Handle `WM_NCLBUTTONDOWN` / `WM_NCLBUTTONUP` or coordinate state transitions properly.
+### 2.4 File Panel & State
+- Default `ShowFilePanel = false`.
+- Default `FilePanelIdleOpacity = 1.0`.
+- Initial XAML layout set to `Width="0"` and `Visibility="Collapsed"` to prevent startup flicker.
+- `SelectFile` coordinates selection without triggering duplicate file loads.
 
-### 2.5 Automated CI/CD (`.github/workflows/build.yml`)
-- Trigger on `push` and `workflow_dispatch`.
-- Runner: `windows-latest`.
-- Steps:
-  1. Checkout repository.
-  2. Setup MSBuild & NuGet.
-  3. Restore NuGet packages.
-  4. Build `SolidModelBrowser.sln` in Release mode.
-  5. Upload compiled executable artifact (`SolidModelBrowser.exe`).
+### 2.5 Tests (`SolidModelBrowser.Tests`)
+- Target: `net48`, NUnit.
+- Tests verify:
+  1. `ImportSKP` parsing valid geometry, triangle count divisibility by 3, and failure handling on corrupted inputs.
+  2. `Settings` defaults (`ShowFilePanel == false`, `FilePanelIdleOpacity == 1.0`).
+  3. Single-load invariant on command-line argument dispatch.

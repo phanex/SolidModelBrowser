@@ -132,8 +132,8 @@ namespace SolidModelBrowser
         [PropertyInfo(Category = "Model", Description = "Skip loading models original normals", MenuLabel = "Skip load normals")]
         public bool IgnoreOriginalNormals { get; set; } = false;
 
-        [PropertyInfo(Category = "Model", Description = "Convert smoothed models to flat automatically", MenuLabel = "Unsmooth after loading")]
-        public bool UnsmoothAfterLoading { get; set; } = false;
+        [PropertyInfo(Category = "Model", Description = "Convert smoothed models to flat automatically (Flat CAD shading)", MenuLabel = "Unsmooth after loading")]
+        public bool UnsmoothAfterLoading { get; set; } = true;
 
 
 

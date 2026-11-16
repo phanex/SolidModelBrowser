@@ -21,46 +21,63 @@ namespace SolidModelBrowser
         {
             try
             {
-                using (var skp = SkpFile.Open(filename))
+                if (!File.Exists(filename))
                 {
-                    var scene = skp.BuildScene();
-                    if (scene == null || scene.Meshes == null) return;
+                    ExceptionMessage = $"SKP file not found: {filename}";
+                    return;
+                }
 
-                    int totalMeshes = scene.Meshes.Count;
-                    int currentMesh = 0;
-                    int baseIndex = 0;
+                var scene = SkpFile.BuildScene(filename);
+                if (scene == null || scene.GlbPrimitives == null)
+                {
+                    ExceptionMessage = "Failed to extract scene from SKP file.";
+                    return;
+                }
 
-                    foreach (var mesh in scene.Meshes)
+                int totalPrimitives = scene.GlbPrimitives.Count;
+                if (totalPrimitives == 0) return;
+
+                for (int p = 0; p < totalPrimitives; p++)
+                {
+                    if (StopFlag) return;
+
+                    var prim = scene.GlbPrimitives[p];
+                    int baseIndex = Positions.Count;
+
+                    // Unpack flat float array (X, Y, Z triplets)
+                    if (prim.Positions != null)
                     {
-                        if (StopFlag) return;
-
-                        if (mesh.Vertices != null)
+                        for (int i = 0; i < prim.Positions.Length; i += 3)
                         {
-                            for (int i = 0; i < mesh.Vertices.Count; i++)
-                            {
-                                var v = mesh.Vertices[i];
-                                Positions.Add(new Point3D(v.X, v.Y, v.Z));
-
-                                if (mesh.Normals != null && i < mesh.Normals.Count)
-                                {
-                                    var n = mesh.Normals[i];
-                                    Normals.Add(new Vector3D(n.X, n.Y, n.Z));
-                                }
-                            }
+                            float x = prim.Positions[i];
+                            float y = prim.Positions[i + 1];
+                            float z = prim.Positions[i + 2];
+                            Positions.Add(new Point3D(x, y, z));
                         }
-
-                        if (mesh.Indices != null)
-                        {
-                            for (int i = 0; i < mesh.Indices.Count; i++)
-                            {
-                                Indices.Add(baseIndex + mesh.Indices[i]);
-                            }
-                        }
-
-                        baseIndex = Positions.Count;
-                        currentMesh++;
-                        Progress = totalMeshes > 0 ? (currentMesh * 100 / totalMeshes) : 100;
                     }
+
+                    // Unpack flat normal array (NX, NY, NZ triplets)
+                    if (prim.Normals != null)
+                    {
+                        for (int i = 0; i < prim.Normals.Length; i += 3)
+                        {
+                            float nx = prim.Normals[i];
+                            float ny = prim.Normals[i + 1];
+                            float nz = prim.Normals[i + 2];
+                            Normals.Add(new Vector3D(nx, ny, nz));
+                        }
+                    }
+
+                    // Unpack triangle vertex indices
+                    if (prim.Indices != null)
+                    {
+                        for (int i = 0; i < prim.Indices.Length; i++)
+                        {
+                            Indices.Add(baseIndex + (int)prim.Indices[i]);
+                        }
+                    }
+
+                    Progress = (p + 1) * 100 / totalPrimitives;
                 }
             }
             catch (Exception ex)

@@ -1,4 +1,4 @@
-name: Build SolidModelBrowser
+name: Build & Test SolidModelBrowser
 
 on:
   push:
@@ -28,6 +28,9 @@ jobs:
 
     - name: Build Solution
       run: msbuild SolidModelBrowser.sln /p:Configuration=Release /p:Platform="Any CPU" /m
+
+    - name: Run Unit Tests
+      run: dotnet test SolidModelBrowser.Tests/SolidModelBrowser.Tests.csproj --configuration Release --no-build --verbosity normal
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
