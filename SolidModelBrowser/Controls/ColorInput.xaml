@@ -5,15 +5,26 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:SolidModelBrowser"
              mc:Ignorable="d">
-    <StackPanel Orientation="Horizontal">
-        <Border x:Name="BorderColorPreview" Width="32" Background="White" CornerRadius="4" BorderThickness="0" /> <!--BorderBrush="{DynamicResource WindowFore}"-->
-        <TextBlock Margin="8,0,2,0">A</TextBlock>
-        <local:NumericBox x:Name="NBAlpha" Value="255" MinValue="0" MaxValue="255" RoundDigits="0"/>
-        <TextBlock Margin="8,0,2,0">R</TextBlock>
-        <local:NumericBox x:Name="NBRed" Value="255" MinValue="0" MaxValue="255" RoundDigits="0"/>
-        <TextBlock Margin="8,0,2,0">G</TextBlock>
-        <local:NumericBox x:Name="NBGreen" Value="255" MinValue="0" MaxValue="255" RoundDigits="0"/>
-        <TextBlock Margin="8,0,2,0">B</TextBlock>
-        <local:NumericBox x:Name="NBBlue" Value="255" MinValue="0" MaxValue="255" RoundDigits="0"/>
+    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+        <!-- Clickable Swatch Preview -->
+        <Border x:Name="BorderColorPreview" Width="36" Height="24" Background="White" CornerRadius="4" 
+                BorderThickness="1" BorderBrush="{DynamicResource WindowStroke}" Cursor="Hand" ToolTip="Click to open color palette"/>
+
+        <!-- Windows Color Palette Button -->
+        <Button x:Name="ButtonPick" Width="26" Height="24" Margin="4,0,0,0" ToolTip="Open Windows color palette">
+            <Viewbox Width="14" Height="14" Stretch="Uniform">
+                <Path Data="M12,2 C6.5,2 2,6.5 2,12 C2,14.5 3,16.5 4.5,17.5 C5.2,18 5.5,19 5.2,19.8 C4.9,20.5 5.5,22 6.5,22 L8,22 C13.5,22 22,17.5 22,12 C22,6.5 17.5,2 12,2 Z M6.5,11.5 C5.7,11.5 5,10.8 5,10 C5,9.2 5.7,8.5 6.5,8.5 C7.3,8.5 8,9.2 8,10 C8,10.8 7.3,11.5 6.5,11.5 Z M9.5,7.5 C8.7,7.5 8,6.8 8,6 C8,5.2 8.7,4.5 9.5,4.5 C10.3,4.5 11,5.2 11,6 C11,6.8 10.3,7.5 9.5,7.5 Z M14.5,7.5 C13.7,7.5 13,6.8 13,6 C13,5.2 13.7,4.5 14.5,4.5 C15.3,4.5 16,5.2 16,6 C16,6.8 15.3,7.5 14.5,7.5 Z M17.5,11.5 C16.7,11.5 16,10.8 16,10 C16,9.2 16.7,8.5 17.5,8.5 C18.3,8.5 19,9.2 19,10 C19,10.8 18.3,11.5 17.5,11.5 Z"
+                      Fill="{DynamicResource WindowFore}"/>
+            </Viewbox>
+        </Button>
+
+        <!-- Hex Color Code Input -->
+        <TextBlock Text="Hex:" Margin="8,0,4,0" VerticalAlignment="Center" FontSize="11" Foreground="{DynamicResource WindowFore}" Opacity="0.8"/>
+        <TextBox x:Name="TextBoxHex" Width="82" Height="24" TextAlignment="Center" VerticalContentAlignment="Center"
+                 FontFamily="Consolas, monospace" FontSize="12" ToolTip="Hex color code (#RRGGBB or #AARRGGBB)"/>
+
+        <!-- Alpha Input -->
+        <TextBlock Text="Alpha:" Margin="8,0,4,0" VerticalAlignment="Center" FontSize="11" Foreground="{DynamicResource WindowFore}" Opacity="0.8"/>
+        <local:NumericBox x:Name="NBAlpha" Value="255" MinValue="0" MaxValue="255" RoundDigits="0" Width="44" Height="24" ToolTip="Alpha channel opacity (0 = transparent, 255 = solid)"/>
     </StackPanel>
 </UserControl>

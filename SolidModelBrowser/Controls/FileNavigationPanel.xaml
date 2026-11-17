@@ -11,7 +11,7 @@
     </UserControl.Resources>
     <DockPanel DockPanel.Dock="Left" >
         <!--ComboBox DockPanel.Dock="Top" Name="comboBoxDisk"></ComboBox-->
-        <WrapPanel Name="drivesWrapPanel" DockPanel.Dock="Top"></WrapPanel>
+        <WrapPanel Name="drivesWrapPanel" DockPanel.Dock="Top" Margin="4,4,4,4"></WrapPanel>
         <ListBox BorderThickness="0" FocusVisualStyle="{x:Null}"
                  HorizontalContentAlignment="Stretch"
                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"

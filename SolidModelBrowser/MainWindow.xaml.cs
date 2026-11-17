@@ -50,15 +50,15 @@ namespace SolidModelBrowser
             ButtonRotateY.Click += (s, e) => addRotation(0, settings.ModelRotationAngle, 0);
             ButtonRotateZ.Click += (s, e) => addRotation(0, 0, settings.ModelRotationAngle);
 
-            ButtonWireframe.Click += (s, e) => updateMeshes(false);
+            ButtonWireframe.Click += (s, e) => { if (meshBase != null) updateMeshes(false); };
             ButtonShadingDropdown.Click += (s, e) =>
             {
                 MenuBacksideColor.IsChecked = ButtonBacksideDiffuseMaterial.IsChecked == true;
                 ButtonShadingDropdown.ContextMenu.PlacementTarget = ButtonShadingDropdown;
                 ButtonShadingDropdown.ContextMenu.IsOpen = true;
             };
-            MenuRecreateUnsmoothed.Click += (s, e) => { meshBase = Utils.UnsmoothMesh(meshBase); ButtonWireframe.IsChecked = false; updateMeshes(true); };
-            MenuWireframeOnly.Click += (s, e) => { ButtonWireframe.IsChecked = true; updateMeshes(false); };
+            MenuRecreateUnsmoothed.Click += (s, e) => { if (meshBase == null) return; meshBase = Utils.UnsmoothMesh(meshBase); ButtonWireframe.IsChecked = false; updateMeshes(true); };
+            MenuWireframeOnly.Click += (s, e) => { if (meshBase == null) return; ButtonWireframe.IsChecked = true; updateMeshes(false); };
             MenuBacksideColor.Click += (s, e) => { ButtonBacksideDiffuseMaterial.IsChecked = MenuBacksideColor.IsChecked; applyMaterials(); };
 
             ButtonSelectCamera.Click += (s, e) => updateCameraModes();
@@ -73,26 +73,26 @@ namespace SolidModelBrowser
                 ButtonMore.ContextMenu.IsOpen = true;
             };
             MenuAxes.Click += (s, e) => { ButtonAxes.Toggle(); scene.IsAxesVisible = ButtonAxes.IsChecked.Value; };
-            MenuCenterGC.Click += (s, e) => scene.Camera.TurnAt(modelCenter);
-            MenuCenterMC.Click += (s, e) => scene.Camera.TurnAt(modelPointsAvgCenter);
+            MenuCenterGC.Click += (s, e) => { if (meshBase != null) scene.Camera.TurnAt(modelCenter); };
+            MenuCenterMC.Click += (s, e) => { if (meshBase != null) scene.Camera.TurnAt(modelPointsAvgCenter); };
             MenuFishEye.Click += (s, e) => { ButtonFishEyeFOV.Toggle(); updateCameraModes(); };
-            MenuSwapNormals.Click += (s, e) => { Utils.InvertNormals(meshBase); updateMeshes(true); };
-            MenuRemoveNormals.Click += (s, e) => { meshBase.Normals.Clear(); updateMeshes(true); };
-            MenuFlipFaces.Click += (s, e) => { Utils.InvertVertexOrder(meshBase); updateMeshes(true); };
+            MenuSwapNormals.Click += (s, e) => { if (meshBase == null) return; Utils.InvertNormals(meshBase); updateMeshes(true); };
+            MenuRemoveNormals.Click += (s, e) => { if (meshBase == null) return; meshBase.Normals.Clear(); updateMeshes(true); };
+            MenuFlipFaces.Click += (s, e) => { if (meshBase == null) return; Utils.InvertVertexOrder(meshBase); updateMeshes(true); };
             MenuSettings.Click += (s, e) => runSettings();
 
             ButtonDiffuseMaterial.Click += (s, e) => applyMaterials();
             ButtonSpecularMaterial.Click += (s, e) => applyMaterials();
             ButtonEmissiveMaterial.Click += (s, e) => applyMaterials();
             ButtonBacksideDiffuseMaterial.Click += (s, e) => applyMaterials();
-            ButtonCenterCameraAtModelGC.Click += (s, e) => scene.Camera.TurnAt(modelCenter);
-            ButtonCenterCameraAtModelMC.Click += (s, e) => scene.Camera.TurnAt(modelPointsAvgCenter);
+            ButtonCenterCameraAtModelGC.Click += (s, e) => { if (meshBase != null) scene.Camera.TurnAt(modelCenter); };
+            ButtonCenterCameraAtModelMC.Click += (s, e) => { if (meshBase != null) scene.Camera.TurnAt(modelPointsAvgCenter); };
             ButtonFishEyeFOV.Click += (s, e) => updateCameraModes();
             ButtonAxes.Click += (s, e) => scene.IsAxesVisible = ButtonAxes.IsChecked.Value;
-            ButtonSwapNormals.Click += (s, e) => { Utils.InvertNormals(meshBase); updateMeshes(true); };
-            ButtonRemoveNormals.Click += (s, e) => { meshBase.Normals.Clear(); updateMeshes(true); };
-            ButtonChangeVerticesOrder.Click += (s, e) => { Utils.InvertVertexOrder(meshBase); updateMeshes(true); };
-            ButtonRecreateUnsmoothed.Click += (s, e) => { meshBase = Utils.UnsmoothMesh(meshBase); updateMeshes(true); };
+            ButtonSwapNormals.Click += (s, e) => { if (meshBase == null) return; Utils.InvertNormals(meshBase); updateMeshes(true); };
+            ButtonRemoveNormals.Click += (s, e) => { if (meshBase == null) return; meshBase.Normals.Clear(); updateMeshes(true); };
+            ButtonChangeVerticesOrder.Click += (s, e) => { if (meshBase == null) return; Utils.InvertVertexOrder(meshBase); updateMeshes(true); };
+            ButtonRecreateUnsmoothed.Click += (s, e) => { if (meshBase == null) return; meshBase = Utils.UnsmoothMesh(meshBase); updateMeshes(true); };
             ButtonSettings.Click += (s, e) => runSettings();
             ButtonExport.Click += (s, e) => export();
 
@@ -256,6 +256,7 @@ namespace SolidModelBrowser
 
         void addRotation(double ax, double ay, double az)
         {
+            if (meshBase == null) return;
             Utils.RotateMesh(meshBase, settings.DefaultLookAtModelPointsAvgCenter ? modelPointsAvgCenter : modelCenter, ax, ay, az);
             Utils.GetModelCenterAndSize(meshBase, out modelCenter, out modelPointsAvgCenter, out modelSize);
             initSlicer();
@@ -380,6 +381,7 @@ namespace SolidModelBrowser
 
         void updateMeshes(bool forceUpdateWireframe)
         {
+            if (meshBase == null) return;
             var wfmode = ButtonWireframe.IsChecked.Value;
             if (wfmode)
             {
@@ -405,7 +407,7 @@ namespace SolidModelBrowser
         bool skipslice = false;
         void slice()
         {
-            if (skipslice) return;
+            if (skipslice || meshBase == null) return;
             Utils.SliceMesh(ButtonWireframe.IsChecked.Value ? meshWireframe : meshBase, scene.Mesh, sliderSliceHeight.Value);
             if (scene.Mesh.TriangleIndices.Count == 0) { scene.Mesh.TriangleIndices.Add(0); }
             //showInfo($"ms: {Utils.sw.ElapsedMilliseconds}\r\nticks: {Utils.sw.ElapsedTicks}\r\nheight: {sliderSliceHeight.Value}, slicescount {++slicescount}, tris: {mesh.TriangleIndices.Count}");
@@ -489,6 +491,7 @@ namespace SolidModelBrowser
 
         void export()
         {
+            if (meshBase == null || scene.Mesh == null || scene.Mesh.Positions.Count == 0) return;
             string exporters = string.Join(",", Export.Exports.Select(e => e.Description).OrderBy(e => e));
             string r = Utils.MessageWindow("Select export format", this, exporters, Orientation.Vertical);
             var exp = Export.Exports.FirstOrDefault(e => e.Description == r);

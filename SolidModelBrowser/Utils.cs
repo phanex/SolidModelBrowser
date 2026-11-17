@@ -120,7 +120,7 @@ namespace SolidModelBrowser
 
         public static void InvertNormals(MeshGeometry3D mesh)
         {
-            if (mesh.Normals == null) return;
+            if (mesh == null || mesh.Normals == null) return;
             var normals = new Vector3DCollection(mesh.Normals.Count);
             foreach (var normal in mesh.Normals) normals.Add(-normal);
             mesh.Normals = normals;
@@ -128,7 +128,7 @@ namespace SolidModelBrowser
 
         public static void InvertVertexOrder(MeshGeometry3D mesh)
         {
-            if (mesh.TriangleIndices == null || mesh.TriangleIndices.Count % 3 != 0) return;
+            if (mesh == null || mesh.TriangleIndices == null || mesh.TriangleIndices.Count % 3 != 0) return;
             var v = new Int32Collection(mesh.TriangleIndices.Count);
             for (int i = 0; i < mesh.TriangleIndices.Count; i += 3)
             {
@@ -141,6 +141,7 @@ namespace SolidModelBrowser
 
         public static MeshGeometry3D UnsmoothMesh(MeshGeometry3D mesh)
         {
+            if (mesh == null || mesh.Positions == null || mesh.TriangleIndices == null) return mesh;
             var r = new MeshGeometry3D();
             var p = new Point3DCollection(mesh.Positions.Count);
             var i = new Int32Collection(mesh.TriangleIndices.Count);
@@ -470,6 +471,7 @@ namespace SolidModelBrowser
 
         public static void RotateMesh(MeshGeometry3D mesh, Point3D center, double ax, double ay, double az)
         {
+            if (mesh == null || mesh.Positions == null) return;
             var positions = new Point3DCollection(mesh.Positions.Count);
             var normals = new Vector3DCollection(mesh.Normals.Count);
             foreach (var p in mesh.Positions) positions.Add(RotatePoint(p, center, ax, ay, az));

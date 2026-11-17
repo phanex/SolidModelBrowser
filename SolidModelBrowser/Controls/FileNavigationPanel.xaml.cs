@@ -29,23 +29,48 @@ namespace SolidModelBrowser
             fill();
             foreach (DriveInfo d in DriveInfo.GetDrives())
             {
+                string drivePath = d.Name.ToUpper();
                 RadioButton rb = new RadioButton();
-                rb.Content = d.Name[0].ToString().ToUpper();
-                //rb.Margin = new Thickness(4);
                 rb.GroupName = "drivesgroup";
+                rb.Tag = drivePath;
+                rb.BorderThickness = new Thickness(0);
+                rb.Margin = new Thickness(2, 2, 4, 2);
+                rb.ToolTip = $"Drive {drivePath}";
+
+                var stack = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(6, 2, 6, 2) };
+                
+                // Hard Drive Icon
+                var vb = new Viewbox { Width = 14, Height = 14, Margin = new Thickness(0, 0, 4, 0), VerticalAlignment = VerticalAlignment.Center };
+                var p = new System.Windows.Shapes.Path
+                {
+                    Data = Geometry.Parse("M2,4 A1,1 0 0,1 3,3 L13,3 A1,1 0 0,1 14,4 L14,12 A1,1 0 0,1 13,13 L3,13 A1,1 0 0,1 2,12 Z M4,10.5 L6,10.5 M11.5,10.5 A0.75,0.75 0 1,0 11.51,10.5"),
+                    Stroke = (Brush)Application.Current.FindResource("WindowFore"),
+                    StrokeThickness = 1.1
+                };
+                vb.Child = p;
+                stack.Children.Add(vb);
+
+                var tb = new TextBlock
+                {
+                    Text = drivePath,
+                    VerticalAlignment = VerticalAlignment.Center,
+                    FontSize = 11
+                };
+                tb.SetResourceReference(TextBlock.ForegroundProperty, "WindowFore");
+                stack.Children.Add(tb);
+
+                rb.Content = stack;
                 rb.Checked += (sender, args) =>
                 {
-                    string drvPath = rb.Content as string + @":\";
-                    if (Directory.Exists(drvPath))
+                    string drvPath = rb.Tag as string;
+                    if (!string.IsNullOrEmpty(drvPath) && Directory.Exists(drvPath))
                     {
                         path = drvPath;
                         fill();
                         DirectoryChanged?.Invoke(this, EventArgs.Empty);
                     }
                 };
-                rb.BorderThickness = new Thickness(0);
-                rb.MinWidth = 30;
-                rb.MinHeight = 30;
+
                 drivesWrapPanel.Children.Add(rb);
             }
 
@@ -219,11 +244,6 @@ namespace SolidModelBrowser
             };
             tb.SetResourceReference(TextBlock.ForegroundProperty, "WindowFore");
 
-            if (isFolder)
-            {
-                tb.FontWeight = FontWeights.SemiBold;
-            }
-
             sp.Children.Add(tb);
             return sp;
         }
@@ -332,7 +352,7 @@ namespace SolidModelBrowser
                 if (!Directory.Exists(value)) return;
                 
                 string drv = value.Substring(0, 1).ToUpper();
-                var rbutton = drivesWrapPanel.Children.OfType<RadioButton>().FirstOrDefault(rb => (rb.Content as string).StartsWith(drv));
+                var rbutton = drivesWrapPanel.Children.OfType<RadioButton>().FirstOrDefault(rb => (rb.Tag as string)?.StartsWith(drv) == true);
                 if (rbutton != null) rbutton.IsChecked = true;
                 
                 path = value;

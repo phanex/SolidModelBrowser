@@ -1,45 +1,125 @@
 ﻿using System;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 
 namespace SolidModelBrowser
 {
     public partial class ColorInput : UserControl
     {
+        private Color currentColor = Colors.White;
+        private bool isUpdating = false;
+
         public ColorInput()
         {
             InitializeComponent();
-            NBAlpha.ValueChanged += NB_ValueChanged;
-            NBRed.ValueChanged += NB_ValueChanged;
-            NBGreen.ValueChanged += NB_ValueChanged;
-            NBBlue.ValueChanged += NB_ValueChanged;
+
+            BorderColorPreview.MouseLeftButtonUp += (s, e) => OpenPalette();
+            ButtonPick.Click += (s, e) => OpenPalette();
+
+            NBAlpha.ValueChanged += (s, e) =>
+            {
+                if (isUpdating) return;
+                byte a = (byte)Math.Max(0, Math.Min(255, (int)Math.Round(NBAlpha.Value)));
+                currentColor = Color.FromArgb(a, currentColor.R, currentColor.G, currentColor.B);
+                UpdateUI(fromHexText: false);
+                ValueChanged?.Invoke(this, EventArgs.Empty);
+            };
+
+            TextBoxHex.LostFocus += (s, e) => ApplyHexText();
+            TextBoxHex.KeyDown += (s, e) =>
+            {
+                if (e.Key == Key.Enter)
+                {
+                    ApplyHexText();
+                    e.Handled = true;
+                }
+            };
         }
 
-        Color getColor()
+        private void OpenPalette()
         {
-            return Color.FromArgb((byte)NBAlpha.Value, (byte)NBRed.Value, (byte)NBGreen.Value, (byte)NBBlue.Value);
+            using (var cd = new System.Windows.Forms.ColorDialog())
+            {
+                cd.FullOpen = true;
+                cd.Color = System.Drawing.Color.FromArgb(currentColor.R, currentColor.G, currentColor.B);
+                if (cd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                {
+                    currentColor = Color.FromArgb(currentColor.A, cd.Color.R, cd.Color.G, cd.Color.B);
+                    UpdateUI(fromHexText: false);
+                    ValueChanged?.Invoke(this, EventArgs.Empty);
+                }
+            }
         }
 
-        void NB_ValueChanged(object sender, System.EventArgs e)
+        private void ApplyHexText()
         {
-            BorderColorPreview.Background = new SolidColorBrush(getColor());
-            ValueChanged?.Invoke(this, EventArgs.Empty);
+            if (isUpdating) return;
+            string text = TextBoxHex.Text.Trim();
+            if (TryParseHex(text, out Color parsed))
+            {
+                currentColor = parsed;
+                UpdateUI(fromHexText: false);
+                ValueChanged?.Invoke(this, EventArgs.Empty);
+            }
+            else
+            {
+                UpdateUI(fromHexText: false);
+            }
+        }
+
+        private bool TryParseHex(string text, out Color color)
+        {
+            color = currentColor;
+            if (string.IsNullOrWhiteSpace(text)) return false;
+            if (!text.StartsWith("#")) text = "#" + text;
+            try
+            {
+                var obj = ColorConverter.ConvertFromString(text);
+                if (obj is Color c)
+                {
+                    // If user entered 6-digit hex (#RRGGBB), preserve current alpha
+                    if (text.Length == 7)
+                    {
+                        c.A = currentColor.A;
+                    }
+                    color = c;
+                    return true;
+                }
+            }
+            catch { }
+            return false;
+        }
+
+        private void UpdateUI(bool fromHexText)
+        {
+            isUpdating = true;
+            try
+            {
+                BorderColorPreview.Background = new SolidColorBrush(currentColor);
+                NBAlpha.Value = currentColor.A;
+                if (!fromHexText)
+                {
+                    TextBoxHex.Text = currentColor.A == 255
+                        ? $"#{currentColor.R:X2}{currentColor.G:X2}{currentColor.B:X2}"
+                        : $"#{currentColor.A:X2}{currentColor.R:X2}{currentColor.G:X2}{currentColor.B:X2}";
+                }
+            }
+            finally
+            {
+                isUpdating = false;
+            }
         }
 
         public event EventHandler ValueChanged;
 
         public Color ColorValue
         {
-            get
-            {
-                return getColor();
-            }
+            get => currentColor;
             set
             {
-                NBAlpha.Value = value.A;
-                NBRed.Value = value.R;
-                NBGreen.Value = value.G;
-                NBBlue.Value = value.B;
+                currentColor = value;
+                UpdateUI(fromHexText: false);
             }
         }
     }
