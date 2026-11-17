@@ -507,6 +507,7 @@ namespace SolidModelBrowser
         {
             if (!(ButtonDiffuseMaterial.IsChecked.Value || ButtonSpecularMaterial.IsChecked.Value || ButtonEmissiveMaterial.IsChecked.Value)) ButtonDiffuseMaterial.IsChecked = true;
             scene.ApplyMaterials(ButtonDiffuseMaterial.IsChecked.Value, ButtonSpecularMaterial.IsChecked.Value, ButtonEmissiveMaterial.IsChecked.Value, ButtonBacksideDiffuseMaterial.IsChecked.Value);
+            scene.UpdateWireframeColor(currentShadingMode == ShadingMode.Wireframe, settings.LightTheme, settings.DiffuseColor.Color);
         }
 
         void updateCameraModes()
@@ -557,6 +558,7 @@ namespace SolidModelBrowser
                 scene.SetShadingVisibility(false, true);
                 ButtonWireframe.ToolTip = "Switch to Solid [Ctrl+W / 1,2,3]";
             }
+            scene.UpdateWireframeColor(mode == ShadingMode.Wireframe, settings.LightTheme, settings.DiffuseColor.Color);
             updateMeshes(false);
         }
 
@@ -570,7 +572,7 @@ namespace SolidModelBrowser
         {
             if (settings.LightTheme) App.SetTheme("ColorsLight.xaml");
             else App.SetTheme("Colors.xaml");
-            scene.UpdateWireframeColor(settings.LightTheme);
+            scene.UpdateWireframeColor(currentShadingMode == ShadingMode.Wireframe, settings.LightTheme, settings.DiffuseColor.Color);
             filePanel.ExtensionsColors.Clear();
             if (settings.ColorizeFiles) { Import.FillColorsDictionary(filePanel.ExtensionsColors, settings.LightTheme); filePanel.Refresh(); }
         }

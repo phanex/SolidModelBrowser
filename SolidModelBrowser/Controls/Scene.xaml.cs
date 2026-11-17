@@ -24,7 +24,7 @@ namespace SolidModelBrowser
             wireframeGeometry.Geometry = wireframeMesh;
             wireframeGeometry.Material = wireframeMaterial;
             wireframeGeometry.BackMaterial = wireframeMaterial;
-            UpdateWireframeColor(false);
+            UpdateWireframeColor(false, false, Color.FromRgb(154, 162, 170));
 
             modelgroup.Children.Add(geometry);
             modelgroup.Children.Add(lights);
@@ -169,10 +169,26 @@ namespace SolidModelBrowser
         public UCamera Camera => camera;
         public Viewport3D Viewport3D => viewport3D;
 
+        public void UpdateWireframeColor(bool isPureWireframe, bool lightTheme, Color modelDiffuseColor)
+        {
+            Color color;
+            if (isPureWireframe)
+            {
+                // Contrast with Viewport background
+                color = lightTheme ? Color.FromRgb(20, 22, 26) : Color.FromRgb(225, 230, 238);
+            }
+            else
+            {
+                // Solid + Wireframe (CAD mode): Contrast with the model surface
+                double lum = 0.299 * modelDiffuseColor.R + 0.587 * modelDiffuseColor.G + 0.114 * modelDiffuseColor.B;
+                color = lum > 125 ? Color.FromRgb(18, 20, 24) : Color.FromRgb(242, 245, 250);
+            }
+            wireframeMaterial.Brush = new SolidColorBrush(color);
+        }
+
         public void UpdateWireframeColor(bool lightTheme)
         {
-            var color = lightTheme ? Color.FromRgb(32, 32, 38) : Color.FromRgb(220, 220, 220);
-            wireframeMaterial.Brush = new SolidColorBrush(color);
+            UpdateWireframeColor(false, lightTheme, lightTheme ? Color.FromRgb(220, 220, 220) : Color.FromRgb(32, 32, 38));
         }
 
         public void SetShadingVisibility(bool showSolid, bool showWireframe)

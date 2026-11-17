@@ -24,42 +24,42 @@
 
                 <!-- Left: Action Toolbar -->
                 <WrapPanel Grid.Column="0" VerticalAlignment="Center" Margin="4,2,0,2">
-                    <!-- 1. Sidebar Toggle (Material Symbols view_sidebar) -->
-                    <ToggleButton x:Name="ButtonToggleFilePanel" ToolTip="Toggle File Browser [Tab]" Width="30" Height="30" Margin="0,0,2,0" SnapsToDevicePixels="True" UseLayoutRounding="True">
-                        <Canvas Width="16" Height="16">
-                            <Path Data="M2,3 H5.5 V13 H2 Z" Fill="{DynamicResource WindowFore}" Opacity="0.35"/>
-                            <Path Data="M1.5,2.5 H14.5 A1,1 0 0,1 15.5,3.5 V12.5 A1,1 0 0,1 14.5,13.5 H1.5 A1,1 0 0,1 0.5,12.5 V3.5 A1,1 0 0,1 1.5,2.5 Z M6,3.5 V12.5 H14 V3.5 Z"
+                    <!-- 1. Sidebar Toggle (coolicons duotone sidebar 24x24) -->
+                    <ToggleButton x:Name="ButtonToggleFilePanel" ToolTip="Toggle File Browser [Tab]" Width="32" Height="32" Margin="0,0,2,0" SnapsToDevicePixels="True" UseLayoutRounding="True">
+                        <Canvas Width="24" Height="24">
+                            <Path Data="M3,4 H8 V20 H3 Z" Fill="{DynamicResource WindowFore}" Opacity="0.35"/>
+                            <Path Data="M3,4 H21 A1,1 0 0,1 22,5 V19 A1,1 0 0,1 21,20 H3 A1,1 0 0,1 2,19 V5 A1,1 0 0,1 3,4 Z M9,6 V18 H20 V6 Z"
                                   Fill="{DynamicResource WindowFore}"/>
                         </Canvas>
                     </ToggleButton>
 
-                    <Rectangle Width="1" Height="18" Fill="{DynamicResource Separator}" Margin="4,0"/>
+                    <Rectangle Width="1" Height="20" Fill="{DynamicResource Separator}" Margin="4,0"/>
 
                     <!-- 2. File Actions -->
-                    <Button x:Name="ButtonReloadModel" ToolTip="Reload Model [F5]" Width="30" Height="30" Margin="0,0,2,0" SnapsToDevicePixels="True" UseLayoutRounding="True">
-                        <Canvas Width="16" Height="16">
-                            <Path Data="M13.65,4.35 A6,6 0 1,0 14,8 H12.5 A4.5,4.5 0 1,1 11.62,5.38 L9.5,7.5 H14 V3 L13.65,4.35 Z"
+                    <Button x:Name="ButtonReloadModel" ToolTip="Reload Model [F5]" Width="32" Height="32" Margin="0,0,2,0" SnapsToDevicePixels="True" UseLayoutRounding="True">
+                        <Canvas Width="24" Height="24">
+                            <Path Data="M12,4 V1 L7,5.5 L12,10 V7 C15.31,7 18,9.69 18,13 C18,14.01 17.75,14.97 17.3,15.8 L18.76,17.26 C19.54,16.03 20,14.57 20,13 C20,8.58 16.42,5 12,5 Z M12,19 C8.69,19 6,16.31 6,13 C6,11.99 6.25,11.03 6.7,10.2 L5.24,8.74 C4.46,9.97 4,11.43 4,13 C4,17.42 7.58,21 12,21 V24 L17,19.5 L12,15 V19 Z"
                                   Fill="{DynamicResource WindowFore}"/>
                         </Canvas>
                     </Button>
-                    <Button x:Name="ButtonExport" ToolTip="Export Model [Ctrl+E]" Width="30" Height="30" Margin="0,0,2,0" SnapsToDevicePixels="True" UseLayoutRounding="True">
-                        <Canvas Width="16" Height="16">
-                            <Path Data="M13,6.5 H10.5 V2 H5.5 V6.5 H3 L8,11.5 L13,6.5 Z M3,13 V14.5 H13 V13 H3 Z"
+                    <Button x:Name="ButtonExport" ToolTip="Export Model [Ctrl+E]" Width="32" Height="32" Margin="0,0,2,0" SnapsToDevicePixels="True" UseLayoutRounding="True">
+                        <Canvas Width="24" Height="24">
+                            <Path Data="M12,16 L6,10 H9.5 V3 H14.5 V10 H18 Z M4,18 H20 V20 H4 Z"
                                   Fill="{DynamicResource WindowFore}"/>
                         </Canvas>
                     </Button>
 
-                    <!-- 3. External App SplitButton (38px, icon only) -->
-                    <Border Background="{DynamicResource ButtonBack}" BorderBrush="{DynamicResource ButtonBorder}" BorderThickness="1" CornerRadius="4" Height="30" Margin="0,0,2,0">
+                    <!-- 3. External App SplitButton (coolicons 24x24) -->
+                    <Border Background="{DynamicResource ButtonBack}" BorderBrush="{DynamicResource ButtonBorder}" BorderThickness="1" CornerRadius="4" Height="32" Margin="0,0,2,0">
                         <StackPanel Orientation="Horizontal">
-                            <Button x:Name="ButtonOpenExtApp" Style="{StaticResource SplitButtonLeftStyle}" Width="24" Height="28" ToolTip="Open in External App [F7]" SnapsToDevicePixels="True" UseLayoutRounding="True">
-                                <Canvas Width="16" Height="16">
-                                    <Path Data="M13,13 H3 V3 H7 V1.5 H3 A1.5,1.5 0 0,0 1.5,3 V13 A1.5,1.5 0 0,0 3,14.5 H13 A1.5,1.5 0 0,0 14.5,13 V9 H13 Z M9.5,1.5 V3 H11.94 L5.47,9.47 L6.53,10.53 L13,4.06 V6.5 H14.5 V1.5 Z"
+                            <Button x:Name="ButtonOpenExtApp" Style="{StaticResource SplitButtonLeftStyle}" Width="28" Height="30" ToolTip="Open in External App [F7]" SnapsToDevicePixels="True" UseLayoutRounding="True">
+                                <Canvas Width="24" Height="24">
+                                    <Path Data="M19,19 H5 V5 H11 V3 H5 A2,2 0 0,0 3,5 V19 A2,2 0 0,0 5,21 H19 A2,2 0 0,0 21,19 V13 H19 Z M14,3 V5 H17.59 L8.76,13.83 L10.17,15.24 L19,6.41 V10 H21 V3 Z"
                                           Fill="{DynamicResource WindowFore}"/>
                                 </Canvas>
                             </Button>
-                            <Rectangle Width="1" Height="16" Fill="{DynamicResource Separator}" VerticalAlignment="Center"/>
-                            <Button x:Name="ButtonOpenExtAppDropdown" Style="{StaticResource SplitButtonRightStyle}" Width="14" Height="28" ToolTip="Select Application" SnapsToDevicePixels="True" UseLayoutRounding="True">
+                            <Rectangle Width="1" Height="18" Fill="{DynamicResource Separator}" VerticalAlignment="Center"/>
+                            <Button x:Name="ButtonOpenExtAppDropdown" Style="{StaticResource SplitButtonRightStyle}" Width="14" Height="30" ToolTip="Select Application" SnapsToDevicePixels="True" UseLayoutRounding="True">
                                 <Canvas Width="8" Height="6">
                                     <Path Data="M0.5,1.5 L4,5 L7.5,1.5" Stroke="{DynamicResource WindowFore}" StrokeThickness="1.2" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
                                 </Canvas>
@@ -73,35 +73,35 @@
                         </StackPanel>
                     </Border>
 
-                    <Rectangle Width="1" Height="18" Fill="{DynamicResource Separator}" Margin="4,0"/>
+                    <Rectangle Width="1" Height="20" Fill="{DynamicResource Separator}" Margin="4,0"/>
 
                     <!-- 4. Compact Rotation Cluster X / Y / Z -->
-                    <Border Background="{DynamicResource ButtonBack}" BorderBrush="{DynamicResource ButtonBorder}" BorderThickness="1" CornerRadius="4" Height="30" Margin="0,0,2,0">
+                    <Border Background="{DynamicResource ButtonBack}" BorderBrush="{DynamicResource ButtonBorder}" BorderThickness="1" CornerRadius="4" Height="32" Margin="0,0,2,0">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                            <Canvas Width="12" Height="12" Margin="4,0,2,0" SnapsToDevicePixels="True">
-                                <Path Data="M10,5.5 A4,4 0 1,1 8.5,2 M10,0.5 L10,3.5 L7,3.5"
+                            <Canvas Width="14" Height="14" Margin="4,0,2,0" SnapsToDevicePixels="True">
+                                <Path Data="M11,6 A4.5,4.5 0 1,1 9.5,2.5 M11,1 L11,4 L8,4"
                                       Stroke="{DynamicResource WindowFore}" StrokeThickness="1.2" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
                             </Canvas>
-                            <Button x:Name="ButtonRotateX" Width="20" Height="26" BorderThickness="0" Background="Transparent" Foreground="#F0777F" FontWeight="Bold" FontSize="11" Content="X" ToolTip="Rotate X [X]"/>
-                            <Button x:Name="ButtonRotateY" Width="20" Height="26" BorderThickness="0" Background="Transparent" Foreground="#7FD97F" FontWeight="Bold" FontSize="11" Content="Y" ToolTip="Rotate Y [Y]"/>
-                            <Button x:Name="ButtonRotateZ" Width="20" Height="26" BorderThickness="0" Background="Transparent" Foreground="#6FA8FF" FontWeight="Bold" FontSize="11" Content="Z" ToolTip="Rotate Z [Z]"/>
+                            <Button x:Name="ButtonRotateX" Width="20" Height="28" BorderThickness="0" Background="Transparent" Foreground="#F0777F" FontWeight="Bold" FontSize="11" Content="X" ToolTip="Rotate X [X]"/>
+                            <Button x:Name="ButtonRotateY" Width="20" Height="28" BorderThickness="0" Background="Transparent" Foreground="#7FD97F" FontWeight="Bold" FontSize="11" Content="Y" ToolTip="Rotate Y [Y]"/>
+                            <Button x:Name="ButtonRotateZ" Width="20" Height="28" BorderThickness="0" Background="Transparent" Foreground="#6FA8FF" FontWeight="Bold" FontSize="11" Content="Z" ToolTip="Rotate Z [Z]"/>
                         </StackPanel>
                     </Border>
 
-                    <Rectangle Width="1" Height="18" Fill="{DynamicResource Separator}" Margin="4,0"/>
+                    <Rectangle Width="1" Height="20" Fill="{DynamicResource Separator}" Margin="4,0"/>
 
-                    <!-- 5. Shading SplitButton (Material deployed_code 3D Box) -->
-                    <Border Background="{DynamicResource ButtonBack}" BorderBrush="{DynamicResource ButtonBorder}" BorderThickness="1" CornerRadius="4" Height="30" Margin="0,0,2,0">
+                    <!-- 5. Shading SplitButton (coolicons 3D Cube 24x24 duotone) -->
+                    <Border Background="{DynamicResource ButtonBack}" BorderBrush="{DynamicResource ButtonBorder}" BorderThickness="1" CornerRadius="4" Height="32" Margin="0,0,2,0">
                         <StackPanel Orientation="Horizontal">
-                            <Button x:Name="ButtonWireframe" Style="{StaticResource SplitButtonLeftStyle}" Width="24" Height="28" ToolTip="Toggle Shading [W]" SnapsToDevicePixels="True" UseLayoutRounding="True">
-                                <Canvas Width="16" Height="16">
-                                    <Path x:Name="PathShadingSolidFace" Data="M8,1.5 L14,5 L8,8.5 L2,5 Z" Fill="{DynamicResource WindowFore}" Opacity="0.35"/>
-                                    <Path Data="M8,1.5 L14,5 L14,11 L8,14.5 L2,11 L2,5 Z M2,5 L8,8.5 L14,5 M8,8.5 L8,14.5"
-                                          Stroke="{DynamicResource WindowFore}" StrokeThickness="1.0" StrokeLineJoin="Round"/>
+                            <Button x:Name="ButtonWireframe" Style="{StaticResource SplitButtonLeftStyle}" Width="28" Height="30" ToolTip="Toggle Shading [W]" SnapsToDevicePixels="True" UseLayoutRounding="True">
+                                <Canvas Width="24" Height="24">
+                                    <Path x:Name="PathShadingSolidFace" Data="M12,2.5 L21,7.5 L12,12.5 L3,7.5 Z" Fill="{DynamicResource WindowFore}" Opacity="0.35"/>
+                                    <Path Data="M12,2.5 L21,7.5 V16.5 L12,21.5 L3,16.5 V7.5 Z M3,7.5 L12,12.5 L21,7.5 M12,12.5 V21.5"
+                                          Stroke="{DynamicResource WindowFore}" StrokeThickness="1.4" StrokeLineJoin="Round"/>
                                 </Canvas>
                             </Button>
-                            <Rectangle Width="1" Height="16" Fill="{DynamicResource Separator}" VerticalAlignment="Center"/>
-                            <Button x:Name="ButtonShadingDropdown" Style="{StaticResource SplitButtonRightStyle}" Width="14" Height="28" ToolTip="Shading Options" SnapsToDevicePixels="True" UseLayoutRounding="True">
+                            <Rectangle Width="1" Height="18" Fill="{DynamicResource Separator}" VerticalAlignment="Center"/>
+                            <Button x:Name="ButtonShadingDropdown" Style="{StaticResource SplitButtonRightStyle}" Width="14" Height="30" ToolTip="Shading Options" SnapsToDevicePixels="True" UseLayoutRounding="True">
                                 <Canvas Width="8" Height="6">
                                     <Path Data="M0.5,1.5 L4,5 L7.5,1.5" Stroke="{DynamicResource WindowFore}" StrokeThickness="1.2" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
                                 </Canvas>
@@ -119,25 +119,25 @@
                         </StackPanel>
                     </Border>
 
-                    <!-- 6. Camera Projection Button (Material videocam - distinct camera shape!) -->
-                    <Button x:Name="ButtonSelectCamera" Width="30" Height="30" ToolTip="Switch Camera Projection [F8]" Margin="0,0,2,0" SnapsToDevicePixels="True" UseLayoutRounding="True">
-                        <Canvas x:Name="CanvasCameraIcon" Width="16" Height="16">
-                            <Path x:Name="PathCameraPerspective" Data="M2,4.5 H9 A1,1 0 0,1 10,5.5 V11.5 A1,1 0 0,1 9,12.5 H2 A1,1 0 0,1 1,11.5 V5.5 A1,1 0 0,1 2,4.5 Z M10,7.5 L14.5,4.5 V12.5 L10,9.5 Z"
+                    <!-- 6. Camera Projection Button (coolicons video camera 24x24) -->
+                    <Button x:Name="ButtonSelectCamera" Width="32" Height="32" ToolTip="Switch Camera Projection [F8]" Margin="0,0,2,0" SnapsToDevicePixels="True" UseLayoutRounding="True">
+                        <Canvas x:Name="CanvasCameraIcon" Width="24" Height="24">
+                            <Path x:Name="PathCameraPerspective" Data="M3,6.5 H13 A1.5,1.5 0 0,1 14.5,8 V16 A1.5,1.5 0 0,1 13,17.5 H3 A1.5,1.5 0 0,1 1.5,16 V8 A1.5,1.5 0 0,1 3,6.5 Z M15,10.5 L21.5,6.5 V17.5 L15,13.5 Z"
                                   Fill="{DynamicResource WindowFore}"/>
                         </Canvas>
                     </Button>
 
-                    <!-- 7. Camera Centering SplitButton (Material center_focus_strong) -->
-                    <Border Background="{DynamicResource ButtonBack}" BorderBrush="{DynamicResource ButtonBorder}" BorderThickness="1" CornerRadius="4" Height="30" Margin="0,0,2,0">
+                    <!-- 7. Camera Centering SplitButton (coolicons focus 24x24) -->
+                    <Border Background="{DynamicResource ButtonBack}" BorderBrush="{DynamicResource ButtonBorder}" BorderThickness="1" CornerRadius="4" Height="32" Margin="0,0,2,0">
                         <StackPanel Orientation="Horizontal">
-                            <Button x:Name="ButtonCenterCamera" Style="{StaticResource SplitButtonLeftStyle}" Width="24" Height="28" ToolTip="Center Camera on Model [F]" SnapsToDevicePixels="True" UseLayoutRounding="True">
-                                <Canvas Width="16" Height="16">
-                                    <Path Data="M3,1.5 H6 V3 H3 V6 H1.5 V3 A1.5,1.5 0 0,1 3,1.5 Z M13,1.5 A1.5,1.5 0 0,1 14.5,3 V6 H13 V3 H10 V1.5 Z M3,13 V10 H1.5 V13 A1.5,1.5 0 0,0 3,14.5 H6 V13 Z M13,13 H10 V14.5 H13 A1.5,1.5 0 0,0 14.5,13 V10 H13 Z M8,5.5 A2.5,2.5 0 1,0 8,10.5 A2.5,2.5 0 0,0 8,5.5 Z"
+                            <Button x:Name="ButtonCenterCamera" Style="{StaticResource SplitButtonLeftStyle}" Width="28" Height="30" ToolTip="Center Camera on Model [F]" SnapsToDevicePixels="True" UseLayoutRounding="True">
+                                <Canvas Width="24" Height="24">
+                                    <Path Data="M5,2.5 H9 V4.5 H5 V8.5 H3 V4.5 A2,2 0 0,1 5,2.5 Z M19,2.5 A2,2 0 0,1 21,4.5 V8.5 H19 V4.5 H15 V2.5 Z M5,19.5 V15.5 H3 V19.5 A2,2 0 0,0 5,21.5 H9 V19.5 Z M19,19.5 H15 V21.5 H19 A2,2 0 0,0 21,19.5 V15.5 H19 Z M12,8 A4,4 0 1,0 12,16 A4,4 0 0,0 12,8 Z"
                                           Fill="{DynamicResource WindowFore}"/>
                                 </Canvas>
                             </Button>
-                            <Rectangle Width="1" Height="16" Fill="{DynamicResource Separator}" VerticalAlignment="Center"/>
-                            <Button x:Name="ButtonCenterDropdown" Style="{StaticResource SplitButtonRightStyle}" Width="14" Height="28" ToolTip="Centering Options" SnapsToDevicePixels="True" UseLayoutRounding="True">
+                            <Rectangle Width="1" Height="18" Fill="{DynamicResource Separator}" VerticalAlignment="Center"/>
+                            <Button x:Name="ButtonCenterDropdown" Style="{StaticResource SplitButtonRightStyle}" Width="14" Height="30" ToolTip="Centering Options" SnapsToDevicePixels="True" UseLayoutRounding="True">
                                 <Canvas Width="8" Height="6">
                                     <Path Data="M0.5,1.5 L4,5 L7.5,1.5" Stroke="{DynamicResource WindowFore}" StrokeThickness="1.2" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
                                 </Canvas>
@@ -151,28 +151,28 @@
                         </StackPanel>
                     </Border>
 
-                    <Rectangle Width="1" Height="18" Fill="{DynamicResource Separator}" Margin="4,0"/>
+                    <Rectangle Width="1" Height="20" Fill="{DynamicResource Separator}" Margin="4,0"/>
 
-                    <!-- 8. Ground Grid (Material grid_on) -->
-                    <ToggleButton x:Name="ButtonGround" Width="30" Height="30" ToolTip="Toggle Ground Grid [P]" Margin="0,0,2,0" SnapsToDevicePixels="True" UseLayoutRounding="True">
-                        <Canvas Width="16" Height="16">
-                            <Path Data="M2,2 H14 A1,1 0 0,1 15,3 V13 A1,1 0 0,1 14,14 H2 A1,1 0 0,1 1,13 V3 A1,1 0 0,1 2,2 Z M2,3 V6 H6 V3 Z M7,3 V6 H10 V3 Z M11,3 V6 H14 V3 Z M2,7 V10 H6 V7 Z M7,7 V10 H10 V7 Z M11,7 V10 H14 V7 Z M2,11 V13 H6 V11 Z M7,11 V13 H10 V11 Z M11,11 V13 H14 V11 Z"
+                    <!-- 8. Ground Grid (coolicons grid 24x24) -->
+                    <ToggleButton x:Name="ButtonGround" Width="32" Height="32" ToolTip="Toggle Ground Grid [P]" Margin="0,0,2,0" SnapsToDevicePixels="True" UseLayoutRounding="True">
+                        <Canvas Width="24" Height="24">
+                            <Path Data="M3,3 H21 A1,1 0 0,1 22,4 V20 A1,1 0 0,1 21,21 H3 A1,1 0 0,1 2,20 V4 A1,1 0 0,1 3,3 Z M8,5 H4 V9 H8 Z M14,5 H10 V9 H14 Z M20,5 H16 V9 H20 Z M8,11 H4 V15 H8 Z M14,11 H10 V15 H14 Z M20,11 H16 V15 H20 Z M8,17 H4 V19 H8 Z M14,17 H10 V19 H14 Z M20,17 H16 V19 H20 Z"
                                   Fill="{DynamicResource WindowFore}"/>
                         </Canvas>
                     </ToggleButton>
 
-                    <!-- 9. Model Info HUD (Material info) -->
-                    <ToggleButton x:Name="ButtonShowModelInfo" Width="30" Height="30" ToolTip="Toggle Model Info [I]" Margin="0,0,2,0" SnapsToDevicePixels="True" UseLayoutRounding="True">
-                        <Canvas Width="16" Height="16">
-                            <Path Data="M8,1.5 A6.5,6.5 0 1,0 8,14.5 A6.5,6.5 0 0,0 8,1.5 Z M8,4 A1,1 0 1,1 8,6 A1,1 0 0,1 8,4 Z M9,11.5 H7 V7.5 H9 Z"
+                    <!-- 9. Model Info HUD (coolicons info 24x24) -->
+                    <ToggleButton x:Name="ButtonShowModelInfo" Width="32" Height="32" ToolTip="Toggle Model Info [I]" Margin="0,0,2,0" SnapsToDevicePixels="True" UseLayoutRounding="True">
+                        <Canvas Width="24" Height="24">
+                            <Path Data="M12,2 A10,10 0 1,0 12,22 A10,10 0 0,0 12,2 Z M12,6.5 A1.5,1.5 0 1,1 12,9.5 A1.5,1.5 0 0,1 12,6.5 Z M13.5,17.5 H10.5 V11.5 H13.5 Z"
                                   Fill="{DynamicResource WindowFore}"/>
                         </Canvas>
                     </ToggleButton>
 
-                    <!-- 10. Overflow More Menu [ ⋯ ] (Material more_horiz) -->
-                    <Button x:Name="ButtonMore" Width="30" Height="30" ToolTip="More Tools" Margin="0,0,2,0" SnapsToDevicePixels="True" UseLayoutRounding="True">
-                        <Canvas Width="16" Height="16">
-                            <Path Data="M3.5,8 A1.5,1.5 0 1,1 2,6.5 A1.5,1.5 0 0,1 3.5,8 Z M9.5,8 A1.5,1.5 0 1,1 8,6.5 A1.5,1.5 0 0,1 9.5,8 Z M15.5,8 A1.5,1.5 0 1,1 14,6.5 A1.5,1.5 0 0,1 15.5,8 Z"
+                    <!-- 10. Overflow More Menu [ ⋯ ] (coolicons more_horizontal 24x24) -->
+                    <Button x:Name="ButtonMore" Width="32" Height="32" ToolTip="More Tools" Margin="0,0,2,0" SnapsToDevicePixels="True" UseLayoutRounding="True">
+                        <Canvas Width="24" Height="24">
+                            <Path Data="M5,12 A2,2 0 1,1 3,10 A2,2 0 0,1 5,12 Z M14,12 A2,2 0 1,1 12,10 A2,2 0 0,1 14,12 Z M23,12 A2,2 0 1,1 21,10 A2,2 0 0,1 23,12 Z"
                                   Fill="{DynamicResource WindowFore}"/>
                         </Canvas>
                         <Button.ContextMenu>
@@ -215,9 +215,9 @@
 
                 <!-- Right: Theme & Windows 11 Chrome Controls -->
                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Top">
-                    <Button x:Name="ButtonChangeTheme" Width="30" Height="30" ToolTip="Switch Theme" SnapsToDevicePixels="True" UseLayoutRounding="True">
-                        <Canvas Width="16" Height="16">
-                            <Path Data="M8,1.5 A6.5,6.5 0 1,0 8,14.5 A6.5,6.5 0 0,0 8,1.5 Z M8,13 V3 A5,5 0 0,1 8,13 Z"
+                    <Button x:Name="ButtonChangeTheme" Width="32" Height="32" ToolTip="Switch Theme" SnapsToDevicePixels="True" UseLayoutRounding="True">
+                        <Canvas Width="24" Height="24">
+                            <Path Data="M12,2 A10,10 0 1,0 12,22 A10,10 0 0,0 12,2 Z M12,20 V4 A8,8 0 0,1 12,20 Z"
                                   Fill="{DynamicResource WindowFore}"/>
                         </Canvas>
                     </Button>
