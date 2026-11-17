@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net48</TargetFramework>
+    <UseWPF>true</UseWPF>
     <IsPackable>false</IsPackable>
     <RootNamespace>SolidModelBrowser.Tests</RootNamespace>
   </PropertyGroup>
