@@ -33,3 +33,12 @@
 ## Phase 6: Live Verification & Cloud Build
 - [x] Update `conductor/tracks/modernize_ui_and_skp_20261116/preview.html` with real XAML-matched layout.
 - [x] Run full CI build with tests in GitHub Actions and verify downloadable release artifact.
+
+## Phase 7: Single-File Architecture & UI Polish (Acceptance Iteration)
+- [x] Fix SKP coordinate scale from glTF meters to CAD millimeters ($\times 1000.0$) in `ImportSKP.cs`.
+- [x] Add multi-resolution `app.ico` (16, 24, 32, 48, 64, 256 px) and set application icon.
+- [x] Integrate pixel-perfect 16px PNG format icons (`stl`, `3mf`, `skp`, `obj`, `ply`, `gcode`) and folder icons in `FileNavigationPanel`.
+- [x] Re-architect SplitButtons with proper split segments, 1px separator, and unclipped chevron `∨`.
+- [x] Modernize toolbar buttons with duotone accents inside `<Viewbox>` (zero clipping).
+- [x] Replace toxic yellow and blue/pink lights with neutral studio CAD clay material (`#E2E6EB`) and 3-point neutral lighting.
+- [x] Embed `OpenSkp.dll` directly inside `SolidModelBrowser.exe` with dynamic `AssemblyResolve` for 100% single-file portable distribution (0 DLLs, 0 config).
