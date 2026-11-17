@@ -68,5 +68,46 @@ namespace SolidModelBrowser.Tests
         {
             return Utils.ShouldUnsmoothMesh(filename, unsmoothSetting);
         }
+
+        [Test]
+        public void ExternalAppItem_SerializationAndSupport_WorksCorrectly()
+        {
+            var item = new ExternalAppItem
+            {
+                Name = "Bambu Studio",
+                Path = @"C:\Program Files\Bambu Studio\bambu-studio.exe",
+                Arguments = "$file$",
+                Extensions = "3mf,stl"
+            };
+
+            string serialized = item.ToString();
+            var parsed = ExternalAppItem.Parse(serialized);
+
+            Assert.AreEqual("Bambu Studio", parsed.Name);
+            Assert.AreEqual(@"C:\Program Files\Bambu Studio\bambu-studio.exe", parsed.Path);
+            Assert.IsTrue(parsed.SupportsExtension("3mf"));
+            Assert.IsTrue(parsed.SupportsExtension(".stl"));
+            Assert.IsFalse(parsed.SupportsExtension("gcode"));
+        }
+
+        [Test]
+        public void Settings_SetAndGetExternalApps_PreservesItems()
+        {
+            var settings = new Settings();
+            var apps = new System.Collections.Generic.List<ExternalAppItem>
+            {
+                new ExternalAppItem { Name = "Orca", Path = @"C:\Orca.exe", Extensions = "3mf,stl,gcode" },
+                new ExternalAppItem { Name = "Blender", Path = @"C:\Blender.exe", Extensions = "obj,stl" }
+            };
+
+            settings.SetExternalApps(apps);
+            var loaded = settings.GetExternalApps();
+
+            Assert.AreEqual(2, loaded.Count);
+            Assert.AreEqual("Orca", loaded[0].Name);
+            Assert.AreEqual("Blender", loaded[1].Name);
+            Assert.IsTrue(loaded[0].SupportsExtension("gcode"));
+            Assert.IsFalse(loaded[1].SupportsExtension("gcode"));
+        }
     }
 }

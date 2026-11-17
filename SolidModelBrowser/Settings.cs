@@ -69,6 +69,83 @@ namespace SolidModelBrowser
         [PropertyInfo(Category = "Utils", Description = "External application command line arguments\r\nVariable $file$ = current filename", MenuLabel = "External Application Arguments")]
         public string ExternalAppArguments { get; set; } = "$file$";
 
+        [PropertyInfo(Category = "Utils", Description = "Configured external applications list")]
+        public string ExternalAppsList { get; set; } = "";
+
+        public List<ExternalAppItem> GetExternalApps()
+        {
+            var result = new List<ExternalAppItem>();
+            if (!string.IsNullOrWhiteSpace(ExternalAppsList))
+            {
+                var entries = ExternalAppsList.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+                foreach (var entry in entries)
+                {
+                    var item = ExternalAppItem.Parse(entry);
+                    if (!string.IsNullOrEmpty(item.Path)) result.Add(item);
+                }
+            }
+            if (result.Count == 0 && !string.IsNullOrWhiteSpace(ExternalApp) && File.Exists(ExternalApp))
+            {
+                result.Add(new ExternalAppItem
+                {
+                    Name = Path.GetFileNameWithoutExtension(ExternalApp),
+                    Path = ExternalApp,
+                    Arguments = ExternalAppArguments,
+                    Extensions = "stl,3mf,obj,skp,ply,gcode"
+                });
+            }
+            return result;
+        }
+
+        public void SetExternalApps(IEnumerable<ExternalAppItem> apps)
+        {
+            if (apps == null) { ExternalAppsList = ""; return; }
+            var list = apps.Where(a => !string.IsNullOrEmpty(a.Path)).Select(a => a.ToString());
+            ExternalAppsList = string.Join(";", list);
+            var first = apps.FirstOrDefault();
+            if (first != null)
+            {
+                ExternalApp = first.Path;
+                ExternalAppArguments = first.Arguments;
+            }
+        }
+
+        public static List<ExternalAppItem> AutoDetectSlicers()
+        {
+            var detected = new List<ExternalAppItem>();
+            string progFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+            string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+
+            void check(string name, string path, string args, string exts)
+            {
+                if (!string.IsNullOrEmpty(path) && File.Exists(path) && !detected.Any(d => d.Path.Equals(path, StringComparison.OrdinalIgnoreCase)))
+                {
+                    detected.Add(new ExternalAppItem { Name = name, Path = path, Arguments = args, Extensions = exts });
+                }
+            }
+
+            check("Bambu Studio", Path.Combine(progFiles, @"Bambu Studio\bambu-studio.exe"), "$file$", "3mf,stl,obj");
+            check("Bambu Studio", Path.Combine(localAppData, @"Programs\Bambu Studio\bambu-studio.exe"), "$file$", "3mf,stl,obj");
+            check("OrcaSlicer", Path.Combine(progFiles, @"OrcaSlicer\orca-slicer.exe"), "$file$", "3mf,stl,obj,gcode");
+            check("OrcaSlicer", Path.Combine(localAppData, @"Programs\OrcaSlicer\orca-slicer.exe"), "$file$", "3mf,stl,obj,gcode");
+            check("PrusaSlicer", Path.Combine(progFiles, @"Prusa3D\PrusaSlicer\prusa-slicer.exe"), "$file$", "3mf,stl,obj,gcode");
+
+            if (Directory.Exists(progFiles))
+            {
+                try
+                {
+                    var curaDirs = Directory.GetDirectories(progFiles, "UltiMaker Cura*");
+                    foreach (var dir in curaDirs)
+                    {
+                        check("UltiMaker Cura", Path.Combine(dir, "UltiMaker-Cura.exe"), "$file$", "stl,3mf,obj,gcode");
+                    }
+                }
+                catch { }
+            }
+
+            return detected;
+        }
+
         [PropertyInfo(Category = "Utils", Description = "Last selected path in file panel")]
         public string SelectedPath { get; set; } = GetDefaultInitialDirectory();
 
@@ -208,13 +285,13 @@ namespace SolidModelBrowser
         public Vector3D DirectionalLight3Dir { get; set; } = new Vector3D(1, -5, 1);
 
 
-        [PropertyInfo(Category = "Import GCODE", Description = "GCODE default layer height", MenuLabel = "Layer height (reload model to see changes)", Min = 0.01, Max = 10.0, Increment = 0.1)]
+        [PropertyInfo(Category = "Import GCODE", Description = "GCODE default layer height", MenuLabel = "Layer height", Min = 0.01, Max = 10.0, Increment = 0.1)]
         public double GCODELayerHeight { get; set; } = 0.2;
 
-        [PropertyInfo(Category = "Import GCODE", Description = "GCODE default line width", MenuLabel = "Line width (reload model to see changes)", Min = 0.01, Max = 10.0, Increment = 0.1)]
+        [PropertyInfo(Category = "Import GCODE", Description = "GCODE default line width", MenuLabel = "Line width", Min = 0.01, Max = 10.0, Increment = 0.1)]
         public double GCODELineWidth { get; set; } = 0.5;
 
-        [PropertyInfo(Category = "Import GCODE", Description = "GCODE line ends extensions", MenuLabel = "GCODE line ends extensions (reload model to see changes)", Min = -10.0, Max = 10.0, Increment = 0.1)]
+        [PropertyInfo(Category = "Import GCODE", Description = "GCODE line ends extensions", MenuLabel = "Line ends extensions", Min = -10.0, Max = 10.0, Increment = 0.1)]
         public double GCODELineExtensions { get; set; } = 0.0;
 
 
@@ -324,5 +401,34 @@ namespace SolidModelBrowser
         public SColor(Color c) => Color = c;
         public override string ToString() => Color.ToString();
         public void Parse(string s) => Color = (Color)ColorConverter.ConvertFromString(s);
+    }
+
+    public class ExternalAppItem
+    {
+        public string Name { get; set; } = "";
+        public string Path { get; set; } = "";
+        public string Arguments { get; set; } = "$file$";
+        public string Extensions { get; set; } = "stl,3mf,obj,skp,ply,gcode";
+
+        public override string ToString() => $"{Name}|{Path}|{Arguments}|{Extensions}";
+
+        public static ExternalAppItem Parse(string s)
+        {
+            var parts = s.Split('|');
+            var item = new ExternalAppItem();
+            if (parts.Length > 0) item.Name = parts[0];
+            if (parts.Length > 1) item.Path = parts[1];
+            if (parts.Length > 2) item.Arguments = parts[2];
+            if (parts.Length > 3) item.Extensions = parts[3];
+            return item;
+        }
+
+        public bool SupportsExtension(string ext)
+        {
+            if (string.IsNullOrWhiteSpace(Extensions) || Extensions.Trim() == "*") return true;
+            string clean = ext.TrimStart('.').ToLowerInvariant();
+            var list = Extensions.ToLowerInvariant().Split(new[] { ',', ';', ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            return list.Contains(clean);
+        }
     }
 }

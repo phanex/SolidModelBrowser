@@ -105,7 +105,7 @@
                     <!-- 5. Shading SplitButton (Duotone) -->
                     <Border Background="{DynamicResource ButtonBack}" BorderBrush="{DynamicResource ButtonBorder}" BorderThickness="1" CornerRadius="4" Height="30" Margin="0,0,2,0">
                         <StackPanel Orientation="Horizontal">
-                            <Button x:Name="ButtonWireframe" Style="{StaticResource SplitButtonLeftStyle}" Width="24" Height="28" ToolTip="Toggle Shading [W]">
+                            <Button x:Name="ButtonWireframe" Style="{StaticResource SplitButtonLeftStyle}" Width="24" Height="28" ToolTip="Toggle Shading [W]" SnapsToDevicePixels="True" UseLayoutRounding="True">
                                 <Viewbox Width="14" Height="14" Stretch="Uniform">
                                     <Canvas Width="16" Height="16">
                                         <Path x:Name="PathShadingSolidFace" Data="M8,1.5 L14,4.8 L8,8.2 L2,4.8 Z" Fill="{DynamicResource WindowFore}" Opacity="0.35"/>
@@ -115,15 +115,15 @@
                                 </Viewbox>
                             </Button>
                             <Rectangle Width="1" Height="16" Fill="{DynamicResource Separator}" VerticalAlignment="Center"/>
-                            <Button x:Name="ButtonShadingDropdown" Style="{StaticResource SplitButtonRightStyle}" Width="14" Height="28" ToolTip="Shading Options">
+                            <Button x:Name="ButtonShadingDropdown" Style="{StaticResource SplitButtonRightStyle}" Width="14" Height="28" ToolTip="Shading Options" SnapsToDevicePixels="True" UseLayoutRounding="True">
                                 <Viewbox Width="8" Height="6" Stretch="Uniform">
                                     <Path Data="M0.5,1 L4,4.5 L7.5,1" Stroke="{DynamicResource WindowFore}" StrokeThickness="1.4" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
                                 </Viewbox>
                                 <Button.ContextMenu>
                                     <ContextMenu x:Name="MenuShading">
-                                        <MenuItem x:Name="MenuSolid" Header="Solid [1]" IsCheckable="True"/>
-                                        <MenuItem x:Name="MenuSolidAndWireframe" Header="Solid + Wireframe [2]" IsCheckable="True"/>
-                                        <MenuItem x:Name="MenuWireframeOnly" Header="Wireframe [3]" IsCheckable="True"/>
+                                        <MenuItem x:Name="MenuSolid" Header="Solid" InputGestureText="1" IsCheckable="True"/>
+                                        <MenuItem x:Name="MenuSolidAndWireframe" Header="Solid + Wireframe" InputGestureText="2" IsCheckable="True"/>
+                                        <MenuItem x:Name="MenuWireframeOnly" Header="Wireframe" InputGestureText="3" IsCheckable="True"/>
                                         <Separator/>
                                         <MenuItem x:Name="MenuRecreateUnsmoothed" Header="Smooth Shading" IsCheckable="True"/>
                                         <MenuItem x:Name="MenuBacksideColor" Header="Show Backfaces" IsCheckable="True"/>
@@ -134,10 +134,11 @@
                     </Border>
 
                     <!-- 6. Camera Projection Button -->
-                    <Button x:Name="ButtonSelectCamera" Width="30" Height="30" ToolTip="Switch Camera Projection [F8]" Margin="0,0,2,0">
+                    <Button x:Name="ButtonSelectCamera" Width="30" Height="30" ToolTip="Switch Camera Projection [F8]" Margin="0,0,2,0" SnapsToDevicePixels="True" UseLayoutRounding="True">
                         <Viewbox Width="14" Height="14" Stretch="Uniform">
                             <Canvas x:Name="CanvasCameraIcon" Width="16" Height="16">
-                                <Path x:Name="PathCameraPerspective" Data="M2,5 L8,2 L14,5 L14,12 L8,15 L2,12 Z M2,5 L8,8 L14,5 M8,8 L8,15" Stroke="{DynamicResource WindowFore}" StrokeThickness="1.2" StrokeLineJoin="Round"/>
+                                <Path x:Name="PathCameraPerspective" Data="M1.5,4.5 H9.5 V12.5 H1.5 Z M9.5,7 L14.5,4 V13 L9.5,10 Z"
+                                      Stroke="{DynamicResource WindowFore}" StrokeThickness="1.2" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
                             </Canvas>
                         </Viewbox>
                     </Button>
@@ -145,7 +146,7 @@
                     <!-- 7. Camera Centering SplitButton -->
                     <Border Background="{DynamicResource ButtonBack}" BorderBrush="{DynamicResource ButtonBorder}" BorderThickness="1" CornerRadius="4" Height="30" Margin="0,0,2,0">
                         <StackPanel Orientation="Horizontal">
-                            <Button x:Name="ButtonCenterCamera" Style="{StaticResource SplitButtonLeftStyle}" Width="24" Height="28" ToolTip="Center Camera [C]">
+                            <Button x:Name="ButtonCenterCamera" Style="{StaticResource SplitButtonLeftStyle}" Width="24" Height="28" ToolTip="Center Camera [C]" SnapsToDevicePixels="True" UseLayoutRounding="True">
                                 <Viewbox Width="14" Height="14" Stretch="Uniform">
                                     <Canvas Width="16" Height="16">
                                         <Path Data="M8,1.5 L8,4.5 M8,11.5 L8,14.5 M1.5,8 L4.5,8 M11.5,8 L14.5,8" Stroke="{DynamicResource WindowFore}" StrokeThickness="1.2" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
@@ -155,14 +156,14 @@
                                 </Viewbox>
                             </Button>
                             <Rectangle Width="1" Height="16" Fill="{DynamicResource Separator}" VerticalAlignment="Center"/>
-                            <Button x:Name="ButtonCenterDropdown" Style="{StaticResource SplitButtonRightStyle}" Width="14" Height="28" ToolTip="Centering Options">
+                            <Button x:Name="ButtonCenterDropdown" Style="{StaticResource SplitButtonRightStyle}" Width="14" Height="28" ToolTip="Centering Options" SnapsToDevicePixels="True" UseLayoutRounding="True">
                                 <Viewbox Width="8" Height="6" Stretch="Uniform">
                                     <Path Data="M0.5,1 L4,4.5 L7.5,1" Stroke="{DynamicResource WindowFore}" StrokeThickness="1.4" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
                                 </Viewbox>
                                 <Button.ContextMenu>
                                     <ContextMenu x:Name="MenuCenterCamera">
-                                        <MenuItem x:Name="MenuCenterMC" Header="Center on Average [M]"/>
-                                        <MenuItem x:Name="MenuCenterGC" Header="Center on Geometry [C]"/>
+                                        <MenuItem x:Name="MenuCenterMC" Header="Center on Average" InputGestureText="M"/>
+                                        <MenuItem x:Name="MenuCenterGC" Header="Center on Geometry" InputGestureText="C"/>
                                     </ContextMenu>
                                 </Button.ContextMenu>
                             </Button>
@@ -172,7 +173,7 @@
                     <Rectangle Width="1" Height="18" Fill="{DynamicResource Separator}" Margin="4,0"/>
 
                     <!-- 8. Ground Grid -->
-                    <ToggleButton x:Name="ButtonGround" Width="30" Height="30" ToolTip="Toggle Ground Grid [P]" Margin="0,0,2,0">
+                    <ToggleButton x:Name="ButtonGround" Width="30" Height="30" ToolTip="Toggle Ground Grid [P]" Margin="0,0,2,0" SnapsToDevicePixels="True" UseLayoutRounding="True">
                         <Viewbox Width="14" Height="14" Stretch="Uniform">
                             <Canvas Width="16" Height="16">
                                 <Path Data="M1.5,1.5 L14.5,1.5 L14.5,14.5 L1.5,14.5 Z M1.5,6 L14.5,6 M1.5,10.5 L14.5,10.5 M6,1.5 L6,14.5 M10.5,1.5 L10.5,14.5"
@@ -182,7 +183,7 @@
                     </ToggleButton>
 
                     <!-- 9. Model Info HUD -->
-                    <ToggleButton x:Name="ButtonShowModelInfo" Width="30" Height="30" ToolTip="Toggle Model Info [I]" Margin="0,0,2,0">
+                    <ToggleButton x:Name="ButtonShowModelInfo" Width="30" Height="30" ToolTip="Toggle Model Info [I]" Margin="0,0,2,0" SnapsToDevicePixels="True" UseLayoutRounding="True">
                         <Viewbox Width="14" Height="14" Stretch="Uniform">
                             <Canvas Width="16" Height="16">
                                 <Path Data="M3,2 L13,2 A1,1 0 0,1 14,3 L14,13 A1,1 0 0,1 13,14 L3,14 A1,1 0 0,1 2,13 L2,3 A1,1 0 0,1 3,2 Z"
@@ -194,7 +195,7 @@
                     </ToggleButton>
 
                     <!-- 10. Overflow More Menu [ ⋯ ] -->
-                    <Button x:Name="ButtonMore" Width="30" Height="30" ToolTip="More Tools" Margin="0,0,2,0">
+                    <Button x:Name="ButtonMore" Width="30" Height="30" ToolTip="More Tools" Margin="0,0,2,0" SnapsToDevicePixels="True" UseLayoutRounding="True">
                         <Viewbox Width="15" Height="15" Stretch="Uniform">
                             <Canvas Width="16" Height="16">
                                 <Ellipse Canvas.Left="2" Canvas.Top="6.75" Width="2.5" Height="2.5" Fill="{DynamicResource WindowFore}"/>
@@ -204,14 +205,14 @@
                         </Viewbox>
                         <Button.ContextMenu>
                             <ContextMenu x:Name="MenuMore">
-                                <MenuItem x:Name="MenuAxes" Header="Show Axes [O]" IsCheckable="True"/>
-                                <MenuItem x:Name="MenuFishEye" Header="Switch to Fisheye"/>
+                                <MenuItem x:Name="MenuAxes" Header="Ground Axes" InputGestureText="O" IsCheckable="True"/>
+                                <MenuItem x:Name="MenuFishEye" Header="Fisheye Projection"/>
                                 <Separator/>
                                 <MenuItem x:Name="MenuSwapNormals" Header="Invert Normals"/>
                                 <MenuItem x:Name="MenuRemoveNormals" Header="Delete Normals"/>
                                 <MenuItem x:Name="MenuFlipFaces" Header="Flip Faces"/>
                                 <Separator/>
-                                <MenuItem x:Name="MenuSettings" Header="Open Settings…"/>
+                                <MenuItem x:Name="MenuSettings" Header="Settings..."/>
                             </ContextMenu>
                         </Button.ContextMenu>
                     </Button>
@@ -278,9 +279,9 @@
                 <GridSplitter x:Name="FilePanelSplitter" Visibility="Collapsed" Background="{DynamicResource TransparentHandle}" Width="5" HorizontalAlignment="Right" VerticalAlignment="Stretch" ResizeBehavior="CurrentAndNext"/>
 
                 <!-- Model Info Floating HUD Card (Toggled via I key, cleared from right slider) -->
-                <Border x:Name="infoContainer" Margin="16,16,44,16" CornerRadius="6" Background="{DynamicResource InfoPanel}" BorderBrush="{DynamicResource ButtonBorder}" BorderThickness="1" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Bottom" Padding="12,8">
+                <Border x:Name="infoContainer" Margin="16,16,44,16" CornerRadius="6" Background="{DynamicResource InfoPanel}" BorderBrush="{DynamicResource ButtonBorder}" BorderThickness="1" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Bottom" Padding="14,10" SnapsToDevicePixels="True">
                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                        <TextBlock x:Name="textBlockInfo" FontSize="11" Foreground="{DynamicResource WindowFore}" TextWrapping="Wrap" />
+                        <TextBlock x:Name="textBlockInfo" FontSize="11" LineHeight="18" LineStackingStrategy="BlockLineHeight" Foreground="{DynamicResource WindowFore}" TextWrapping="Wrap" />
                     </ScrollViewer>
                 </Border>
 

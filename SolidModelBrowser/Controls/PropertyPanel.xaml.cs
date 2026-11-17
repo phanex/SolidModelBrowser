@@ -20,11 +20,13 @@ namespace SolidModelBrowser
         Thickness categoryPadding = new Thickness(8, 4, 0, 4);
         string lastCategory = "";
 
+        public bool ShowCategoryHeaders { get; set; } = true;
+
         void addProperty(PropertyInfoAttribute p)
         {
             var type = p.Property.PropertyType;
 
-            if (p.Category != lastCategory)
+            if (ShowCategoryHeaders && p.Category != lastCategory)
             {
                 Border b = new Border() { Margin = categoryMargin, Padding = categoryPadding, CornerRadius = new CornerRadius(4) };
                 b.SetResourceReference(Border.BackgroundProperty, "PanelBack");
@@ -121,12 +123,20 @@ namespace SolidModelBrowser
             }
         }
 
-        public void SetObject(object o)
+        public void SetObject(object o) => SetObject(o, null);
+
+        public void SetObject(object o, params string[] categories)
         {
             try
             {
                 panel.Children.Clear();
-                var props = PropertyInfoAttribute.GetPropertiesInfoList(o, false).Where(p => p.MenuLabel != null).OrderBy(p => p.Category + p.SortPrefix + p.MenuLabel);
+                lastCategory = "";
+                var query = PropertyInfoAttribute.GetPropertiesInfoList(o, false).Where(p => p.MenuLabel != null);
+                if (categories != null && categories.Length > 0)
+                {
+                    query = query.Where(p => categories.Contains(p.Category));
+                }
+                var props = query.OrderBy(p => p.Category + p.SortPrefix + p.MenuLabel);
                 foreach (var p in props) addProperty(p);
             }
             catch (Exception exc) { Utils.MessageWindow($"Settings enumeration failed with message\r\n{exc.Message}"); }

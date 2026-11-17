@@ -211,7 +211,9 @@ namespace SolidModelBrowser
                 var p = new System.Windows.Shapes.Path
                 {
                     Data = Geometry.Parse("M1.5,3.5 L6,3.5 L7.5,5.5 L14.5,5.5 A1,1 0 0,1 15.5,6.5 L15.5,13.5 A1,1 0 0,1 14.5,14.5 L1.5,14.5 A1,1 0 0,1 0.5,13.5 L0.5,4.5 A1,1 0 0,1 1.5,3.5 Z"),
-                    Fill = new SolidColorBrush(Color.FromRgb(225, 175, 70))
+                    Fill = new SolidColorBrush(Color.FromArgb(50, 225, 175, 70)),
+                    Stroke = (Brush)Application.Current.FindResource("WindowFore"),
+                    StrokeThickness = 1.0
                 };
                 canvas.Children.Add(p);
                 vb.Child = canvas;

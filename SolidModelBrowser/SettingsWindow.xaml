@@ -6,32 +6,143 @@
         xmlns:local="clr-namespace:SolidModelBrowser"
         mc:Ignorable="d"
         Style="{StaticResource CustomWindowStyle}"
-        Title="Settings" Height="800" Width="600" MinWidth="600" MinHeight="400" WindowStartupLocation="CenterOwner">
+        Title="Settings" Height="560" Width="720" MinWidth="640" MinHeight="480" WindowStartupLocation="CenterOwner"
+        SnapsToDevicePixels="True" UseLayoutRounding="True">
 
     <DockPanel>
-        <DockPanel DockPanel.Dock="Top" Margin="0,0,0,8">
-            <Button Name="ButtonClose" DockPanel.Dock="Right" HorizontalAlignment="Right" Width="30" Height="30">
-                <local:TextEncodedImage EncodedImage="0@@0000000080148021090P10H00908401280100000000" Width="16" Height="16" EncodedImageColor="{DynamicResource ButtonImageColor}"></local:TextEncodedImage>
+        <!-- Top Custom Title Bar -->
+        <DockPanel DockPanel.Dock="Top" Margin="0,0,0,4">
+            <Button x:Name="ButtonClose" DockPanel.Dock="Right" HorizontalAlignment="Right" Width="30" Height="30" ToolTip="Close">
+                <Viewbox Width="12" Height="12">
+                    <Path Data="M2,2 L12,12 M12,2 L2,12" Stroke="{DynamicResource WindowFore}" StrokeThickness="1.4"/>
+                </Viewbox>
             </Button>
-            <local:TextEncodedImage DockPanel.Dock="Left" Margin="8,0,2,0" EncodedImage="?OO???GC?BBwo@M[_fFw~@{N?}@?N?oB?{??N?oB?W????" Width="16" Height="16" EncodedImageColor="{DynamicResource MenuButton_Settings}"></local:TextEncodedImage>
-            <Border Name="BorderHeader" Background="{DynamicResource WindowBack}">
-                <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
-                    <TextBlock Margin="4,4,8,4">Settings</TextBlock>
-                    <Button x:Name="ButtonLoadDefaults" ToolTip="Reset to default settings" Width="30" Height="30">
-                        <local:TextEncodedImage EncodedImage="?OO??_rzHDAQfbSGw{A???_@?W??E?{N?}@?N?_@??????" Width="16" Height="16" EncodedImageColor="{DynamicResource MenuButton_Default}"></local:TextEncodedImage>
-                    </Button>
-                    <Button x:Name="ButtonOpenInTextEditor" ToolTip="Open in default text editor for .ini" Width="30" Height="30">
-                        <local:TextEncodedImage EncodedImage="?OO?????o~CC_A|CP_GsC@`GODDCJ@tPO?CC?@@Oo~F???" Width="16" Height="16" EncodedImageColor="{DynamicResource MenuButton_Default}"></local:TextEncodedImage>
-                    </Button>
+            <Border x:Name="BorderHeader" Background="{DynamicResource WindowBack}" Height="30">
+                <StackPanel VerticalAlignment="Center" Orientation="Horizontal" Margin="10,0">
+                    <TextBlock Text="Settings" FontWeight="SemiBold" FontSize="12" Foreground="{DynamicResource WindowFore}"/>
                 </StackPanel>
             </Border>
         </DockPanel>
 
-        <!--<local:ColorSelector DockPanel.Dock="Top" />-->
-        <ScrollViewer Name="ScrollViewerBase" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-            <local:PropertyPanel x:Name="propertyPanel"></local:PropertyPanel>
-        </ScrollViewer>
+        <!-- Bottom Command Bar -->
+        <Border DockPanel.Dock="Bottom" Background="{DynamicResource PanelBack}" BorderBrush="{DynamicResource Separator}" BorderThickness="0,1,0,0" Padding="12,10">
+            <DockPanel LastChildFill="False">
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
+                    <Button x:Name="ButtonLoadDefaults" Content="Reset to Defaults" Width="120" Height="26" Margin="0,0,8,0"/>
+                    <Button x:Name="ButtonOpenInTextEditor" Content="Open INI" Width="80" Height="26"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
+                    <Button x:Name="ButtonSave" Content="Save &amp; Close" Width="95" Height="26" Margin="0,0,8,0" FontWeight="SemiBold"/>
+                    <Button x:Name="ButtonCancel" Content="Cancel" Width="75" Height="26"/>
+                </StackPanel>
+            </DockPanel>
+        </Border>
 
+        <!-- Main Content Area: Left Category Sidebar + Right Detail Panel -->
+        <Grid Margin="0,4,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="170"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Left Category Sidebar -->
+            <Border Grid.Column="0" Background="{DynamicResource PanelBack}" BorderBrush="{DynamicResource Separator}" BorderThickness="0,0,1,0" Padding="6,8">
+                <ListBox x:Name="ListCategories" Background="Transparent" BorderThickness="0" FocusVisualStyle="{x:Null}">
+                    <ListBox.ItemContainerStyle>
+                        <Style TargetType="ListBoxItem">
+                            <Setter Property="Padding" Value="10,8"/>
+                            <Setter Property="Margin" Value="0,2"/>
+                            <Setter Property="FontSize" Value="11"/>
+                            <Setter Property="FontWeight" Value="Medium"/>
+                            <Setter Property="Foreground" Value="{DynamicResource WindowFore}"/>
+                            <Setter Property="Cursor" Value="Hand"/>
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="ListBoxItem">
+                                        <Border x:Name="Bd" Background="Transparent" CornerRadius="4" Padding="{TemplateBinding Padding}">
+                                            <ContentPresenter VerticalAlignment="Center"/>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource ButtonHoverBack}"/>
+                                            </Trigger>
+                                            <Trigger Property="IsSelected" Value="True">
+                                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource ButtonPressedBack}"/>
+                                                <Setter Property="FontWeight" Value="SemiBold"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </ListBox.ItemContainerStyle>
+                    <ListBoxItem Content="General &amp; Interface" IsSelected="True"/>
+                    <ListBoxItem Content="Viewport &amp; Camera"/>
+                    <ListBoxItem Content="Materials &amp; Lights"/>
+                    <ListBoxItem Content="G-Code Import"/>
+                    <ListBoxItem Content="External Apps"/>
+                    <ListBoxItem Content="File Associations"/>
+                </ListBox>
+            </Border>
+
+            <!-- Right Detail Panel -->
+            <Grid Grid.Column="1" Margin="16,8,16,8">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <!-- Category Header -->
+                <TextBlock x:Name="TextCategoryTitle" Grid.Row="0" FontSize="14" FontWeight="SemiBold"
+                           Foreground="{DynamicResource WindowFore}" Margin="0,0,0,12"/>
+
+                <!-- Category 1-4 Property Panel Host -->
+                <ScrollViewer x:Name="ScrollViewerProperties" Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel>
+                        <!-- G-Code Notice Banner (Visible only on G-Code tab) -->
+                        <Border x:Name="BannerGCodeNotice" Visibility="Collapsed" Background="{DynamicResource PanelBack}"
+                                BorderBrush="{DynamicResource Separator}" BorderThickness="1" CornerRadius="4" Padding="10,6" Margin="0,0,0,10">
+                            <TextBlock Text="ℹ Note: Reload the model [F5] after modifying G-Code parameters to apply changes."
+                                       FontSize="11" FontStyle="Italic" Foreground="{DynamicResource WindowFore}" Opacity="0.85"/>
+                        </Border>
+
+                        <local:PropertyPanel x:Name="propertyPanel"/>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <!-- Category 5: External Apps Manager Host -->
+                <Grid x:Name="GridExternalApps" Grid.Row="1" Visibility="Collapsed">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
+                        <Button x:Name="ButtonAddApp" Content="+ Add Application..." Height="26" Padding="10,0" Margin="0,0,8,0"/>
+                        <Button x:Name="ButtonAutoDetectSlicers" Content="Auto-Detect Slicers" Height="26" Padding="10,0"/>
+                    </StackPanel>
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                        <StackPanel x:Name="PanelAppsList"/>
+                    </ScrollViewer>
+                </Grid>
+
+                <!-- Category 6: File Associations Host -->
+                <Grid x:Name="GridFileAssociations" Grid.Row="1" Visibility="Collapsed">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Row="0" Text="Associate 3D model formats with SolidModelBrowser (Current User, no admin rights required):"
+                               FontSize="11" Foreground="{DynamicResource WindowFore}" Opacity="0.8" TextWrapping="Wrap" Margin="0,0,0,12"/>
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                        <StackPanel x:Name="PanelAssociationsList"/>
+                    </ScrollViewer>
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,12,0,0">
+                        <Button x:Name="ButtonSelectAllAssoc" Content="Select All" Width="80" Height="26" Margin="0,0,8,0"/>
+                        <Button x:Name="ButtonDeselectAllAssoc" Content="Deselect All" Width="90" Height="26"/>
+                    </StackPanel>
+                </Grid>
+            </Grid>
+        </Grid>
     </DockPanel>
-
 </Window>

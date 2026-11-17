@@ -15,16 +15,6 @@ namespace SolidModelBrowser
             InitializeComponent();
 
             BorderColorPreview.MouseLeftButtonUp += (s, e) => OpenPalette();
-            ButtonPick.Click += (s, e) => OpenPalette();
-
-            NBAlpha.ValueChanged += (s, e) =>
-            {
-                if (isUpdating) return;
-                byte a = (byte)Math.Max(0, Math.Min(255, (int)Math.Round(NBAlpha.Value)));
-                currentColor = Color.FromArgb(a, currentColor.R, currentColor.G, currentColor.B);
-                UpdateUI(fromHexText: false);
-                ValueChanged?.Invoke(this, EventArgs.Empty);
-            };
 
             TextBoxHex.LostFocus += (s, e) => ApplyHexText();
             TextBoxHex.KeyDown += (s, e) =>
@@ -97,7 +87,6 @@ namespace SolidModelBrowser
             try
             {
                 BorderColorPreview.Background = new SolidColorBrush(currentColor);
-                NBAlpha.Value = currentColor.A;
                 if (!fromHexText)
                 {
                     TextBoxHex.Text = currentColor.A == 255

@@ -47,7 +47,15 @@ namespace SolidModelBrowser
 
             ButtonReloadModel.Click += (s, e) => { clearView(); loadFile(lastFilename); };
             ButtonSaveImage.Click += (s, e) => Utils.SaveImagePNG(scene.Viewport3D, settings.SaveImageDPI);
-            ButtonOpenExtApp.Click += (s, e) => Utils.RunExternalApp(settings.ExternalApp, settings.ExternalAppArguments, lastFilename);
+            ButtonOpenExtApp.Click += (s, e) =>
+            {
+                string ext = string.IsNullOrEmpty(lastFilename) ? "" : Path.GetExtension(lastFilename).TrimStart('.');
+                var app = settings.GetExternalApps().FirstOrDefault(a => a.SupportsExtension(ext)) ?? settings.GetExternalApps().FirstOrDefault();
+                if (app != null)
+                    Utils.RunExternalApp(app.Path, app.Arguments, lastFilename);
+                else if (File.Exists(lastFilename))
+                    System.Diagnostics.Process.Start("rundll32.exe", $"shell32.dll,OpenAs_RunDLL \"{lastFilename}\"");
+            };
             ButtonOpenExtAppDropdown.Click += (s, e) =>
             {
                 populateExternalAppsMenu();
@@ -237,21 +245,29 @@ namespace SolidModelBrowser
                 if (File.Exists(lastFilename))
                 {
                     long bytes = new FileInfo(lastFilename).Length;
-                    sizeStr = bytes >= 1024 * 1024 ? $"{bytes / (1024.0 * 1024.0):0.1} MB" : $"{bytes / 1024.0:0.1} KB";
+                    if (bytes >= 1024 * 1024 * 1024)
+                        sizeStr = $"{bytes / (1024.0 * 1024.0 * 1024.0):0.1} GB";
+                    else if (bytes >= 1024 * 1024)
+                        sizeStr = $"{bytes / (1024.0 * 1024.0):0.1} MB";
+                    else if (bytes >= 1024)
+                        sizeStr = $"{bytes / 1024.0:0.1} KB";
+                    else
+                        sizeStr = $"{bytes} B";
                 }
             }
             catch { }
 
             var sb = new System.Text.StringBuilder();
-            sb.AppendLine(string.IsNullOrEmpty(sizeStr) ? $"{fname} [{ext}]" : $"{fname} [{ext}, {sizeStr}]");
-            sb.AppendLine($"Dimensions: {modelSize.X:0.0} × {modelSize.Y:0.0} × {modelSize.Z:0.0} mm");
+            sb.AppendLine(string.IsNullOrEmpty(sizeStr) ? $"{fname}   ·   {ext}" : $"{fname}   ·   {ext} ({sizeStr})");
+            sb.AppendLine();
+            sb.AppendLine($"Dimensions:   {modelSize.X:0.0} × {modelSize.Y:0.0} × {modelSize.Z:0.0} mm");
 
             if (Import.Metadata.ContainsKey("PrintTime") || Import.Metadata.ContainsKey("Filament"))
             {
                 if (Import.Metadata.ContainsKey("PrintTime"))
-                    sb.AppendLine($"Print Time: {Import.Metadata["PrintTime"]}");
+                    sb.AppendLine($"Print Time:    {Import.Metadata["PrintTime"]}");
                 if (Import.Metadata.ContainsKey("Filament"))
-                    sb.AppendLine($"Filament: {Import.Metadata["Filament"]}");
+                    sb.AppendLine($"Filament:       {Import.Metadata["Filament"]}");
             }
             else
             {
@@ -265,16 +281,16 @@ namespace SolidModelBrowser
                     double printVol = Math.Min(volCm3, wallVol + coreVol * 0.15); // 15% infill
                     double printWeight = printVol * 1.24;
 
-                    sb.AppendLine($"Volume: {volCm3:N1} cm³   |   Area: {areaCm2:N1} cm²");
-                    sb.AppendLine($"Est. PLA: ~{printWeight:0.0} g (15% infill)   |   Solid: {solidWeight:0.0} g");
+                    sb.AppendLine($"Volume:         {volCm3:N1} cm³   |   Area: {areaCm2:N1} cm²");
+                    sb.AppendLine($"PLA Weight:   ~{printWeight:0.0} g (15% infill)   |   Solid: {solidWeight:0.0} g");
                 }
                 else if (areaCm2 > 0.001)
                 {
-                    sb.AppendLine($"Area: {areaCm2:N1} cm²");
+                    sb.AppendLine($"Area:             {areaCm2:N1} cm²");
                 }
             }
 
-            sb.Append($"Triangles: {meshBase.TriangleIndices.Count / 3:N0}   |   Vertices: {meshBase.Positions.Count:N0}");
+            sb.Append($"Geometry:     {meshBase.TriangleIndices.Count / 3:N0} triangles   |   {meshBase.Positions.Count:N0} vertices");
 
             showInfo(sb.ToString());
         }
@@ -487,17 +503,17 @@ namespace SolidModelBrowser
 
             if (proj == CameraProjection.Perspective)
             {
-                PathCameraPerspective.Data = Geometry.Parse("M2,5 L8,2 L14,5 L14,12 L8,15 L2,12 Z M2,5 L8,8 L14,5 M8,8 L8,15");
+                PathCameraPerspective.Data = Geometry.Parse("M1.5,4.5 H9.5 V12.5 H1.5 Z M9.5,7 L14.5,4 V13 L9.5,10 Z");
                 ButtonSelectCamera.ToolTip = "Camera: Perspective (Click for Orthographic) [F8]";
             }
             else if (proj == CameraProjection.Orthographic)
             {
-                PathCameraPerspective.Data = Geometry.Parse("M3,3 H13 V13 H3 Z M3,8 H13 M8,3 V13");
+                PathCameraPerspective.Data = Geometry.Parse("M1.5,4.5 H9.5 V12.5 H1.5 Z M9.5,6 H15 V11 H9.5 Z");
                 ButtonSelectCamera.ToolTip = "Camera: Orthographic (Click for Fisheye) [F8]";
             }
             else // Fisheye
             {
-                PathCameraPerspective.Data = Geometry.Parse("M8,1.5 A6.5,6.5 0 1 0 8,14.5 A6.5,6.5 0 1 0 8,1.5 M8,1.5 C10.5,4.5 10.5,11.5 8,14.5 M8,1.5 C5.5,4.5 5.5,11.5 8,14.5 M1.5,8 C4.5,5.5 11.5,5.5 14.5,8");
+                PathCameraPerspective.Data = Geometry.Parse("M8,2 A6,6 0 1 0 8,14 A6,6 0 1 0 8,2 M8,2 C10.5,5 10.5,11 8,14 M8,2 C5.5,5 5.5,11 8,14 M2,8 C5,5.5 11,5.5 14,8");
                 ButtonSelectCamera.ToolTip = "Camera: Fisheye (Click for Perspective) [F8]";
             }
         }
@@ -552,7 +568,7 @@ namespace SolidModelBrowser
             var settingsWindow = new SettingsWindow();
             settingsWindow.Owner = this;
             Utils.SetWindowStyle(settingsWindow, settings.UseSystemWindowStyle, settingsWindow.ButtonClose);
-            settingsWindow.propertyPanel.SetObject(settings);
+            settingsWindow.BindSettings(settings);
             this.Effect = new BlurEffect() { Radius = 4.0 };
             settingsWindow.ShowDialog();
             this.Effect = null;
@@ -633,15 +649,26 @@ namespace SolidModelBrowser
         {
             MenuExternalApps.Items.Clear();
 
-            if (!string.IsNullOrWhiteSpace(settings.ExternalApp) && File.Exists(settings.ExternalApp))
+            string ext = string.IsNullOrEmpty(lastFilename) ? "" : Path.GetExtension(lastFilename).TrimStart('.');
+            var allApps = settings.GetExternalApps();
+            var relevantApps = !string.IsNullOrEmpty(ext) ? allApps.Where(a => a.SupportsExtension(ext)).ToList() : allApps;
+            if (relevantApps.Count == 0) relevantApps = allApps;
+
+            bool isFirst = true;
+            foreach (var app in relevantApps)
             {
-                string appName = Path.GetFileNameWithoutExtension(settings.ExternalApp);
-                var itemExt = new MenuItem { Header = $"Open with {appName} [F7]" };
-                itemExt.Click += (s, e) => Utils.RunExternalApp(settings.ExternalApp, settings.ExternalAppArguments, lastFilename);
-                MenuExternalApps.Items.Add(itemExt);
+                if (File.Exists(app.Path))
+                {
+                    string targetPath = app.Path;
+                    string targetArgs = app.Arguments;
+                    var item = new MenuItem { Header = app.Name };
+                    if (isFirst) { item.InputGestureText = "F7"; isFirst = false; }
+                    item.Click += (s, e) => Utils.RunExternalApp(targetPath, targetArgs, lastFilename);
+                    MenuExternalApps.Items.Add(item);
+                }
             }
 
-            var itemChoose = new MenuItem { Header = "Open with... (Choose app)" };
+            var itemChoose = new MenuItem { Header = "Choose App..." };
             itemChoose.Click += (s, e) =>
             {
                 if (File.Exists(lastFilename))
@@ -660,7 +687,7 @@ namespace SolidModelBrowser
 
             MenuExternalApps.Items.Add(new Separator());
 
-            var itemPng = new MenuItem { Header = "Save snapshot to PNG image [F6]" };
+            var itemPng = new MenuItem { Header = "Save Snapshot PNG", InputGestureText = "F6" };
             itemPng.Click += (s, e) => Utils.SaveImagePNG(scene.Viewport3D, settings.SaveImageDPI);
             MenuExternalApps.Items.Add(itemPng);
         }

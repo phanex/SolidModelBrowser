@@ -100,6 +100,7 @@
     </Compile>
     <Compile Include="PropertyInfoAttribute.cs" />
     <Compile Include="Settings.cs" />
+    <Compile Include="FileAssociationManager.cs" />
     <Compile Include="Controls\TextEncodedImage.cs" />
     <Compile Include="Controls\UCamera.cs" />
     <Compile Include="Utils.cs" />
