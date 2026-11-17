@@ -54,7 +54,7 @@ namespace SolidModelBrowser
             };
         }
 
-        public void BindSettings(Settings s)
+        internal void BindSettings(Settings s)
         {
             settings = s;
             currentApps = settings.GetExternalApps();
