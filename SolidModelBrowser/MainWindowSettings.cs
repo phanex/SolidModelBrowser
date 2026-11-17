@@ -26,8 +26,8 @@ namespace SolidModelBrowser
             settings.IsSpecularEnabled = ButtonSpecularMaterial.IsChecked.Value;
             settings.IsEmissiveEnabled = ButtonEmissiveMaterial.IsChecked.Value;
             settings.IsBackDiffuseEnabled = ButtonBacksideDiffuseMaterial.IsChecked.Value;
-            settings.IsOrthoCameraEnabled = ButtonSelectCamera.IsChecked.Value;
-            settings.IsFishEyeModeEnabled = ButtonFishEyeFOV.IsChecked.Value;
+            settings.IsOrthoCameraEnabled = currentCameraProjection == CameraProjection.Orthographic;
+            settings.IsFishEyeModeEnabled = currentCameraProjection == CameraProjection.Fisheye;
             settings.IsAxesEnabled = ButtonAxes.IsChecked.Value;
             settings.IsGroundEnabled = ButtonGround.IsChecked.Value;
 
@@ -59,10 +59,16 @@ namespace SolidModelBrowser
             ButtonSpecularMaterial.IsChecked = settings.IsSpecularEnabled;
             ButtonEmissiveMaterial.IsChecked = settings.IsEmissiveEnabled;
             ButtonBacksideDiffuseMaterial.IsChecked = settings.IsBackDiffuseEnabled;
-            ButtonSelectCamera.IsChecked = settings.IsOrthoCameraEnabled;
             ButtonFishEyeFOV.IsChecked = settings.IsFishEyeModeEnabled;
             ButtonAxes.IsChecked = settings.IsAxesEnabled;
             ButtonGround.IsChecked = settings.IsGroundEnabled;
+
+            if (settings.IsFishEyeModeEnabled)
+                currentCameraProjection = CameraProjection.Fisheye;
+            else if (settings.IsOrthoCameraEnabled)
+                currentCameraProjection = CameraProjection.Orthographic;
+            else
+                currentCameraProjection = CameraProjection.Perspective;
 
             settings.FOV = Utils.MinMax(settings.FOV, 5.0, 160.0);
             settings.FishEyeFOV = Utils.MinMax(settings.FishEyeFOV, 5.0, 160.0);

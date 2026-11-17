@@ -3,12 +3,21 @@ using System.Windows.Media.Media3D;
 
 namespace SolidModelBrowser
 {
+    public enum CameraProjection
+    {
+        Perspective,
+        Orthographic,
+        Fisheye
+    }
+
     public class UCamera
     {
         Viewport3D viewport;
         PerspectiveCamera camPerspective = new PerspectiveCamera() { NearPlaneDistance = 0.1, FarPlaneDistance = 1000000.0 };
         OrthographicCamera camOrthographic = new OrthographicCamera() { NearPlaneDistance = 0.1, FarPlaneDistance = 1000000.0 };
+        CameraProjection currentProjection = CameraProjection.Perspective;
 
+        public CameraProjection Projection => currentProjection;
 
         public UCamera(Viewport3D vp)
         {
@@ -16,11 +25,24 @@ namespace SolidModelBrowser
             viewport.Camera = camPerspective;
         }
 
+        public void SetProjection(CameraProjection proj, double normalFov, double fishEyeFov)
+        {
+            currentProjection = proj;
+            if (proj == CameraProjection.Orthographic)
+            {
+                viewport.Camera = camOrthographic;
+            }
+            else
+            {
+                viewport.Camera = camPerspective;
+                camPerspective.FieldOfView = proj == CameraProjection.Fisheye ? fishEyeFov : normalFov;
+            }
+            validateCamera();
+        }
+
         public void SelectType(bool orthographic)
         {
-            if (orthographic) viewport.Camera = camOrthographic;
-            else viewport.Camera = camPerspective;
-            validateCamera();
+            SetProjection(orthographic ? CameraProjection.Orthographic : CameraProjection.Perspective, 45.0, 120.0);
         }
 
         public void DefaultPosition(double modelLen, double cameraInitialShift)

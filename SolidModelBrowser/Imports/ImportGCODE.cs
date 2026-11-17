@@ -108,14 +108,92 @@ namespace SolidModelBrowser
         {
             bool absolutePos = true;
             GPosition pos = new GPosition();
+            double maxAbsoluteE = 0;
+            double sumRelativeE = 0;
+            string printTime = null;
+            string filamentGrams = null;
+            string filamentLength = null;
 
             var strs = File.ReadAllLines(filename);
             int q = strs.Length;
             for (int c = 0; c < q; c++)
             {
-                string s = strs[c].Trim().ToUpper();
-                if (!string.IsNullOrWhiteSpace(s) && !s.StartsWith(";"))
+                string raw = strs[c].Trim();
+                if (raw.StartsWith(";"))
                 {
+                    string comment = raw.Substring(1).Trim();
+
+                    // 1. Time detection
+                    if (printTime == null)
+                    {
+                        if (comment.StartsWith("TIME:", StringComparison.OrdinalIgnoreCase))
+                        {
+                            string secStr = comment.Substring(5).Trim();
+                            if (double.TryParse(secStr, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out double secs))
+                            {
+                                TimeSpan t = TimeSpan.FromSeconds(secs);
+                                printTime = t.TotalHours >= 1 ? $"{(int)t.TotalHours}h {t.Minutes}m" : $"{t.Minutes}m {t.Seconds}s";
+                            }
+                        }
+                        else if (comment.IndexOf("estimated printing time", StringComparison.OrdinalIgnoreCase) >= 0)
+                        {
+                            int eq = comment.IndexOf('=');
+                            if (eq > 0) printTime = comment.Substring(eq + 1).Trim();
+                        }
+                        else if (comment.IndexOf("build time:", StringComparison.OrdinalIgnoreCase) >= 0)
+                        {
+                            int colon = comment.IndexOf(':');
+                            if (colon > 0) printTime = comment.Substring(colon + 1).Trim();
+                        }
+                    }
+
+                    // 2. Filament weight
+                    if (filamentGrams == null)
+                    {
+                        if (comment.IndexOf("filament used [g]", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                            comment.IndexOf("total filament used [g]", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                            comment.IndexOf("plastic weight:", StringComparison.OrdinalIgnoreCase) >= 0)
+                        {
+                            int sepIdx = comment.IndexOfAny(new[] { '=', ':' });
+                            if (sepIdx > 0)
+                            {
+                                string val = comment.Substring(sepIdx + 1).Trim().Replace("g", "").Trim();
+                                if (double.TryParse(val, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out double g))
+                                    filamentGrams = $"{g:0.1} g";
+                            }
+                        }
+                    }
+
+                    // 3. Filament length
+                    if (filamentLength == null)
+                    {
+                        if (comment.IndexOf("filament used [mm]", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                            comment.IndexOf("filament length:", StringComparison.OrdinalIgnoreCase) >= 0)
+                        {
+                            int sepIdx = comment.IndexOfAny(new[] { '=', ':' });
+                            if (sepIdx > 0)
+                            {
+                                string val = comment.Substring(sepIdx + 1).Trim().Replace("mm", "").Trim();
+                                if (double.TryParse(val, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out double mm))
+                                    filamentLength = $"{mm / 1000.0:0.1} m";
+                            }
+                        }
+                        else if (comment.IndexOf("filament used [m]", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                                 comment.StartsWith("Filament used:", StringComparison.OrdinalIgnoreCase))
+                        {
+                            int sepIdx = comment.IndexOfAny(new[] { '=', ':' });
+                            if (sepIdx > 0)
+                            {
+                                string val = comment.Substring(sepIdx + 1).Trim().Replace("m", "").Trim();
+                                if (double.TryParse(val, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out double m))
+                                    filamentLength = $"{m:0.1} m";
+                            }
+                        }
+                    }
+                }
+                else if (!string.IsNullOrWhiteSpace(raw))
+                {
+                    string s = raw.ToUpper();
                     var parts = s.Split(separator, StringSplitOptions.RemoveEmptyEntries);
                     if (parts.Length > 0)
                     {
@@ -133,8 +211,13 @@ namespace SolidModelBrowser
                                 if (!newpos.fz) newpos.Z = pos.Z;
                                 if (!newpos.fe) newpos.E = pos.E;
                                 if (!newpos.ff) newpos.F = pos.F;
+                                if (newpos.E > maxAbsoluteE) maxAbsoluteE = newpos.E;
                             }
-                            else newpos.Add(pos);
+                            else
+                            {
+                                if (newpos.fe && newpos.E > 0) sumRelativeE += newpos.E;
+                                newpos.Add(pos);
+                            }
 
                             if ((newpos.fx || newpos.fy) && newpos.E > pos.E) addLine(pos, newpos);
                             pos = newpos;
@@ -144,6 +227,24 @@ namespace SolidModelBrowser
 
                 Progress = c * 100 / q;
                 if (StopFlag) return;
+            }
+
+            if (!string.IsNullOrEmpty(printTime))
+                Metadata["PrintTime"] = printTime;
+
+            double totalExtrusionMm = absolutePos ? maxAbsoluteE : sumRelativeE;
+            if (filamentGrams != null && filamentLength != null)
+                Metadata["Filament"] = $"{filamentGrams} ({filamentLength})";
+            else if (filamentGrams != null)
+                Metadata["Filament"] = filamentGrams;
+            else if (filamentLength != null)
+                Metadata["Filament"] = filamentLength;
+            else if (totalExtrusionMm > 0)
+            {
+                double lenM = totalExtrusionMm / 1000.0;
+                double volCm3 = Math.PI * 0.875 * 0.875 * totalExtrusionMm / 1000.0;
+                double weightG = volCm3 * 1.24;
+                Metadata["Filament"] = $"~{weightG:0.1} g ({lenM:0.1} m)";
             }
         }
     }

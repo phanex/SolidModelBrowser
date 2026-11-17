@@ -20,6 +20,7 @@ namespace SolidModelBrowser
         public static List<Vector3D> Normals = new List<Vector3D>();
         public static List<Point3D> Positions = new List<Point3D>();
         public static List<int> Indices = new List<int>();
+        public static Dictionary<string, string> Metadata = new Dictionary<string, string>();
 
         // extensions should be in lower case
         public List<string> Extensions { get; protected set; } = new List<string>();
@@ -39,6 +40,7 @@ namespace SolidModelBrowser
             Normals.Clear();
             Positions.Clear();
             Indices.Clear();
+            Metadata.Clear();
         }
 
         public static void BindSettings(Settings s) => settings = s;

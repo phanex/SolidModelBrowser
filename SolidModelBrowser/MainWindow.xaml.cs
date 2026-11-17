@@ -15,6 +15,13 @@ using System.Windows.Threading;
 
 namespace SolidModelBrowser
 {
+    public enum ShadingMode
+    {
+        Solid,
+        SolidAndWireframe,
+        Wireframe
+    }
+
     public partial class MainWindow : Window
     {
         const string version = "0.6.1";
@@ -23,6 +30,9 @@ namespace SolidModelBrowser
         Point3D modelCenter = new Point3D();
         Point3D modelPointsAvgCenter = new Point3D();
         Vector3D modelSize = new Vector3D();
+
+        ShadingMode currentShadingMode = ShadingMode.Solid;
+        CameraProjection currentCameraProjection = CameraProjection.Perspective;
 
         string lastFilename;
 
@@ -50,32 +60,88 @@ namespace SolidModelBrowser
             ButtonRotateY.Click += (s, e) => addRotation(0, settings.ModelRotationAngle, 0);
             ButtonRotateZ.Click += (s, e) => addRotation(0, 0, settings.ModelRotationAngle);
 
-            ButtonWireframe.Click += (s, e) => { if (meshBase != null) updateMeshes(false); };
+            ButtonWireframe.Click += (s, e) =>
+            {
+                var next = currentShadingMode == ShadingMode.Solid ? ShadingMode.SolidAndWireframe
+                         : currentShadingMode == ShadingMode.SolidAndWireframe ? ShadingMode.Wireframe
+                         : ShadingMode.Solid;
+                setShadingMode(next);
+            };
             ButtonShadingDropdown.Click += (s, e) =>
             {
+                MenuSolid.IsChecked = currentShadingMode == ShadingMode.Solid;
+                MenuSolidAndWireframe.IsChecked = currentShadingMode == ShadingMode.SolidAndWireframe;
+                MenuWireframeOnly.IsChecked = currentShadingMode == ShadingMode.Wireframe;
                 MenuBacksideColor.IsChecked = ButtonBacksideDiffuseMaterial.IsChecked == true;
+                MenuRecreateUnsmoothed.IsChecked = !settings.UnsmoothAfterLoading;
+
                 ButtonShadingDropdown.ContextMenu.PlacementTarget = ButtonShadingDropdown;
                 ButtonShadingDropdown.ContextMenu.IsOpen = true;
             };
-            MenuRecreateUnsmoothed.Click += (s, e) => { if (meshBase == null) return; meshBase = Utils.UnsmoothMesh(meshBase); ButtonWireframe.IsChecked = false; updateMeshes(true); };
-            MenuWireframeOnly.Click += (s, e) => { if (meshBase == null) return; ButtonWireframe.IsChecked = true; updateMeshes(false); };
-            MenuBacksideColor.Click += (s, e) => { ButtonBacksideDiffuseMaterial.IsChecked = MenuBacksideColor.IsChecked; applyMaterials(); };
+            MenuSolid.Click += (s, e) => setShadingMode(ShadingMode.Solid);
+            MenuSolidAndWireframe.Click += (s, e) => setShadingMode(ShadingMode.SolidAndWireframe);
+            MenuWireframeOnly.Click += (s, e) => setShadingMode(ShadingMode.Wireframe);
+            MenuRecreateUnsmoothed.Click += (s, e) =>
+            {
+                if (meshBase == null) return;
+                settings.UnsmoothAfterLoading = !MenuRecreateUnsmoothed.IsChecked;
+                if (settings.UnsmoothAfterLoading)
+                    meshBase = Utils.UnsmoothMesh(meshBase);
+                else if (!string.IsNullOrEmpty(lastFilename))
+                    loadFile(lastFilename);
+                updateMeshes(true);
+            };
+            MenuBacksideColor.Click += (s, e) =>
+            {
+                ButtonBacksideDiffuseMaterial.IsChecked = MenuBacksideColor.IsChecked;
+                applyMaterials();
+            };
 
-            ButtonSelectCamera.Click += (s, e) => updateCameraModes();
+            ButtonSelectCamera.Click += (s, e) =>
+            {
+                var next = currentCameraProjection == CameraProjection.Perspective ? CameraProjection.Orthographic
+                         : currentCameraProjection == CameraProjection.Orthographic ? CameraProjection.Fisheye
+                         : CameraProjection.Perspective;
+                setCameraProjection(next);
+            };
+
+            ButtonCenterCamera.Click += (s, e) =>
+            {
+                if (meshBase != null) scene.Camera.TurnAt(settings.DefaultLookAtModelPointsAvgCenter ? modelPointsAvgCenter : modelCenter);
+            };
+            ButtonCenterDropdown.Click += (s, e) =>
+            {
+                ButtonCenterDropdown.ContextMenu.PlacementTarget = ButtonCenterDropdown;
+                ButtonCenterDropdown.ContextMenu.IsOpen = true;
+            };
+            MenuCenterMC.Click += (s, e) =>
+            {
+                if (meshBase != null)
+                {
+                    settings.DefaultLookAtModelPointsAvgCenter = true;
+                    scene.Camera.TurnAt(modelPointsAvgCenter);
+                }
+            };
+            MenuCenterGC.Click += (s, e) =>
+            {
+                if (meshBase != null)
+                {
+                    settings.DefaultLookAtModelPointsAvgCenter = false;
+                    scene.Camera.TurnAt(modelCenter);
+                }
+            };
+
             ButtonGround.Click += (s, e) => scene.IsGroundVisible = ButtonGround.IsChecked.Value;
             ButtonShowModelInfo.Click += (s, e) => updateModelInfo();
 
             ButtonMore.Click += (s, e) =>
             {
                 MenuAxes.IsChecked = ButtonAxes.IsChecked == true;
-                MenuFishEye.IsChecked = ButtonFishEyeFOV.IsChecked == true;
                 ButtonMore.ContextMenu.PlacementTarget = ButtonMore;
                 ButtonMore.ContextMenu.IsOpen = true;
             };
             MenuAxes.Click += (s, e) => { ButtonAxes.Toggle(); scene.IsAxesVisible = ButtonAxes.IsChecked.Value; };
-            MenuCenterGC.Click += (s, e) => { if (meshBase != null) scene.Camera.TurnAt(modelCenter); };
-            MenuCenterMC.Click += (s, e) => { if (meshBase != null) scene.Camera.TurnAt(modelPointsAvgCenter); };
-            MenuFishEye.Click += (s, e) => { ButtonFishEyeFOV.Toggle(); updateCameraModes(); };
+            MenuFishEye.Click += (s, e) => setCameraProjection(CameraProjection.Fisheye);
             MenuSwapNormals.Click += (s, e) => { if (meshBase == null) return; Utils.InvertNormals(meshBase); updateMeshes(true); };
             MenuRemoveNormals.Click += (s, e) => { if (meshBase == null) return; meshBase.Normals.Clear(); updateMeshes(true); };
             MenuFlipFaces.Click += (s, e) => { if (meshBase == null) return; Utils.InvertVertexOrder(meshBase); updateMeshes(true); };
@@ -157,10 +223,60 @@ namespace SolidModelBrowser
         void hideInfo() => infoContainer.Visibility = Visibility.Collapsed;
         void showModelInfo()
         {
-            string fname = string.IsNullOrEmpty(lastFilename) ? "" : Path.GetFileName(lastFilename);
-            int tris = scene.Mesh != null ? scene.Mesh.TriangleIndices.Count / 3 : 0;
-            int verts = scene.Mesh != null ? scene.Mesh.Positions.Count : 0;
-            showInfo($"{fname}\r\nDimensions: {modelSize.X:0.0} × {modelSize.Y:0.0} × {modelSize.Z:0.0} mm\r\nTriangles: {tris:N0}  |  Vertices: {verts:N0}");
+            if (meshBase == null || string.IsNullOrEmpty(lastFilename))
+            {
+                hideInfo();
+                return;
+            }
+
+            string fname = Path.GetFileName(lastFilename);
+            string ext = Path.GetExtension(lastFilename).TrimStart('.').ToUpperInvariant();
+            string sizeStr = "";
+            try
+            {
+                if (File.Exists(lastFilename))
+                {
+                    long bytes = new FileInfo(lastFilename).Length;
+                    sizeStr = bytes >= 1024 * 1024 ? $"{bytes / (1024.0 * 1024.0):0.1} MB" : $"{bytes / 1024.0:0.1} KB";
+                }
+            }
+            catch { }
+
+            var sb = new System.Text.StringBuilder();
+            sb.AppendLine(string.IsNullOrEmpty(sizeStr) ? $"{fname} [{ext}]" : $"{fname} [{ext}, {sizeStr}]");
+            sb.AppendLine($"Dimensions: {modelSize.X:0.0} × {modelSize.Y:0.0} × {modelSize.Z:0.0} mm");
+
+            if (Import.Metadata.ContainsKey("PrintTime") || Import.Metadata.ContainsKey("Filament"))
+            {
+                if (Import.Metadata.ContainsKey("PrintTime"))
+                    sb.AppendLine($"Print Time: {Import.Metadata["PrintTime"]}");
+                if (Import.Metadata.ContainsKey("Filament"))
+                    sb.AppendLine($"Filament: {Import.Metadata["Filament"]}");
+            }
+            else
+            {
+                Utils.CalculateMeshStats(meshBase, out double volCm3, out double areaCm2);
+                if (volCm3 > 0.001)
+                {
+                    double solidWeight = volCm3 * 1.24;
+                    double wallThickness = 0.08; // ~0.8mm wall (2 perimeters)
+                    double wallVol = areaCm2 * wallThickness;
+                    double coreVol = Math.Max(0.0, volCm3 - wallVol);
+                    double printVol = Math.Min(volCm3, wallVol + coreVol * 0.15); // 15% infill
+                    double printWeight = printVol * 1.24;
+
+                    sb.AppendLine($"Volume: {volCm3:N1} cm³   |   Area: {areaCm2:N1} cm²");
+                    sb.AppendLine($"Est. PLA: ~{printWeight:0.0} g (15% infill)   |   Solid: {solidWeight:0.0} g");
+                }
+                else if (areaCm2 > 0.001)
+                {
+                    sb.AppendLine($"Area: {areaCm2:N1} cm²");
+                }
+            }
+
+            sb.Append($"Triangles: {meshBase.TriangleIndices.Count / 3:N0}   |   Vertices: {meshBase.Positions.Count:N0}");
+
+            showInfo(sb.ToString());
         }
 
 
@@ -188,7 +304,7 @@ namespace SolidModelBrowser
                 meshWireframe = null;
                 if (Utils.ShouldUnsmoothMesh(lastFilename, settings.UnsmoothAfterLoading))
                     meshBase = Utils.UnsmoothMesh(meshBase);
-                Utils.FillMesh(meshBase, scene.Mesh);
+                updateMeshes(true);
                 Utils.GetModelCenterAndSize(meshBase, out modelCenter, out modelPointsAvgCenter, out modelSize);
                 scene.Camera.LookCenter = settings.DefaultLookAtModelPointsAvgCenter ? modelPointsAvgCenter : modelCenter;
                 scene.Camera.DefaultPosition(modelSize.Length, settings.CameraInitialShift);
@@ -270,6 +386,9 @@ namespace SolidModelBrowser
             if (CAS == "") // no modifier keys
             {
                 if (e.Key == Key.Tab || e.Key == Key.F9) { setFilePanelVisibility(filePanel.Visibility != Visibility.Visible); e.Handled = true; return; }
+                if (e.Key == Key.D1 || e.Key == Key.NumPad1) { setShadingMode(ShadingMode.Solid); e.Handled = true; return; }
+                if (e.Key == Key.D2 || e.Key == Key.NumPad2) { setShadingMode(ShadingMode.SolidAndWireframe); e.Handled = true; return; }
+                if (e.Key == Key.D3 || e.Key == Key.NumPad3) { setShadingMode(ShadingMode.Wireframe); e.Handled = true; return; }
 
                 double ra = settings.ModelRotationAngle;
                 if (e.Key == Key.A) addRotation(0, 0, ra);
@@ -299,7 +418,13 @@ namespace SolidModelBrowser
                 if (e.Key == Key.F5) { clearView(); loadFile(lastFilename); }
                 if (e.Key == Key.F6) Utils.SaveImagePNG(scene.Viewport3D, settings.SaveImageDPI);
                 if (e.Key == Key.F7) Utils.RunExternalApp(settings.ExternalApp, settings.ExternalAppArguments, lastFilename);
-                if (e.Key == Key.F8) { ButtonSelectCamera.Toggle(); scene.Camera.SelectType(ButtonSelectCamera.IsChecked.Value); }
+                if (e.Key == Key.F8)
+                {
+                    var next = currentCameraProjection == CameraProjection.Perspective ? CameraProjection.Orthographic
+                             : currentCameraProjection == CameraProjection.Orthographic ? CameraProjection.Fisheye
+                             : CameraProjection.Perspective;
+                    setCameraProjection(next);
+                }
                 if (e.Key == Key.C) scene.Camera.TurnAt(modelCenter);
                 if (e.Key == Key.M) scene.Camera.TurnAt(modelPointsAvgCenter);
                 if (e.Key == Key.O) { ButtonAxes.Toggle(); scene.IsAxesVisible = ButtonAxes.IsChecked.Value; }
@@ -311,7 +436,15 @@ namespace SolidModelBrowser
             {
                 if (e.Key == Key.B) { setFilePanelVisibility(filePanel.Visibility != Visibility.Visible); e.Handled = true; return; }
                 if (e.Key == Key.F) { meshBase = Utils.UnsmoothMesh(meshBase); updateMeshes(true); }
-                if (e.Key == Key.W) { ButtonWireframe.Toggle(); updateMeshes(false); }
+                if (e.Key == Key.W)
+                {
+                    var next = currentShadingMode == ShadingMode.Solid ? ShadingMode.SolidAndWireframe
+                             : currentShadingMode == ShadingMode.SolidAndWireframe ? ShadingMode.Wireframe
+                             : ShadingMode.Solid;
+                    setShadingMode(next);
+                    e.Handled = true;
+                    return;
+                }
                 if (e.Key == Key.S) export();
             }
         }
@@ -320,12 +453,19 @@ namespace SolidModelBrowser
         {
             textBlockTitle.Text = "Solid Model Browser";
             this.Title = "Solid Model Browser";
-            if (meshBase == null) return;
-            meshBase.TriangleIndices.Clear();
-            meshBase.Positions.Clear();
-            meshBase.Normals.Clear();
-            ButtonWireframe.IsChecked = false;
-            updateMeshes(false);
+            if (meshBase != null)
+            {
+                meshBase.TriangleIndices.Clear();
+                meshBase.Positions.Clear();
+                meshBase.Normals.Clear();
+            }
+            meshWireframe = null;
+            scene.Mesh.Positions.Clear();
+            scene.Mesh.TriangleIndices.Clear();
+            scene.Mesh.Normals.Clear();
+            scene.WireframeMesh.Positions.Clear();
+            scene.WireframeMesh.TriangleIndices.Clear();
+            scene.WireframeMesh.Normals.Clear();
             hideInfo();
         }
 
@@ -337,11 +477,54 @@ namespace SolidModelBrowser
 
         void updateCameraModes()
         {
-            scene.Camera.SelectType(ButtonSelectCamera.IsChecked.Value);
-            scene.Camera.FOV = ButtonFishEyeFOV.IsChecked.Value ? settings.FishEyeFOV : settings.FOV;
+            setCameraProjection(currentCameraProjection);
         }
 
+        void setCameraProjection(CameraProjection proj)
+        {
+            currentCameraProjection = proj;
+            scene.Camera.SetProjection(proj, settings.FOV, settings.FishEyeFOV);
 
+            if (proj == CameraProjection.Perspective)
+            {
+                PathCameraPerspective.Data = Geometry.Parse("M2,5 L8,2 L14,5 L14,12 L8,15 L2,12 Z M2,5 L8,8 L14,5 M8,8 L8,15");
+                ButtonSelectCamera.ToolTip = "Camera: Perspective (Click for Orthographic) [F8]";
+            }
+            else if (proj == CameraProjection.Orthographic)
+            {
+                PathCameraPerspective.Data = Geometry.Parse("M3,3 H13 V13 H3 Z M3,8 H13 M8,3 V13");
+                ButtonSelectCamera.ToolTip = "Camera: Orthographic (Click for Fisheye) [F8]";
+            }
+            else // Fisheye
+            {
+                PathCameraPerspective.Data = Geometry.Parse("M8,1.5 A6.5,6.5 0 1 0 8,14.5 A6.5,6.5 0 1 0 8,1.5 M8,1.5 C10.5,4.5 10.5,11.5 8,14.5 M8,1.5 C5.5,4.5 5.5,11.5 8,14.5 M1.5,8 C4.5,5.5 11.5,5.5 14.5,8");
+                ButtonSelectCamera.ToolTip = "Camera: Fisheye (Click for Perspective) [F8]";
+            }
+        }
+
+        void setShadingMode(ShadingMode mode)
+        {
+            currentShadingMode = mode;
+            if (mode == ShadingMode.Solid)
+            {
+                PathShadingSolidFace.Visibility = Visibility.Visible;
+                scene.SetShadingVisibility(true, false);
+                ButtonWireframe.ToolTip = "Switch to Solid + Wireframe [Ctrl+W / 1,2,3]";
+            }
+            else if (mode == ShadingMode.SolidAndWireframe)
+            {
+                PathShadingSolidFace.Visibility = Visibility.Visible;
+                scene.SetShadingVisibility(true, true);
+                ButtonWireframe.ToolTip = "Switch to Wireframe [Ctrl+W / 1,2,3]";
+            }
+            else // Wireframe
+            {
+                PathShadingSolidFace.Visibility = Visibility.Collapsed;
+                scene.SetShadingVisibility(false, true);
+                ButtonWireframe.ToolTip = "Switch to Solid [Ctrl+W / 1,2,3]";
+            }
+            updateMeshes(false);
+        }
 
         private void Handler_MouseDown(object sender, MouseButtonEventArgs e)
         {
@@ -353,11 +536,11 @@ namespace SolidModelBrowser
         {
             if (settings.LightTheme) App.SetTheme("ColorsLight.xaml");
             else App.SetTheme("Colors.xaml");
+            scene.UpdateWireframeColor(settings.LightTheme);
             filePanel.ExtensionsColors.Clear();
             if (settings.ColorizeFiles) { Import.FillColorsDictionary(filePanel.ExtensionsColors, settings.LightTheme); filePanel.Refresh(); }
         }
 
-        
         void updateModelInfo()
         {
             if (ButtonShowModelInfo.IsChecked.Value) showModelInfo();
@@ -382,14 +565,26 @@ namespace SolidModelBrowser
         void updateMeshes(bool forceUpdateWireframe)
         {
             if (meshBase == null) return;
-            var wfmode = ButtonWireframe.IsChecked.Value;
-            if (wfmode)
+            if (currentShadingMode == ShadingMode.Solid)
             {
+                scene.SetShadingVisibility(true, false);
+                Utils.FillMesh(meshBase, scene.Mesh);
+            }
+            else if (currentShadingMode == ShadingMode.SolidAndWireframe)
+            {
+                scene.SetShadingVisibility(true, true);
+                Utils.FillMesh(meshBase, scene.Mesh);
                 if (meshWireframe == null || forceUpdateWireframe)
                     meshWireframe = Utils.ConvertToWireframe(meshBase, settings.WireframeEdgeScale);
+                Utils.FillMesh(meshWireframe, scene.WireframeMesh);
             }
-            else meshWireframe = null;
-            Utils.FillMesh(wfmode ? meshWireframe : meshBase, scene.Mesh);
+            else // Wireframe
+            {
+                scene.SetShadingVisibility(false, true);
+                if (meshWireframe == null || forceUpdateWireframe)
+                    meshWireframe = Utils.ConvertToWireframe(meshBase, settings.WireframeEdgeScale);
+                Utils.FillMesh(meshWireframe, scene.WireframeMesh);
+            }
             slice();
         }
 
@@ -408,9 +603,30 @@ namespace SolidModelBrowser
         void slice()
         {
             if (skipslice || meshBase == null) return;
-            Utils.SliceMesh(ButtonWireframe.IsChecked.Value ? meshWireframe : meshBase, scene.Mesh, sliderSliceHeight.Value);
-            if (scene.Mesh.TriangleIndices.Count == 0) { scene.Mesh.TriangleIndices.Add(0); }
-            //showInfo($"ms: {Utils.sw.ElapsedMilliseconds}\r\nticks: {Utils.sw.ElapsedTicks}\r\nheight: {sliderSliceHeight.Value}, slicescount {++slicescount}, tris: {mesh.TriangleIndices.Count}");
+            double h = sliderSliceHeight.Value;
+            if (currentShadingMode == ShadingMode.Solid)
+            {
+                Utils.SliceMesh(meshBase, scene.Mesh, h);
+                if (scene.Mesh.TriangleIndices.Count == 0) scene.Mesh.TriangleIndices.Add(0);
+            }
+            else if (currentShadingMode == ShadingMode.Wireframe)
+            {
+                if (meshWireframe != null)
+                {
+                    Utils.SliceMesh(meshWireframe, scene.WireframeMesh, h);
+                    if (scene.WireframeMesh.TriangleIndices.Count == 0) scene.WireframeMesh.TriangleIndices.Add(0);
+                }
+            }
+            else // SolidAndWireframe
+            {
+                Utils.SliceMesh(meshBase, scene.Mesh, h);
+                if (scene.Mesh.TriangleIndices.Count == 0) scene.Mesh.TriangleIndices.Add(0);
+                if (meshWireframe != null)
+                {
+                    Utils.SliceMesh(meshWireframe, scene.WireframeMesh, h);
+                    if (scene.WireframeMesh.TriangleIndices.Count == 0) scene.WireframeMesh.TriangleIndices.Add(0);
+                }
+            }
         }
 
         void populateExternalAppsMenu()

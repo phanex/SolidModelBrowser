@@ -485,5 +485,38 @@ namespace SolidModelBrowser
         {
             return Vector3D.CrossProduct(p2 - p1, p3 - p1).Norm();
         }
+
+        public static void CalculateMeshStats(MeshGeometry3D mesh, out double volumeCm3, out double surfaceAreaCm2)
+        {
+            volumeCm3 = 0.0;
+            surfaceAreaCm2 = 0.0;
+            if (mesh == null || mesh.Positions == null || mesh.TriangleIndices == null || mesh.TriangleIndices.Count % 3 != 0)
+                return;
+
+            double totalVolMm3 = 0.0;
+            double totalAreaMm2 = 0.0;
+            var positions = mesh.Positions;
+            var indices = mesh.TriangleIndices;
+            int count = indices.Count;
+
+            for (int i = 0; i < count; i += 3)
+            {
+                Point3D p1 = positions[indices[i]];
+                Point3D p2 = positions[indices[i + 1]];
+                Point3D p3 = positions[indices[i + 2]];
+
+                Vector3D v1 = p2 - p1;
+                Vector3D v2 = p3 - p1;
+                Vector3D cross = Vector3D.CrossProduct(v1, v2);
+                totalAreaMm2 += 0.5 * cross.Length;
+
+                Vector3D p2CrossP3 = Vector3D.CrossProduct((Vector3D)p2, (Vector3D)p3);
+                totalVolMm3 += Vector3D.DotProduct((Vector3D)p1, p2CrossP3);
+            }
+
+            totalVolMm3 = Math.Abs(totalVolMm3) / 6.0;
+            volumeCm3 = totalVolMm3 / 1000.0;
+            surfaceAreaCm2 = totalAreaMm2 / 100.0;
+        }
     }
 }

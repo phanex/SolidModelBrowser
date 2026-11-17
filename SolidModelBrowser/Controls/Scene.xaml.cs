@@ -11,6 +11,9 @@ namespace SolidModelBrowser
     {
         GeometryModel3D geometry = new GeometryModel3D();
         MeshGeometry3D mesh = new MeshGeometry3D();
+        GeometryModel3D wireframeGeometry = new GeometryModel3D();
+        MeshGeometry3D wireframeMesh = new MeshGeometry3D();
+        EmissiveMaterial wireframeMaterial = new EmissiveMaterial();
         UCamera camera;
 
         public Scene()
@@ -18,12 +21,15 @@ namespace SolidModelBrowser
             InitializeComponent();
             geometry.Geometry = mesh;
             geometry.Material = materials;
+            wireframeGeometry.Geometry = wireframeMesh;
+            wireframeGeometry.Material = wireframeMaterial;
+            wireframeGeometry.BackMaterial = wireframeMaterial;
+            UpdateWireframeColor(false);
+
             modelgroup.Children.Add(geometry);
             modelgroup.Children.Add(lights);
 
             camera = new UCamera(viewport3D);
-
-            
         }
 
         
@@ -159,8 +165,36 @@ namespace SolidModelBrowser
         public event EventHandler ShiftAndDrag;
 
         public MeshGeometry3D Mesh => mesh;
+        public MeshGeometry3D WireframeMesh => wireframeMesh;
         public UCamera Camera => camera;
         public Viewport3D Viewport3D => viewport3D;
+
+        public void UpdateWireframeColor(bool lightTheme)
+        {
+            var color = lightTheme ? Color.FromRgb(32, 32, 38) : Color.FromRgb(220, 220, 220);
+            wireframeMaterial.Brush = new SolidColorBrush(color);
+        }
+
+        public void SetShadingVisibility(bool showSolid, bool showWireframe)
+        {
+            if (showSolid)
+            {
+                if (!modelgroup.Children.Contains(geometry)) modelgroup.Children.Add(geometry);
+            }
+            else
+            {
+                if (modelgroup.Children.Contains(geometry)) modelgroup.Children.Remove(geometry);
+            }
+
+            if (showWireframe)
+            {
+                if (!modelgroup.Children.Contains(wireframeGeometry)) modelgroup.Children.Add(wireframeGeometry);
+            }
+            else
+            {
+                if (modelgroup.Children.Contains(wireframeGeometry)) modelgroup.Children.Remove(wireframeGeometry);
+            }
+        }
 
         bool isAxesVisible;
         public bool IsAxesVisible
