@@ -215,8 +215,10 @@
                 <!-- Right: Theme & Windows 11 Chrome Controls -->
                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Top">
                     <Button x:Name="ButtonChangeTheme" Width="30" Height="30" ToolTip="Switch Light / Dark Theme">
-                        <Path Data="M8,1 A7,7 0 1,0 15,8 A5.5,5.5 0 0,1 8,1 Z"
-                              Fill="{DynamicResource WindowFore}" Width="13" Height="13" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <Viewbox Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <Path Data="M8,1 A7,7 0 1,0 15,8 A5.5,5.5 0 0,1 8,1 Z"
+                                  Fill="{DynamicResource WindowFore}"/>
+                        </Viewbox>
                     </Button>
                     <StackPanel x:Name="StackPanelSystemButtons" Orientation="Horizontal">
                         <Rectangle Width="1" Height="18" Fill="{DynamicResource Separator}" Margin="4,0"/>

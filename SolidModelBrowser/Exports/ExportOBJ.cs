@@ -10,7 +10,7 @@ namespace SolidModelBrowser
         {
             Extension = "obj";
             Description = "OBJ";
-            InitialXRotationNeeded = true;
+            InitialRotationX = 90.0;
         }
 
         public override void Save(MeshGeometry3D mesh, string filename)

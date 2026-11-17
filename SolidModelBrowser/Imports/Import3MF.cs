@@ -17,7 +17,7 @@ namespace SolidModelBrowser
             Extensions = new List<string> { "3mf" };
             ExtensionsColors = new Dictionary<string, SolidColorBrush> { { "3mf", new SolidColorBrush(Color.FromRgb(255, 150, 150)) } };
             ExtensionsColorsLight = new Dictionary<string, SolidColorBrush> { { "3mf", new SolidColorBrush(Color.FromRgb(200, 50, 50)) } };
-            InitialXRotationNeeded = false;
+            InitialRotationX = 0.0;
         }
 
         string readZipEntry(ZipArchive zfile, string entryName)

@@ -189,7 +189,7 @@ namespace SolidModelBrowser
                     this.Title = bareName;
                 }
 
-                if (Import.CurrentImport.InitialXRotationNeeded) addRotation(90.0, 0, 0);
+                if (Import.CurrentImport.InitialRotationX != 0.0) addRotation(Import.CurrentImport.InitialRotationX, 0, 0);
                 if (ButtonShowModelInfo.IsChecked.Value) showModelInfo();
                 else hideInfo();
 
@@ -485,7 +485,7 @@ namespace SolidModelBrowser
             try
             {
                 MeshGeometry3D m = scene.Mesh;
-                if (exp.InitialXRotationNeeded) { m = scene.Mesh.Clone(); Utils.RotateMesh(m, settings.DefaultLookAtModelPointsAvgCenter ? modelPointsAvgCenter : modelCenter, -90, 0, 0); }
+                if (exp.InitialRotationX != 0.0) { m = scene.Mesh.Clone(); Utils.RotateMesh(m, settings.DefaultLookAtModelPointsAvgCenter ? modelPointsAvgCenter : modelCenter, exp.InitialRotationX, 0, 0); }
                 exp.Save(m, sfd.FileName);
                 showInfo($"Exported to file {sfd.FileName}");
             }

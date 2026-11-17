@@ -40,7 +40,7 @@ namespace SolidModelBrowser
             Extensions = new List<string> { "skp" };
             ExtensionsColors = new Dictionary<string, SolidColorBrush> { { "skp", new SolidColorBrush(Color.FromRgb(235, 95, 75)) } };
             ExtensionsColorsLight = new Dictionary<string, SolidColorBrush> { { "skp", new SolidColorBrush(Color.FromRgb(180, 45, 30)) } };
-            InitialXRotationNeeded = false;
+            InitialRotationX = 90.0;
         }
 
         public override void Load(string filename)

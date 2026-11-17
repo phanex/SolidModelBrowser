@@ -59,10 +59,12 @@ namespace SolidModelBrowser
         {
             DependencyObject temp = (DependencyObject)e.OriginalSource;
             while ((temp = VisualTreeHelper.GetParent(temp)) != null)
-                if (temp is ListBoxItem)
+                if (temp is ListBoxItem lbi)
                 {
+                    listBoxFiles.SelectedItem = lbi.Content;
                     TryEnterSelectedFolder();
                     e.Handled = true;
+                    break;
                 }
         }
 
@@ -201,14 +203,11 @@ namespace SolidModelBrowser
                 VerticalAlignment = VerticalAlignment.Center,
                 TextTrimming = TextTrimming.CharacterEllipsis
             };
+            tb.SetResourceReference(TextBlock.ForegroundProperty, "WindowFore");
 
             if (isFolder)
             {
                 tb.FontWeight = FontWeights.SemiBold;
-            }
-            else if (!string.IsNullOrEmpty(ext) && extensionsColors.ContainsKey(ext))
-            {
-                tb.Foreground = extensionsColors[ext];
             }
 
             sp.Children.Add(tb);

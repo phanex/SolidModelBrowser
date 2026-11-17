@@ -13,7 +13,7 @@ namespace SolidModelBrowser
             Extensions = new List<string> { "obj" };
             ExtensionsColors = new Dictionary<string, SolidColorBrush> { { "obj", new SolidColorBrush(Color.FromRgb(200, 200, 255)) } };
             ExtensionsColorsLight = new Dictionary<string, SolidColorBrush> { { "obj", new SolidColorBrush(Color.FromRgb(50, 50, 100)) } };
-            InitialXRotationNeeded = true;
+            InitialRotationX = -90.0;
         }
 
         char[] separator = { ' ' };

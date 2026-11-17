@@ -10,7 +10,8 @@ namespace SolidModelBrowser
     {
         public string Extension { get; protected set; } = "";
         public string Description { get; protected set; } = "";
-        public bool InitialXRotationNeeded { get; protected set; }
+        public double InitialRotationX { get; protected set; } = 0.0;
+        public bool InitialXRotationNeeded => InitialRotationX != 0.0;
 
         public abstract void Save(MeshGeometry3D mesh, string filename);
 

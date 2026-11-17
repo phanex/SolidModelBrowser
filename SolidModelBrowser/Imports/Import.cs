@@ -25,7 +25,8 @@ namespace SolidModelBrowser
         public List<string> Extensions { get; protected set; } = new List<string>();
         public Dictionary<string, SolidColorBrush> ExtensionsColors { get; protected set; } = new Dictionary<string, SolidColorBrush>();
         public Dictionary<string, SolidColorBrush> ExtensionsColorsLight { get; protected set; } = new Dictionary<string, SolidColorBrush>();
-        public bool InitialXRotationNeeded { get; protected set; } = false;
+        public double InitialRotationX { get; protected set; } = 0.0;
+        public bool InitialXRotationNeeded => InitialRotationX != 0.0;
 
         public abstract void Load(string filename);
 

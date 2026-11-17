@@ -34,6 +34,19 @@ namespace SolidModelBrowser.Tests
             Assert.IsTrue(settings.UnsmoothAfterLoading, "CAD Flat Shading (UnsmoothAfterLoading) must be enabled by default.");
         }
 
+        [Test]
+        public void DefaultSettings_CalibratedLightingAndMaterial_AvoidOverexposure()
+        {
+            var settings = new Settings();
+            Assert.AreEqual("#FF9AA2AA", settings.DiffuseColor.ToHex(), "DiffuseColor must be studio neutral matte gray to avoid blown-out highlights.");
+            Assert.AreEqual("#FF303030", settings.SpecularColor.ToHex(), "SpecularColor must be controlled to prevent high-glare surfaces.");
+            Assert.AreEqual(40.0, settings.SpecularPower, 0.001);
+            Assert.AreEqual("#FF303236", settings.AmbientLightColor.ToHex());
+            Assert.AreEqual("#FFB8BCC4", settings.DirectionalLight1Color.ToHex());
+            Assert.AreEqual("#FF68707C", settings.DirectionalLight2Color.ToHex());
+            Assert.AreEqual("#FF40444C", settings.DirectionalLight3Color.ToHex());
+        }
+
         [TestCase("model.stl", true, ExpectedResult = true)]
         [TestCase("model.3mf", true, ExpectedResult = true)]
         [TestCase("model.skp", true, ExpectedResult = true)]

@@ -38,6 +38,22 @@ namespace SolidModelBrowser.Tests
         }
 
         [Test]
+        public void ImportSKP_InitialRotationX_IsPositive90Degrees()
+        {
+            Import.SelectImporter("test.skp");
+            Assert.IsNotNull(Import.CurrentImport);
+            Assert.AreEqual(90.0, Import.CurrentImport.InitialRotationX, 0.001, "SKP models must rotate +90 deg around X to align Y-up with Z-up.");
+        }
+
+        [Test]
+        public void ImportOBJ_InitialRotationX_IsNegative90Degrees()
+        {
+            Import.SelectImporter("test.obj");
+            Assert.IsNotNull(Import.CurrentImport);
+            Assert.AreEqual(-90.0, Import.CurrentImport.InitialRotationX, 0.001, "OBJ models with -Y height must rotate -90 deg around X to align with Z-up.");
+        }
+
+        [Test]
         public void ImportSKP_ScalesMetersToMillimeters()
         {
             string testFile = @"C:\Desmond\Documents\3D-Print\autoramka\autoramka_test.skp";
