@@ -162,37 +162,189 @@ namespace SolidModelBrowser
 
         public static MeshGeometry3D ConvertToWireframe(MeshGeometry3D src, double edgeScale)
         {
-            var dest = UnsmoothMesh(src);
-            var p = new Point3DCollection(dest.Positions.Count * 3);
-            var i = new Int32Collection(dest.TriangleIndices.Count * 3);
-            int iq = 0;
-            for (int c = 0; c < dest.Positions.Count; c += 3)
+            if (src == null || src.Positions == null || src.Positions.Count < 3)
+                return new MeshGeometry3D();
+
+            var positions = src.Positions;
+            var indices = src.TriangleIndices;
+
+            // Calculate model bounding box for adaptive depth bias and line width
+            Point3D min = new Point3D(double.MaxValue, double.MaxValue, double.MaxValue);
+            Point3D max = new Point3D(double.MinValue, double.MinValue, double.MinValue);
+            for (int k = 0; k < positions.Count; k++)
             {
-                Point3D p1 = dest.Positions[c], p2 = dest.Positions[c + 1], p3 = dest.Positions[c + 2];
-                p.Add(p1);
-                p.Add(p2);
-                p.Add((Point3D)(p2 + (p3 - p2) * edgeScale));
-                i.Add(iq++);
-                i.Add(iq++);
-                i.Add(iq++);
-
-                p.Add(p2);
-                p.Add(p3);
-                p.Add((Point3D)(p3 + (p1 - p3) * edgeScale));
-                i.Add(iq++);
-                i.Add(iq++);
-                i.Add(iq++);
-
-                p.Add(p3);
-                p.Add(p1);
-                p.Add((Point3D)(p1 + (p2 - p1) * edgeScale));
-                i.Add(iq++);
-                i.Add(iq++);
-                i.Add(iq++);
+                var pt = positions[k];
+                if (pt.X < min.X) min.X = pt.X; if (pt.Y < min.Y) min.Y = pt.Y; if (pt.Z < min.Z) min.Z = pt.Z;
+                if (pt.X > max.X) max.X = pt.X; if (pt.Y > max.Y) max.Y = pt.Y; if (pt.Z > max.Z) max.Z = pt.Z;
             }
-            dest.Positions = p;
-            dest.TriangleIndices = i;
+            double diag = Math.Sqrt((max.X - min.X) * (max.X - min.X) +
+                                    (max.Y - min.Y) * (max.Y - min.Y) +
+                                    (max.Z - min.Z) * (max.Z - min.Z));
+            if (diag < 1e-4) diag = 1.0;
+
+            // Depth bias and half-width for CAD crease edge rendering without Z-fighting
+            double biasDist = Math.Max(diag * 0.0008, 0.02);
+            double halfWidth = Math.Max(diag * 0.0006 * Math.Max(0.5, edgeScale * 50.0), 0.015);
+
+            // Quantize points to robustly detect shared vertices across disconnected face buffers
+            var pointMap = new Dictionary<Tuple<long, long, long>, int>();
+            var uniquePoints = new List<Point3D>();
+
+            int GetPointId(Point3D p)
+            {
+                var key = Tuple.Create((long)Math.Round(p.X * 1000.0), (long)Math.Round(p.Y * 1000.0), (long)Math.Round(p.Z * 1000.0));
+                if (pointMap.TryGetValue(key, out int id)) return id;
+                id = uniquePoints.Count;
+                pointMap[key] = id;
+                uniquePoints.Add(p);
+                return id;
+            }
+
+            int numTris;
+            bool hasIndices = indices != null && indices.Count >= 3;
+            if (hasIndices)
+                numTris = indices.Count / 3;
+            else
+                numTris = positions.Count / 3;
+
+            // Map edges: (v1, v2) -> EdgeRecord
+            var edges = new Dictionary<long, EdgeRecord>();
+
+            for (int t = 0; t < numTris; t++)
+            {
+                Point3D p1, p2, p3;
+                if (hasIndices)
+                {
+                    p1 = positions[indices[t * 3]];
+                    p2 = positions[indices[t * 3 + 1]];
+                    p3 = positions[indices[t * 3 + 2]];
+                }
+                else
+                {
+                    p1 = positions[t * 3];
+                    p2 = positions[t * 3 + 1];
+                    p3 = positions[t * 3 + 2];
+                }
+
+                Vector3D fn = Vector3D.CrossProduct(p2 - p1, p3 - p1);
+                if (fn.LengthSquared < 1e-12) continue;
+                fn.Normalize();
+
+                int id1 = GetPointId(p1);
+                int id2 = GetPointId(p2);
+                int id3 = GetPointId(p3);
+                if (id1 == id2 || id2 == id3 || id3 == id1) continue;
+
+                AddEdge(edges, id1, id2, fn);
+                AddEdge(edges, id2, id3, fn);
+                AddEdge(edges, id3, id1, fn);
+            }
+
+            var dest = new MeshGeometry3D();
+            var outPositions = new Point3DCollection();
+            var outIndices = new Int32Collection();
+            var outNormals = new Vector3DCollection();
+            int curIdx = 0;
+
+            foreach (var kvp in edges)
+            {
+                var rec = kvp.Value;
+                bool isFeatureEdge = false;
+
+                if (rec.Count == 1)
+                {
+                    // Boundary / silhouette edge: always a feature edge
+                    isFeatureEdge = true;
+                }
+                else if (rec.Count == 2)
+                {
+                    // Dihedral angle check: cos(30 deg) ~ 0.866
+                    double dot = Vector3D.DotProduct(rec.N1, rec.N2);
+                    if (dot < 0.866) // Angle > 30 degrees (sharp crease)
+                    {
+                        isFeatureEdge = true;
+                    }
+                }
+                else // Non-manifold
+                {
+                    isFeatureEdge = true;
+                }
+
+                if (!isFeatureEdge) continue;
+
+                Point3D pA = uniquePoints[rec.V1];
+                Point3D pB = uniquePoints[rec.V2];
+
+                Vector3D avgN = rec.Count == 2 ? (rec.N1 + rec.N2) : rec.N1;
+                if (avgN.LengthSquared > 1e-6) avgN.Normalize();
+                else avgN = rec.N1;
+
+                // Push outward along surface normal (depth bias) to eliminate Z-fighting
+                Point3D aBiased = pA + avgN * biasDist;
+                Point3D bBiased = pB + avgN * biasDist;
+
+                Vector3D edgeVec = bBiased - aBiased;
+                Vector3D perp = Vector3D.CrossProduct(edgeVec, avgN);
+                if (perp.LengthSquared > 1e-8) perp.Normalize();
+                else perp = new Vector3D(0, 0, 1);
+
+                Vector3D side = perp * halfWidth;
+
+                Point3D v1 = aBiased - side;
+                Point3D v2 = aBiased + side;
+                Point3D v3 = bBiased + side;
+                Point3D v4 = bBiased - side;
+
+                outPositions.Add(v1);
+                outPositions.Add(v2);
+                outPositions.Add(v3);
+                outPositions.Add(v4);
+
+                outNormals.Add(avgN);
+                outNormals.Add(avgN);
+                outNormals.Add(avgN);
+                outNormals.Add(avgN);
+
+                outIndices.Add(curIdx);
+                outIndices.Add(curIdx + 1);
+                outIndices.Add(curIdx + 2);
+
+                outIndices.Add(curIdx);
+                outIndices.Add(curIdx + 2);
+                outIndices.Add(curIdx + 3);
+
+                curIdx += 4;
+            }
+
+            dest.Positions = outPositions;
+            dest.TriangleIndices = outIndices;
+            dest.Normals = outNormals;
             return dest;
+        }
+
+        private class EdgeRecord
+        {
+            public int V1, V2;
+            public Vector3D N1, N2;
+            public int Count;
+        }
+
+        private static void AddEdge(Dictionary<long, EdgeRecord> edges, int idA, int idB, Vector3D fn)
+        {
+            int minId = Math.Min(idA, idB);
+            int maxId = Math.Max(idA, idB);
+            long key = ((long)minId << 32) | (uint)maxId;
+
+            if (!edges.TryGetValue(key, out var rec))
+            {
+                rec = new EdgeRecord { V1 = minId, V2 = maxId, N1 = fn, Count = 1 };
+                edges[key] = rec;
+            }
+            else
+            {
+                if (rec.Count == 1) rec.N2 = fn;
+                rec.Count++;
+            }
         }
 
         //public static void ConvertToVertexframe(MeshGeometry3D mesh, double vertexScale)

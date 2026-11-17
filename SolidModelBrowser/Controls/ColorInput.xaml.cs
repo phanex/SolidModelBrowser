@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -10,11 +11,24 @@ namespace SolidModelBrowser
         private Color currentColor = Colors.White;
         private bool isUpdating = false;
 
+        private static readonly string[] CadPresets =
+        {
+            "#9AA2AA", "#E2E6EB", "#4A90E2", "#50E3C2", "#F5A623",
+            "#00AE42", "#E02020", "#F8E71C", "#9013FE", "#5D6D7E"
+        };
+
+        private static readonly string[] GrayPresets =
+        {
+            "#FFFFFF", "#D0D4DC", "#8C929D", "#50545C", "#303236",
+            "#202226", "#B8BCC4", "#68707C", "#40444C", "#000000"
+        };
+
         public ColorInput()
         {
             InitializeComponent();
 
-            BorderColorPreview.MouseLeftButtonUp += (s, e) => OpenPalette();
+            initPresets();
+            BorderColorPreview.MouseLeftButtonUp += (s, e) => PopupPalette.IsOpen = !PopupPalette.IsOpen;
 
             TextBoxHex.LostFocus += (s, e) => ApplyHexText();
             TextBoxHex.KeyDown += (s, e) =>
@@ -27,19 +41,45 @@ namespace SolidModelBrowser
             };
         }
 
-        private void OpenPalette()
+        private void initPresets()
         {
-            using (var cd = new System.Windows.Forms.ColorDialog())
+            foreach (var hex in CadPresets)
+                WrapPanelPresets.Children.Add(createSwatch(hex));
+
+            foreach (var hex in GrayPresets)
+                WrapPanelGrays.Children.Add(createSwatch(hex));
+        }
+
+        private FrameworkElement createSwatch(string hex)
+        {
+            var brush = new SolidColorBrush((Color)ColorConverter.ConvertFromString(hex));
+            brush.Freeze();
+
+            var border = new Border
             {
-                cd.FullOpen = true;
-                cd.Color = System.Drawing.Color.FromArgb(currentColor.R, currentColor.G, currentColor.B);
-                if (cd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                Width = 26,
+                Height = 22,
+                Margin = new Thickness(2),
+                Background = brush,
+                BorderBrush = (Brush)Application.Current.FindResource("Separator"),
+                BorderThickness = new Thickness(1),
+                CornerRadius = new CornerRadius(3),
+                Cursor = Cursors.Hand,
+                ToolTip = hex
+            };
+
+            border.MouseLeftButtonUp += (s, e) =>
+            {
+                if (TryParseHex(hex, out Color parsed))
                 {
-                    currentColor = Color.FromArgb(currentColor.A, cd.Color.R, cd.Color.G, cd.Color.B);
+                    currentColor = parsed;
                     UpdateUI(fromHexText: false);
                     ValueChanged?.Invoke(this, EventArgs.Empty);
+                    PopupPalette.IsOpen = false;
                 }
-            }
+            };
+
+            return border;
         }
 
         private void ApplyHexText()
@@ -68,11 +108,7 @@ namespace SolidModelBrowser
                 var obj = ColorConverter.ConvertFromString(text);
                 if (obj is Color c)
                 {
-                    // If user entered 6-digit hex (#RRGGBB), preserve current alpha
-                    if (text.Length == 7)
-                    {
-                        c.A = currentColor.A;
-                    }
+                    if (text.Length == 7) c.A = currentColor.A;
                     color = c;
                     return true;
                 }

@@ -6,16 +6,16 @@
         xmlns:local="clr-namespace:SolidModelBrowser"
         mc:Ignorable="d"
         Style="{StaticResource CustomWindowStyle}"
-        Title="Settings" Height="560" Width="720" MinWidth="640" MinHeight="480" WindowStartupLocation="CenterOwner"
+        Title="Settings" Height="620" Width="820" MinWidth="740" MinHeight="500" WindowStartupLocation="CenterOwner"
         SnapsToDevicePixels="True" UseLayoutRounding="True">
 
     <DockPanel>
-        <!-- Top Custom Title Bar -->
+        <!-- Top Title Bar -->
         <DockPanel DockPanel.Dock="Top" Margin="0,0,0,4">
-            <Button x:Name="ButtonClose" DockPanel.Dock="Right" HorizontalAlignment="Right" Width="30" Height="30" ToolTip="Close">
-                <Viewbox Width="12" Height="12">
-                    <Path Data="M2,2 L12,12 M12,2 L2,12" Stroke="{DynamicResource WindowFore}" StrokeThickness="1.4"/>
-                </Viewbox>
+            <Button x:Name="ButtonClose" DockPanel.Dock="Right" HorizontalAlignment="Right" Width="30" Height="30" ToolTip="Close" SnapsToDevicePixels="True">
+                <Canvas Width="10" Height="10">
+                    <Path Data="M1,1 L9,9 M9,1 L1,9" Stroke="{DynamicResource WindowFore}" StrokeThickness="1.0"/>
+                </Canvas>
             </Button>
             <Border x:Name="BorderHeader" Background="{DynamicResource WindowBack}" Height="30">
                 <StackPanel VerticalAlignment="Center" Orientation="Horizontal" Margin="10,0">
@@ -23,6 +23,21 @@
                 </StackPanel>
             </Border>
         </DockPanel>
+
+        <!-- Search Bar Header -->
+        <Border DockPanel.Dock="Top" Background="{DynamicResource PanelBack}" BorderBrush="{DynamicResource Separator}" BorderThickness="0,0,0,1" Padding="12,8">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="🔍" VerticalAlignment="Center" Margin="0,0,8,0" Foreground="{DynamicResource WindowFore}"/>
+                <TextBox x:Name="TextBoxSearch" Grid.Column="1" Height="26" VerticalContentAlignment="Center" Padding="6,2"
+                         FontSize="11" ToolTip="Type to search settings across all sections (e.g. camera, fov, gcode, color)"/>
+                <Button x:Name="ButtonClearSearch" Grid.Column="2" Content="✕" Width="26" Height="26" Margin="4,0,0,0" ToolTip="Clear search filter"/>
+            </Grid>
+        </Border>
 
         <!-- Bottom Command Bar -->
         <Border DockPanel.Dock="Bottom" Background="{DynamicResource PanelBack}" BorderBrush="{DynamicResource Separator}" BorderThickness="0,1,0,0" Padding="12,10">
@@ -38,111 +53,180 @@
             </DockPanel>
         </Border>
 
-        <!-- Main Content Area: Left Category Sidebar + Right Detail Panel -->
-        <Grid Margin="0,4,0,0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="170"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
+        <!-- Main Settings Body: 2-Column Grid with System GroupBoxes -->
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="12,10">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="12"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
 
-            <!-- Left Category Sidebar -->
-            <Border Grid.Column="0" Background="{DynamicResource PanelBack}" BorderBrush="{DynamicResource Separator}" BorderThickness="0,0,1,0" Padding="6,8">
-                <ListBox x:Name="ListCategories" Background="Transparent" BorderThickness="0" FocusVisualStyle="{x:Null}">
-                    <ListBox.ItemContainerStyle>
-                        <Style TargetType="ListBoxItem">
-                            <Setter Property="Padding" Value="10,8"/>
-                            <Setter Property="Margin" Value="0,2"/>
-                            <Setter Property="FontSize" Value="11"/>
-                            <Setter Property="FontWeight" Value="Medium"/>
-                            <Setter Property="Foreground" Value="{DynamicResource WindowFore}"/>
-                            <Setter Property="Cursor" Value="Hand"/>
-                            <Setter Property="Template">
-                                <Setter.Value>
-                                    <ControlTemplate TargetType="ListBoxItem">
-                                        <Border x:Name="Bd" Background="Transparent" CornerRadius="4" Padding="{TemplateBinding Padding}">
-                                            <ContentPresenter VerticalAlignment="Center"/>
-                                        </Border>
-                                        <ControlTemplate.Triggers>
-                                            <Trigger Property="IsMouseOver" Value="True">
-                                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource ButtonHoverBack}"/>
-                                            </Trigger>
-                                            <Trigger Property="IsSelected" Value="True">
-                                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource ButtonPressedBack}"/>
-                                                <Setter Property="FontWeight" Value="SemiBold"/>
-                                            </Trigger>
-                                        </ControlTemplate.Triggers>
-                                    </ControlTemplate>
-                                </Setter.Value>
-                            </Setter>
-                        </Style>
-                    </ListBox.ItemContainerStyle>
-                    <ListBoxItem Content="General &amp; Interface" IsSelected="True"/>
-                    <ListBoxItem Content="Viewport &amp; Camera"/>
-                    <ListBoxItem Content="Materials &amp; Lights"/>
-                    <ListBoxItem Content="G-Code Import"/>
-                    <ListBoxItem Content="External Apps"/>
-                    <ListBoxItem Content="File Associations"/>
-                </ListBox>
-            </Border>
+                <!-- Left Column -->
+                <StackPanel Grid.Column="0">
+                    <!-- Group: General & Interface -->
+                    <GroupBox x:Name="GroupInterface" Header="General &amp; Interface" Margin="0,0,0,12" Padding="8,6" Foreground="{DynamicResource WindowFore}">
+                        <StackPanel>
+                            <CheckBox x:Name="CheckShowFilePanel" Content="Show file navigation panel by default" Margin="0,4"/>
+                            <CheckBox x:Name="CheckColorizeFiles" Content="Different colors for files by extension" Margin="0,4"/>
+                            <CheckBox x:Name="CheckSortFilesByExtensions" Content="Sort files by extensions" Margin="0,4"/>
+                            <CheckBox x:Name="CheckUseSystemWindowStyle" Content="Use system style for app windows" Margin="0,4"/>
+                            <CheckBox x:Name="CheckUnsmoothAfterLoading" Content="CAD flat shading for loaded models" Margin="0,4"/>
+                        </StackPanel>
+                    </GroupBox>
 
-            <!-- Right Detail Panel -->
-            <Grid Grid.Column="1" Margin="16,8,16,8">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
+                    <!-- Group: Camera & Viewport -->
+                    <GroupBox x:Name="GroupCamera" Header="Camera &amp; Viewport" Margin="0,0,0,12" Padding="8,6" Foreground="{DynamicResource WindowFore}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="90"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
 
-                <!-- Category Header -->
-                <TextBlock x:Name="TextCategoryTitle" Grid.Row="0" FontSize="14" FontWeight="SemiBold"
-                           Foreground="{DynamicResource WindowFore}" Margin="0,0,0,12"/>
+                            <CheckBox x:Name="CheckCenterCameraAtPointsAverageCenter" Grid.Row="0" Grid.ColumnSpan="2"
+                                      Content="Default camera look at points average center" Margin="0,4,0,8"/>
 
-                <!-- Category 1-4 Property Panel Host -->
-                <ScrollViewer x:Name="ScrollViewerProperties" Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                    <StackPanel>
-                        <!-- G-Code Notice Banner (Visible only on G-Code tab) -->
-                        <Border x:Name="BannerGCodeNotice" Visibility="Collapsed" Background="{DynamicResource PanelBack}"
-                                BorderBrush="{DynamicResource Separator}" BorderThickness="1" CornerRadius="4" Padding="10,6" Margin="0,0,0,10">
-                            <TextBlock Text="ℹ Note: Reload the model [F5] after modifying G-Code parameters to apply changes."
-                                       FontSize="11" FontStyle="Italic" Foreground="{DynamicResource WindowFore}" Opacity="0.85"/>
-                        </Border>
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Normal FOV (degrees):" VerticalAlignment="Center" Margin="0,4"/>
+                            <TextBox x:Name="TextFov" Grid.Row="1" Grid.Column="1" Height="22" VerticalContentAlignment="Center" Margin="0,2"/>
 
-                        <local:PropertyPanel x:Name="propertyPanel"/>
-                    </StackPanel>
-                </ScrollViewer>
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Fisheye FOV (degrees):" VerticalAlignment="Center" Margin="0,4"/>
+                            <TextBox x:Name="TextFishEyeFov" Grid.Row="2" Grid.Column="1" Height="22" VerticalContentAlignment="Center" Margin="0,2"/>
 
-                <!-- Category 5: External Apps Manager Host -->
-                <Grid x:Name="GridExternalApps" Grid.Row="1" Visibility="Collapsed">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
-                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
-                        <Button x:Name="ButtonAddApp" Content="+ Add Application..." Height="26" Padding="10,0" Margin="0,0,8,0"/>
-                        <Button x:Name="ButtonAutoDetectSlicers" Content="Auto-Detect Slicers" Height="26" Padding="10,0"/>
-                    </StackPanel>
-                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-                        <StackPanel x:Name="PanelAppsList"/>
-                    </ScrollViewer>
-                </Grid>
+                            <TextBlock Grid.Row="3" Grid.Column="0" Text="Camera initial shift:" VerticalAlignment="Center" Margin="0,4"/>
+                            <TextBox x:Name="TextCameraInitialShift" Grid.Row="3" Grid.Column="1" Height="22" VerticalContentAlignment="Center" Margin="0,2"/>
 
-                <!-- Category 6: File Associations Host -->
-                <Grid x:Name="GridFileAssociations" Grid.Row="1" Visibility="Collapsed">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-                    <TextBlock Grid.Row="0" Text="Associate 3D model formats with SolidModelBrowser (Current User, no admin rights required):"
-                               FontSize="11" Foreground="{DynamicResource WindowFore}" Opacity="0.8" TextWrapping="Wrap" Margin="0,0,0,12"/>
-                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-                        <StackPanel x:Name="PanelAssociationsList"/>
-                    </ScrollViewer>
-                    <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,12,0,0">
-                        <Button x:Name="ButtonSelectAllAssoc" Content="Select All" Width="80" Height="26" Margin="0,0,8,0"/>
-                        <Button x:Name="ButtonDeselectAllAssoc" Content="Deselect All" Width="90" Height="26"/>
-                    </StackPanel>
-                </Grid>
+                            <TextBlock Grid.Row="4" Grid.Column="0" Text="Model rotation step (deg):" VerticalAlignment="Center" Margin="0,4"/>
+                            <TextBox x:Name="TextModelRotationAngle" Grid.Row="4" Grid.Column="1" Height="22" VerticalContentAlignment="Center" Margin="0,2"/>
+                        </Grid>
+                    </GroupBox>
+
+                    <!-- Group: G-Code Import -->
+                    <GroupBox x:Name="GroupGCode" Header="G-Code Import" Margin="0,0,0,12" Padding="8,6" Foreground="{DynamicResource WindowFore}">
+                        <StackPanel>
+                            <TextBlock Text="ℹ Reload model [F5] after modifying G-Code parameters." FontStyle="Italic"
+                                       FontSize="11" Foreground="{DynamicResource WindowFore}" Opacity="0.8" Margin="0,0,0,8"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="90"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="GCODE line ends extensions:" VerticalAlignment="Center" Margin="0,4"/>
+                                <TextBox x:Name="TextGCodeLineEnds" Grid.Row="0" Grid.Column="1" Height="22" VerticalContentAlignment="Center" Margin="0,2"/>
+
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Layer height (mm):" VerticalAlignment="Center" Margin="0,4"/>
+                                <TextBox x:Name="TextGCodeLayerHeight" Grid.Row="1" Grid.Column="1" Height="22" VerticalContentAlignment="Center" Margin="0,2"/>
+
+                                <TextBlock Grid.Row="2" Grid.Column="0" Text="Line width (mm):" VerticalAlignment="Center" Margin="0,4"/>
+                                <TextBox x:Name="TextGCodeLineWidth" Grid.Row="2" Grid.Column="1" Height="22" VerticalContentAlignment="Center" Margin="0,2"/>
+                            </Grid>
+                        </StackPanel>
+                    </GroupBox>
+                </StackPanel>
+
+                <!-- Right Column -->
+                <StackPanel Grid.Column="2">
+                    <!-- Group: Colors & Materials -->
+                    <GroupBox x:Name="GroupMaterials" Header="Colors &amp; Materials" Margin="0,0,0,12" Padding="8,6" Foreground="{DynamicResource WindowFore}">
+                        <StackPanel>
+                            <Grid Margin="0,2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Model Diffuse Color:" VerticalAlignment="Center"/>
+                                <local:ColorInput x:Name="ColorDiffuse" Grid.Column="1"/>
+                            </Grid>
+
+                            <Grid Margin="0,2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Model Specular Highlight:" VerticalAlignment="Center"/>
+                                <local:ColorInput x:Name="ColorSpecular" Grid.Column="1"/>
+                            </Grid>
+
+                            <Grid Margin="0,2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Ambient Light Color:" VerticalAlignment="Center"/>
+                                <local:ColorInput x:Name="ColorAmbient" Grid.Column="1"/>
+                            </Grid>
+
+                            <Grid Margin="0,2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Directional Key Light:" VerticalAlignment="Center"/>
+                                <local:ColorInput x:Name="ColorLight1" Grid.Column="1"/>
+                            </Grid>
+
+                            <Grid Margin="0,2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Directional Fill Light:" VerticalAlignment="Center"/>
+                                <local:ColorInput x:Name="ColorLight2" Grid.Column="1"/>
+                            </Grid>
+
+                            <Grid Margin="0,2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Directional Back Light:" VerticalAlignment="Center"/>
+                                <local:ColorInput x:Name="ColorLight3" Grid.Column="1"/>
+                            </Grid>
+
+                            <CheckBox x:Name="CheckBacksideDiffuseMaterial" Content="Show backside contrasting color" Margin="0,8,0,2"/>
+                        </StackPanel>
+                    </GroupBox>
+
+                    <!-- Group: External Applications -->
+                    <GroupBox x:Name="GroupApps" Header="External Applications" Margin="0,0,0,12" Padding="8,6" Foreground="{DynamicResource WindowFore}">
+                        <StackPanel>
+                            <DockPanel Margin="0,0,0,6">
+                                <Button x:Name="ButtonAddApp" Content="+ Add Application..." Height="24" Padding="8,0" HorizontalAlignment="Left"/>
+                            </DockPanel>
+                            <ScrollViewer MaxHeight="120" VerticalScrollBarVisibility="Auto">
+                                <StackPanel x:Name="PanelAppsList"/>
+                            </ScrollViewer>
+                        </StackPanel>
+                    </GroupBox>
+
+                    <!-- Group: File Associations -->
+                    <GroupBox x:Name="GroupAssociations" Header="File Associations" Margin="0,0,0,12" Padding="8,6" Foreground="{DynamicResource WindowFore}">
+                        <StackPanel>
+                            <TextBlock Text="Associate 3D file formats with SolidModelBrowser (Current User):"
+                                       FontSize="11" Foreground="{DynamicResource WindowFore}" Opacity="0.8" Margin="0,0,0,6"/>
+                            <ScrollViewer MaxHeight="110" VerticalScrollBarVisibility="Auto">
+                                <StackPanel x:Name="PanelAssociationsList"/>
+                            </ScrollViewer>
+                            <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                <Button x:Name="ButtonSelectAllAssoc" Content="Select All" Width="80" Height="24" Margin="0,0,8,0"/>
+                                <Button x:Name="ButtonDeselectAllAssoc" Content="Deselect All" Width="90" Height="24"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </GroupBox>
+                </StackPanel>
             </Grid>
-        </Grid>
+        </ScrollViewer>
     </DockPanel>
 </Window>

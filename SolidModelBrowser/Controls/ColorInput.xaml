@@ -4,13 +4,31 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d">
-    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-        <!-- Clickable Swatch Preview -->
-        <Border x:Name="BorderColorPreview" Width="32" Height="22" Background="White" CornerRadius="4" 
-                BorderThickness="1" BorderBrush="{DynamicResource WindowStroke}" Cursor="Hand" ToolTip="Click to choose color"/>
+    <Grid VerticalAlignment="Center">
+        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+            <!-- Clickable Swatch Preview -->
+            <Border x:Name="BorderColorPreview" Width="28" Height="22" Background="White" CornerRadius="3" 
+                    BorderThickness="1" BorderBrush="{DynamicResource WindowStroke}" Cursor="Hand" ToolTip="Click to pick color"/>
 
-        <!-- Hex Color Code Input with leading # symbol -->
-        <TextBox x:Name="TextBoxHex" Width="88" Height="22" Margin="6,0,0,0" TextAlignment="Center" VerticalContentAlignment="Center"
-                 FontFamily="Consolas, monospace" FontSize="11" ToolTip="Hex color code (#RRGGBB or #AARRGGBB)"/>
-    </StackPanel>
+            <!-- Hex Color Code Input with leading # symbol -->
+            <TextBox x:Name="TextBoxHex" Width="76" Height="22" Margin="6,0,0,0" TextAlignment="Center" VerticalContentAlignment="Center"
+                     FontFamily="Consolas, monospace" FontSize="11" ToolTip="Hex color code (#RRGGBB)"/>
+        </StackPanel>
+
+        <!-- Compact In-Place WPF Color Popup (Option B) -->
+        <Popup x:Name="PopupPalette" PlacementTarget="{Binding ElementName=BorderColorPreview}" Placement="Bottom" StaysOpen="False" AllowsTransparency="True">
+            <Border Background="{DynamicResource PanelBack}" BorderBrush="{DynamicResource Separator}" BorderThickness="1" CornerRadius="4" Padding="8" Margin="0,4,0,0">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="8" ShadowDepth="2" Opacity="0.3"/>
+                </Border.Effect>
+                <StackPanel Width="160">
+                    <TextBlock Text="CAD Colors" FontWeight="SemiBold" FontSize="11" Foreground="{DynamicResource WindowFore}" Margin="0,0,0,6"/>
+                    <WrapPanel x:Name="WrapPanelPresets" Width="160" Margin="0,0,0,8"/>
+                    
+                    <TextBlock Text="Grayscale &amp; Lights" FontWeight="SemiBold" FontSize="11" Foreground="{DynamicResource WindowFore}" Margin="0,0,0,6"/>
+                    <WrapPanel x:Name="WrapPanelGrays" Width="160"/>
+                </StackPanel>
+            </Border>
+        </Popup>
+    </Grid>
 </UserControl>

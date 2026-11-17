@@ -238,7 +238,6 @@ namespace SolidModelBrowser
             }
 
             string fname = Path.GetFileName(lastFilename);
-            string ext = Path.GetExtension(lastFilename).TrimStart('.').ToUpperInvariant();
             string sizeStr = "";
             try
             {
@@ -257,42 +256,61 @@ namespace SolidModelBrowser
             }
             catch { }
 
-            var sb = new System.Text.StringBuilder();
-            sb.AppendLine(string.IsNullOrEmpty(sizeStr) ? $"{fname}   ·   {ext}" : $"{fname}   ·   {ext} ({sizeStr})");
-            sb.AppendLine();
-            sb.AppendLine($"Dimensions:   {modelSize.X:0.0} × {modelSize.Y:0.0} × {modelSize.Z:0.0} mm");
+            textBlockInfo.Inlines.Clear();
+
+            // Header line: **Filename.ext** (Size)
+            textBlockInfo.Inlines.Add(new System.Windows.Documents.Bold(new System.Windows.Documents.Run(fname)));
+            if (!string.IsNullOrEmpty(sizeStr))
+                textBlockInfo.Inlines.Add(new System.Windows.Documents.Run($" ({sizeStr})"));
+            textBlockInfo.Inlines.Add(new System.Windows.Documents.LineBreak());
+
+            // Dimensions: X × Y × Z mm
+            textBlockInfo.Inlines.Add(new System.Windows.Documents.Bold(new System.Windows.Documents.Run("Dimensions: ")));
+            textBlockInfo.Inlines.Add(new System.Windows.Documents.Run($"{modelSize.X:0.0} × {modelSize.Y:0.0} × {modelSize.Z:0.0} mm"));
+            textBlockInfo.Inlines.Add(new System.Windows.Documents.LineBreak());
 
             if (Import.Metadata.ContainsKey("PrintTime") || Import.Metadata.ContainsKey("Filament"))
             {
                 if (Import.Metadata.ContainsKey("PrintTime"))
-                    sb.AppendLine($"Print Time:    {Import.Metadata["PrintTime"]}");
+                {
+                    textBlockInfo.Inlines.Add(new System.Windows.Documents.Bold(new System.Windows.Documents.Run("Print Time: ")));
+                    textBlockInfo.Inlines.Add(new System.Windows.Documents.Run(Import.Metadata["PrintTime"]));
+                    textBlockInfo.Inlines.Add(new System.Windows.Documents.LineBreak());
+                }
                 if (Import.Metadata.ContainsKey("Filament"))
-                    sb.AppendLine($"Filament:       {Import.Metadata["Filament"]}");
+                {
+                    textBlockInfo.Inlines.Add(new System.Windows.Documents.Bold(new System.Windows.Documents.Run("Filament: ")));
+                    textBlockInfo.Inlines.Add(new System.Windows.Documents.Run(Import.Metadata["Filament"]));
+                    textBlockInfo.Inlines.Add(new System.Windows.Documents.LineBreak());
+                }
             }
             else
             {
                 Utils.CalculateMeshStats(meshBase, out double volCm3, out double areaCm2);
                 if (volCm3 > 0.001)
                 {
-                    double solidWeight = volCm3 * 1.24;
                     double wallThickness = 0.08; // ~0.8mm wall (2 perimeters)
                     double wallVol = areaCm2 * wallThickness;
                     double coreVol = Math.Max(0.0, volCm3 - wallVol);
                     double printVol = Math.Min(volCm3, wallVol + coreVol * 0.15); // 15% infill
                     double printWeight = printVol * 1.24;
 
-                    sb.AppendLine($"Volume:         {volCm3:N1} cm³   |   Area: {areaCm2:N1} cm²");
-                    sb.AppendLine($"PLA Weight:   ~{printWeight:0.0} g (15% infill)   |   Solid: {solidWeight:0.0} g");
-                }
-                else if (areaCm2 > 0.001)
-                {
-                    sb.AppendLine($"Area:             {areaCm2:N1} cm²");
+                    textBlockInfo.Inlines.Add(new System.Windows.Documents.Bold(new System.Windows.Documents.Run("Volume: ")));
+                    textBlockInfo.Inlines.Add(new System.Windows.Documents.Run($"{volCm3:N1} cm³"));
+                    textBlockInfo.Inlines.Add(new System.Windows.Documents.LineBreak());
+
+                    textBlockInfo.Inlines.Add(new System.Windows.Documents.Bold(new System.Windows.Documents.Run("Filament 15%: ")));
+                    textBlockInfo.Inlines.Add(new System.Windows.Documents.Run($"{printWeight:0.0} g"));
+                    textBlockInfo.Inlines.Add(new System.Windows.Documents.LineBreak());
                 }
             }
 
-            sb.Append($"Geometry:     {meshBase.TriangleIndices.Count / 3:N0} triangles   |   {meshBase.Positions.Count:N0} vertices");
+            textBlockInfo.Inlines.Add(new System.Windows.Documents.Bold(new System.Windows.Documents.Run("Triangles: ")));
+            textBlockInfo.Inlines.Add(new System.Windows.Documents.Run($"{meshBase.TriangleIndices.Count / 3:N0}   "));
+            textBlockInfo.Inlines.Add(new System.Windows.Documents.Bold(new System.Windows.Documents.Run("Vertices: ")));
+            textBlockInfo.Inlines.Add(new System.Windows.Documents.Run($"{meshBase.Positions.Count:N0}"));
 
-            showInfo(sb.ToString());
+            infoContainer.Visibility = Visibility.Visible;
         }
 
 

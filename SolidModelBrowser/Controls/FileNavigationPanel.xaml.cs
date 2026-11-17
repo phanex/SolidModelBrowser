@@ -2,15 +2,60 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 
 namespace SolidModelBrowser
 {
     public partial class FileNavigationPanel : UserControl
     {
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
+        private struct SHFILEINFO
+        {
+            public IntPtr hIcon;
+            public int iIcon;
+            public uint dwAttributes;
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 260)]
+            public string szDisplayName;
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 80)]
+            public string szTypeName;
+        }
+
+        [DllImport("shell32.dll", CharSet = CharSet.Auto)]
+        private static extern IntPtr SHGetFileInfo(string pszPath, uint dwFileAttributes, ref SHFILEINFO psfi, uint cbFileInfo, uint uFlags);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool DestroyIcon(IntPtr hIcon);
+
+        private const uint SHGFI_ICON = 0x000000100;
+        private const uint SHGFI_SMALLICON = 0x000000001;
+
+        private static ImageSource GetSystemIcon(string path)
+        {
+            try
+            {
+                var shinfo = new SHFILEINFO();
+                IntPtr res = SHGetFileInfo(path, 0, ref shinfo, (uint)Marshal.SizeOf(shinfo), SHGFI_ICON | SHGFI_SMALLICON);
+                if (res != IntPtr.Zero && shinfo.hIcon != IntPtr.Zero)
+                {
+                    var img = System.Windows.Interop.Imaging.CreateBitmapSourceFromHIcon(
+                        shinfo.hIcon,
+                        Int32Rect.Empty,
+                        BitmapSizeOptions.FromEmptyOptions());
+                    img.Freeze();
+                    DestroyIcon(shinfo.hIcon);
+                    return img;
+                }
+            }
+            catch { }
+            return null;
+        }
+
         public event SelectionChangedEventHandler SelectionChanged;
 
         public delegate void FileNavigationEventHandler(object Sender, string filename);
@@ -39,16 +84,22 @@ namespace SolidModelBrowser
 
                 var stack = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(6, 2, 6, 2) };
                 
-                // Hard Drive Icon
-                var vb = new Viewbox { Width = 14, Height = 14, Margin = new Thickness(0, 0, 4, 0), VerticalAlignment = VerticalAlignment.Center };
-                var p = new System.Windows.Shapes.Path
+                // Genuine Windows Shell System Drive Icon (16x16, no Viewbox downscale)
+                var driveIcon = GetSystemIcon(drivePath);
+                if (driveIcon != null)
                 {
-                    Data = Geometry.Parse("M2,4 A1,1 0 0,1 3,3 L13,3 A1,1 0 0,1 14,4 L14,12 A1,1 0 0,1 13,13 L3,13 A1,1 0 0,1 2,12 Z M4,10.5 L6,10.5 M11.5,10.5 A0.75,0.75 0 1,0 11.51,10.5"),
-                    Stroke = (Brush)Application.Current.FindResource("WindowFore"),
-                    StrokeThickness = 1.1
-                };
-                vb.Child = p;
-                stack.Children.Add(vb);
+                    var img = new Image
+                    {
+                        Source = driveIcon,
+                        Width = 16,
+                        Height = 16,
+                        Margin = new Thickness(0, 0, 4, 0),
+                        VerticalAlignment = VerticalAlignment.Center,
+                        SnapsToDevicePixels = true
+                    };
+                    RenderOptions.SetBitmapScalingMode(img, BitmapScalingMode.NearestNeighbor);
+                    stack.Children.Add(img);
+                }
 
                 var tb = new TextBlock
                 {
@@ -206,18 +257,15 @@ namespace SolidModelBrowser
 
             if (isFolder)
             {
-                var vb = new Viewbox { Width = 16, Height = 16, Margin = new Thickness(0, 0, 6, 0), VerticalAlignment = VerticalAlignment.Center };
-                var canvas = new Canvas { Width = 16, Height = 16 };
+                // Classic clean yellow folder (16x16 pixel-perfect, no Viewbox downscale)
+                var canvas = new Canvas { Width = 16, Height = 16, Margin = new Thickness(0, 0, 6, 0), VerticalAlignment = VerticalAlignment.Center };
                 var p = new System.Windows.Shapes.Path
                 {
                     Data = Geometry.Parse("M1.5,3.5 L6,3.5 L7.5,5.5 L14.5,5.5 A1,1 0 0,1 15.5,6.5 L15.5,13.5 A1,1 0 0,1 14.5,14.5 L1.5,14.5 A1,1 0 0,1 0.5,13.5 L0.5,4.5 A1,1 0 0,1 1.5,3.5 Z"),
-                    Fill = new SolidColorBrush(Color.FromArgb(50, 225, 175, 70)),
-                    Stroke = (Brush)Application.Current.FindResource("WindowFore"),
-                    StrokeThickness = 1.0
+                    Fill = new SolidColorBrush(Color.FromRgb(225, 175, 70))
                 };
                 canvas.Children.Add(p);
-                vb.Child = canvas;
-                sp.Children.Add(vb);
+                sp.Children.Add(canvas);
             }
             else
             {
