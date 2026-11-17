@@ -36,7 +36,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: SolidModelBrowser-Release
-        path: |
-          SolidModelBrowser/bin/Release/*.exe
-          SolidModelBrowser/bin/Release/*.dll
-          SolidModelBrowser/bin/Release/*.config
+        path: SolidModelBrowser/bin/Release/SolidModelBrowser.exe

@@ -186,7 +186,11 @@
   <ItemGroup>
     <PackageReference Include="OpenSkp">
       <Version>1.5.0</Version>
+      <ExcludeAssets>runtime</ExcludeAssets>
     </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\OpenSkp.dll" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="icon3a.ico" />
