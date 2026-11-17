@@ -60,8 +60,8 @@
 ---
 
 ## Phase 5: Verification & Remote Build
-- [ ] Task: Code Review & Local Working Tree Cleanliness
-  - [ ] Verify clean git diff and adherence to C# standards.
-- [ ] Task: Remote CI Compilation
-  - [ ] Trigger GitHub Actions build when requested by user.
-  - [ ] Verify test suite passes and download release artifact to `dist\SolidModelBrowser.exe`.
+- [x] Task: Code Review & Local Working Tree Cleanliness
+  - [x] Verify clean git diff and adherence to C# standards.
+- [x] Task: Remote CI Compilation
+  - [x] Trigger GitHub Actions build when requested by user.
+  - [x] Verify test suite passes and download release artifact to `dist\SolidModelBrowser.exe`.

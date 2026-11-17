@@ -1,7 +1,7 @@
 {
   "track_id": "ui_and_settings_overhaul_20261117",
   "type": "Feature / Refactor",
-  "status": "new",
+  "status": "completed",
   "created_at": "2026-11-17T22:05:00Z",
   "updated_at": "2026-11-17T22:05:00Z",
   "description": "Comprehensive Settings dialog overhaul (left navigation, multi-app support, file associations, clean color picker) and UI/UX polish (pixel-perfect toolbar icons, standard menus, clean HUD)"
