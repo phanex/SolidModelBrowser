@@ -9,6 +9,32 @@ namespace SolidModelBrowser
 {
     internal class ImportSKP : Import
     {
+        static ImportSKP()
+        {
+            AppDomain.CurrentDomain.AssemblyResolve += (s, e) =>
+            {
+                var an = new System.Reflection.AssemblyName(e.Name);
+                if (an.Name.Equals("OpenSkp", StringComparison.OrdinalIgnoreCase))
+                {
+                    var asm = typeof(ImportSKP).Assembly;
+                    foreach (var resName in asm.GetManifestResourceNames())
+                    {
+                        if (resName.EndsWith("OpenSkp.dll", StringComparison.OrdinalIgnoreCase))
+                        {
+                            using (var stream = asm.GetManifestResourceStream(resName))
+                            {
+                                if (stream == null) return null;
+                                byte[] bytes = new byte[stream.Length];
+                                stream.Read(bytes, 0, bytes.Length);
+                                return System.Reflection.Assembly.Load(bytes);
+                            }
+                        }
+                    }
+                }
+                return null;
+            };
+        }
+
         public ImportSKP()
         {
             Extensions = new List<string> { "skp" };
