@@ -7,10 +7,18 @@ namespace SolidModelBrowser.Tests
     public class SettingsTests
     {
         [Test]
-        public void DefaultSettings_FilePanelIsHiddenByDefault()
+        public void DefaultSettings_FilePanelIsShownByDefaultWhenLaunchedStandalone()
         {
             var settings = new Settings();
-            Assert.IsFalse(settings.ShowFilePanel, "File navigation panel must be hidden by default for file association workflow.");
+            Assert.IsTrue(settings.ShowFilePanel, "File navigation panel should be shown by default when launched standalone.");
+        }
+
+        [Test]
+        public void DefaultSettings_SelectedPathPointsToValidUserDirectory()
+        {
+            var settings = new Settings();
+            Assert.IsFalse(string.IsNullOrEmpty(settings.SelectedPath));
+            Assert.IsTrue(System.IO.Directory.Exists(settings.SelectedPath), "Default SelectedPath should resolve to a valid directory (e.g. 3D Objects or Documents).");
         }
 
         [Test]

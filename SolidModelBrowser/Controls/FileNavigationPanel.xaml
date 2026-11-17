@@ -13,6 +13,8 @@
         <!--ComboBox DockPanel.Dock="Top" Name="comboBoxDisk"></ComboBox-->
         <WrapPanel Name="drivesWrapPanel" DockPanel.Dock="Top"></WrapPanel>
         <ListBox BorderThickness="0" FocusVisualStyle="{x:Null}"
+                 HorizontalContentAlignment="Stretch"
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                  Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
                  Background="{Binding Path=Background, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
                  Name="listBoxFiles" ></ListBox>

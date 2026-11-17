@@ -38,8 +38,26 @@ namespace SolidModelBrowser
         [PropertyInfo(Category = "Main Window", Description = "Width of file panel")]
         public double FilePanelWidth { get; set; } = 200;
 
+        public static string GetDefaultInitialDirectory()
+        {
+            try
+            {
+                string userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+                if (!string.IsNullOrEmpty(userProfile))
+                {
+                    string objects3d = Path.Combine(userProfile, "3D Objects");
+                    if (Directory.Exists(objects3d)) return objects3d;
+                }
+
+                string docs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+                if (!string.IsNullOrEmpty(docs) && Directory.Exists(docs)) return docs;
+            }
+            catch { }
+            return @"c:\";
+        }
+
         [PropertyInfo(Category = "Main Window", Description = "Show file navigation panel by default", MenuLabel = "Show file panel")]
-        public bool ShowFilePanel { get; set; } = false;
+        public bool ShowFilePanel { get; set; } = true;
 
         [PropertyInfo(Category = "Main Window", Description = "Opacity of file panel when it is not in use", MenuLabel = "File panel idle opacity", Min = 0.0, Max = 1.0, Increment = 0.1)]
         public double FilePanelIdleOpacity { get; set; } = 1.0;
@@ -52,7 +70,7 @@ namespace SolidModelBrowser
         public string ExternalAppArguments { get; set; } = "$file$";
 
         [PropertyInfo(Category = "Utils", Description = "Last selected path in file panel")]
-        public string SelectedPath { get; set; } = @"c:\";
+        public string SelectedPath { get; set; } = GetDefaultInitialDirectory();
 
         [PropertyInfo(Category = "Utils", Description = "DPI to render image before save to file", MenuLabel = "Save image DPI")]
         public int SaveImageDPI { get; set; } = 600;

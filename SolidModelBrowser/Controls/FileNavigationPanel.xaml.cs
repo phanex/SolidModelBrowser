@@ -15,6 +15,7 @@ namespace SolidModelBrowser
 
         public delegate void FileNavigationEventHandler(object Sender, string filename);
         public event FileNavigationEventHandler FileNavigated;
+        public event EventHandler DirectoryChanged;
 
 
         public FileNavigationPanel()
@@ -32,14 +33,23 @@ namespace SolidModelBrowser
                 rb.Content = d.Name[0].ToString().ToUpper();
                 //rb.Margin = new Thickness(4);
                 rb.GroupName = "drivesgroup";
-                rb.Checked += (sender, args) => { path = rb.Content as string + @":\"; fill(); };
+                rb.Checked += (sender, args) =>
+                {
+                    string drvPath = rb.Content as string + @":\";
+                    if (Directory.Exists(drvPath))
+                    {
+                        path = drvPath;
+                        fill();
+                        DirectoryChanged?.Invoke(this, EventArgs.Empty);
+                    }
+                };
                 rb.BorderThickness = new Thickness(0);
                 rb.MinWidth = 30;
                 rb.MinHeight = 30;
                 drivesWrapPanel.Children.Add(rb);
             }
 
-            Path = @"c:\";
+            Path = Settings.GetDefaultInitialDirectory();
             watchForDirectory();
         }
 
@@ -110,6 +120,7 @@ namespace SolidModelBrowser
                         {
                             path = dir.Parent.FullName;
                             fill();
+                            DirectoryChanged?.Invoke(this, EventArgs.Empty);
                             foreach (var li in listBoxFiles.Items)
                             {
                                 if ((li as FrameworkElement)?.Tag as string == System.IO.Path.Combine(path, dirname))
@@ -124,6 +135,7 @@ namespace SolidModelBrowser
                     {
                         path = itemTag;
                         fill();
+                        DirectoryChanged?.Invoke(this, EventArgs.Empty);
                     }
                 }
                 if (listBoxFiles.Items.Count > 0)
@@ -162,6 +174,8 @@ namespace SolidModelBrowser
             {
                 Orientation = Orientation.Horizontal,
                 Margin = new Thickness(2, 2, 2, 2),
+                Background = Brushes.Transparent,
+                HorizontalAlignment = HorizontalAlignment.Stretch,
                 Tag = fullPath
             };
 
@@ -305,7 +319,7 @@ namespace SolidModelBrowser
             watcher.EnableRaisingEvents = true;
         }
 
-        string path = @"c:\";
+        string path = Settings.GetDefaultInitialDirectory();
         public string Path
         {
             get
@@ -324,6 +338,7 @@ namespace SolidModelBrowser
                 path = value;
                 fill();
                 watcher.Path = path;
+                DirectoryChanged?.Invoke(this, EventArgs.Empty);
             }
         }
 

@@ -46,11 +46,11 @@ namespace SolidModelBrowser.Tests
         }
 
         [Test]
-        public void ImportOBJ_InitialRotationX_IsNegative90Degrees()
+        public void ImportOBJ_InitialRotationX_IsPositive90Degrees()
         {
             Import.SelectImporter("test.obj");
             Assert.IsNotNull(Import.CurrentImport);
-            Assert.AreEqual(-90.0, Import.CurrentImport.InitialRotationX, 0.001, "OBJ models with -Y height must rotate -90 deg around X to align with Z-up.");
+            Assert.AreEqual(90.0, Import.CurrentImport.InitialRotationX, 0.001, "OBJ models with Y-up height must rotate +90 deg around X to align with Z-up.");
         }
 
         [Test]

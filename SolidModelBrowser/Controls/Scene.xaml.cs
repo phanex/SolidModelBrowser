@@ -142,11 +142,9 @@ namespace SolidModelBrowser
             var coloredDrawing = new GeometryDrawing() { Brush = new SolidColorBrush(diffuseColor), Geometry = new GeometryGroup() { Children = geomcoll } };
             var drawingBrush = new DrawingBrush { Viewport = new Rect(0, 0, 2 * checkerSize / r.Width, 2 * checkerSize / r.Height), TileMode = TileMode.Tile, Drawing = coloredDrawing };
             var diffuseMaterial = new DiffuseMaterial() { Brush = drawingBrush };
-            var specularMaterial = new SpecularMaterial() { Brush = new SolidColorBrush(Color.FromArgb(0xFF, 0xD0, 0xD0, 0xD0)) };
             var emissiveMaterial = new EmissiveMaterial() { Brush = new SolidColorBrush(emissiveColor) };
             var materialGroup = new MaterialGroup();
             materialGroup.Children.Add(diffuseMaterial);
-            materialGroup.Children.Add(specularMaterial);
             materialGroup.Children.Add(emissiveMaterial);
             var backMaterial = new DiffuseMaterial() { Brush = new SolidColorBrush(Color.FromArgb(0x40, 0xFF, 0xA0, 0xA0)) };
 

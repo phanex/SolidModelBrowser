@@ -622,15 +622,21 @@
 
     <Style TargetType="{x:Type ListBoxItem}">
         <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type ListBoxItem}">
-                    <Border x:Name="border" Padding="2" CornerRadius="4">
-                        <ContentPresenter/>
+                    <Border x:Name="border" Background="Transparent" Padding="4,2" CornerRadius="4">
+                        <ContentPresenter HorizontalAlignment="Stretch"/>
                     </Border>
                     <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" TargetName="border" Value="{DynamicResource ButtonHighlight}"/>
+                            <Setter Property="Opacity" TargetName="border" Value="0.4"/>
+                        </Trigger>
                         <Trigger Property="IsSelected" Value="True">
                             <Setter Property="Background" TargetName="border" Value="{DynamicResource ListBoxSelectedItem}"/>
+                            <Setter Property="Opacity" TargetName="border" Value="1.0"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>

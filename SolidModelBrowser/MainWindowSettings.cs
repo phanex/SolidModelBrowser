@@ -49,7 +49,10 @@ namespace SolidModelBrowser
             this.WindowState = settings.WindowState;
             setFilePanelVisibility(settings.ShowFilePanel);
             filePanel.SortFilesByExtensions = settings.SortFilesByExtensions;
-            filePanel.Path = settings.SelectedPath;
+            if (!string.IsNullOrEmpty(settings.SelectedPath) && System.IO.Directory.Exists(settings.SelectedPath))
+                filePanel.Path = settings.SelectedPath;
+            else
+                filePanel.Path = Settings.GetDefaultInitialDirectory();
             filePanel.Refresh();
 
             ButtonDiffuseMaterial.IsChecked = settings.IsDiffuseEnabled;

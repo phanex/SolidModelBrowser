@@ -112,6 +112,11 @@ namespace SolidModelBrowser
             filePanel.Opacity = 1.0;
             filePanel.SelectionChanged += (s, e) => clearView();
             filePanel.FileNavigated += (s, filename) => loadFile(filename);
+            filePanel.DirectoryChanged += (s, e) =>
+            {
+                settings.SelectedPath = filePanel.Path;
+                settings.Save();
+            };
 
             this.PreviewKeyDown += MainWindow_PreviewKeyDown;
                         
@@ -133,10 +138,16 @@ namespace SolidModelBrowser
         void windowRendered(object s, EventArgs a)
         {
             var args = Environment.GetCommandLineArgs();
-            if (args.Length == 2 && File.Exists(args[1]) && Import.SelectImporter(args[1]))
+            bool hasFileArg = args.Length >= 2 && File.Exists(args[1]) && Import.SelectImporter(args[1]);
+            if (hasFileArg)
             {
+                setFilePanelVisibility(false);
                 filePanel.SelectFile(args[1], false);
                 loadFile(args[1]);
+            }
+            else
+            {
+                setFilePanelVisibility(true);
             }
             this.ContentRendered -= windowRendered;
         }
@@ -208,6 +219,8 @@ namespace SolidModelBrowser
         void loadFile(string filename)
         {
             if (!File.Exists(filename)) return;
+            string dir = Path.GetDirectoryName(filename);
+            if (!string.IsNullOrEmpty(dir) && Directory.Exists(dir)) settings.SelectedPath = dir;
             lastFilename = null;
             try
             {
