@@ -22,11 +22,11 @@ This track addresses several UI/UX issues in SolidModelBrowser:
 
 ## Acceptance Criteria
 - [x] Loading models of varying heights opens them at 100% full height without clipped faces or wireframe edges.
-- [ ] Settings dialog controls render with **modern Windows visual styles** (not 3D beveled Windows 95 look).
-- [ ] Settings dialog TabControl does not overlap or obscure the bottom button bar.
-- [ ] Color hex codes can be typed/pasted directly into text boxes; clicking swatch opens **standard `ColorDialog`**.
-- [ ] No custom-drawn `FigmaColorPickerControl` / `FigmaColorPickerFlyout` / `FigmaColorPickerForm` remains in the codebase.
-- [ ] Colors tab: labels, swatches, and text boxes are laid out cleanly without any overlap or clipping.
-- [ ] Windows Explorer displays **sharp pixel-perfect icons** for `.stl`, `.skp`, `.3mf`, `.obj`, `.ply`, `.gcode` in Small, Medium, Large, and Extra Large views — verified visually.
+- [x] Settings dialog controls render with **modern Windows visual styles** (not 3D beveled Windows 95 look).
+- [x] Settings dialog TabControl does not overlap or obscure the bottom button bar.
+- [x] Color hex codes can be typed/pasted directly into text boxes; clicking swatch opens **standard `ColorDialog`**.
+- [x] No custom-drawn `FigmaColorPickerControl` / `FigmaColorPickerFlyout` / `FigmaColorPickerForm` remains in the codebase.
+- [x] Colors tab: labels, swatches, and text boxes are laid out cleanly without any overlap or clipping.
+- [x] Windows Explorer displays **sharp pixel-perfect icons** for `.stl`, `.skp`, `.3mf`, `.obj`, `.ply`, `.gcode` in Small, Medium, Large, and Extra Large views — verified visually.
 - [x] App starts silently without warnings when `settings.ini` is deleted.
 - [x] Startup HUD shows correct credits.
