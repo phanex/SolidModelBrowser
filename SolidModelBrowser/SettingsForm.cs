@@ -15,7 +15,6 @@ namespace SolidModelBrowser
         private Settings settings;
         private List<ExternalAppItem> currentApps = new List<ExternalAppItem>();
 
-        private TextBox txtSearch;
         private TabControl tabControl;
 
         // General
@@ -94,15 +93,7 @@ namespace SolidModelBrowser
 
         private void initLayout()
         {
-            // 1. Top Search Bar
-            Panel pnlTop = new Panel { Dock = DockStyle.Top, Height = 42, Padding = new Padding(12, 10, 12, 6) };
-            Label lblSearch = new Label { Text = "Search:", Location = new Point(12, 12), AutoSize = true };
-            txtSearch = new TextBox { Location = new Point(lblSearch.Right + 8, 9), Width = 280 };
-            txtSearch.TextChanged += (s, e) => applySearchFilter(txtSearch.Text.Trim());
-            pnlTop.Controls.Add(lblSearch);
-            pnlTop.Controls.Add(txtSearch);
-
-            // 2. Bottom Command Bar
+            // 1. Bottom Command Bar
             Panel pnlBottom = new Panel { Dock = DockStyle.Bottom, Height = 48, Padding = new Padding(12, 8, 12, 8) };
 
             btnDefaults = new Button { Text = "Reset to Defaults", Location = new Point(12, 10), Size = new Size(130, 28) };
@@ -128,7 +119,7 @@ namespace SolidModelBrowser
                 btnSave.Location = new Point(btnCancel.Left - btnSave.Width - 8, 10);
             };
 
-            // 3. Central Native TabControl
+            // 2. Central Native TabControl
             tabControl = new TabControl
             {
                 Dock = DockStyle.Fill,
@@ -151,15 +142,11 @@ namespace SolidModelBrowser
 
             tabControl.TabPages.AddRange(new TabPage[] { tabGeneral, tabViewport, tabColors, tabGCode, tabApps, tabAssoc });
 
-            // CRITICAL WINFORMS DOCK ORDER:
-            // Fill control is added, and top/bottom panels are brought to front so TabControl never overlaps button panels!
             this.Controls.Add(tabControl);
-            this.Controls.Add(pnlTop);
             this.Controls.Add(pnlBottom);
 
-            tabControl.SendToBack();
-            pnlTop.BringToFront();
             pnlBottom.BringToFront();
+            tabControl.SendToBack();
         }
 
         private void initGeneralTab(TabPage p)
@@ -515,52 +502,6 @@ namespace SolidModelBrowser
                 }
             };
             p.Controls.Add(btnDeselectAllAssoc);
-        }
-
-        private void applySearchFilter(string query)
-        {
-            if (string.IsNullOrWhiteSpace(query))
-            {
-                foreach (TabPage tab in tabControl.TabPages)
-                {
-                    tab.Text = tab.Text.TrimEnd('*');
-                }
-                return;
-            }
-
-            string q = query.ToLowerInvariant();
-            TabPage firstMatch = null;
-
-            foreach (TabPage tab in tabControl.TabPages)
-            {
-                bool hasMatch = false;
-                foreach (Control c in tab.Controls)
-                {
-                    if (controlMatchesQuery(c, q))
-                    {
-                        hasMatch = true;
-                        break;
-                    }
-                }
-                string baseName = tab.Text.TrimEnd('*');
-                tab.Text = hasMatch ? baseName + "*" : baseName;
-                if (hasMatch && firstMatch == null) firstMatch = tab;
-            }
-
-            if (firstMatch != null)
-            {
-                tabControl.SelectedTab = firstMatch;
-            }
-        }
-
-        private bool controlMatchesQuery(Control c, string q)
-        {
-            if (c.Text != null && c.Text.ToLowerInvariant().Contains(q)) return true;
-            foreach (Control child in c.Controls)
-            {
-                if (controlMatchesQuery(child, q)) return true;
-            }
-            return false;
         }
 
         private void refreshAppsList()

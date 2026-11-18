@@ -28,7 +28,7 @@
                     <ToggleButton x:Name="ButtonToggleFilePanel" ToolTip="Toggle File Browser [Tab]" Width="30" Height="30" Margin="0,0,2,0" SnapsToDevicePixels="True" UseLayoutRounding="True">
                         <Viewbox Width="20" Height="20">
                             <Canvas Width="24" Height="24">
-                                <Path Data="M21 8H9v12H7a4 4 0 0 1-4-4V8a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4" Fill="{DynamicResource ToolbarIconAccent}" Opacity="0.7"/>
+                                <Path Data="M21 8H9v12H7a4 4 0 0 1-4-4V8a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4" Fill="{DynamicResource ToolbarIconAccent}" Opacity="{DynamicResource ToolbarIconAccentOpacity}"/>
                                 <Path Data="M3 8a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4zm0 0h18M9 8v12" Stroke="{DynamicResource WindowFore}" StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
                             </Canvas>
                         </Viewbox>
@@ -40,7 +40,7 @@
                     <Button x:Name="ButtonReloadModel" ToolTip="Reload Model [F5]" Width="30" Height="30" Margin="0,0,2,0" SnapsToDevicePixels="True" UseLayoutRounding="True">
                         <Viewbox Width="20" Height="20">
                             <Canvas Width="24" Height="24">
-                                <Path Data="M4.384 12a7.617 7.617 0 1 1 15.233 0a7.617 7.617 0 1 1-15.233 0" Fill="{DynamicResource ToolbarIconAccent}" Opacity="0.7"/>
+                                <Path Data="M4.384 12a7.617 7.617 0 1 1 15.233 0a7.617 7.617 0 1 1-15.233 0" Fill="{DynamicResource ToolbarIconAccent}" Opacity="{DynamicResource ToolbarIconAccentOpacity}"/>
                                 <Path Data="M19 9A7.616 7.616 0 0 0 5 9m6 0H5V3m0 12a7.616 7.616 0 0 0 14 0m-6 0h6v6" Stroke="{DynamicResource WindowFore}" StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
                             </Canvas>
                         </Viewbox>
@@ -48,7 +48,7 @@
                     <Button x:Name="ButtonExport" ToolTip="Export Model [Ctrl+E]" Width="30" Height="30" Margin="0,0,2,0" SnapsToDevicePixels="True" UseLayoutRounding="True">
                         <Viewbox Width="20" Height="20">
                             <Canvas Width="24" Height="24">
-                                <Path Data="M21 16.313a2 2 0 0 1-1.114 1.793l-7 3.457a2 2 0 0 1-1.772 0l-7-3.457A2 2 0 0 1 3 16.313V7.687a2 2 0 0 1 1.114-1.793l7-3.457a2 2 0 0 1 1.772 0l7 3.457A2 2 0 0 1 21 7.687Z" Fill="{DynamicResource ToolbarIconAccent}" Opacity="0.7"/>
+                                <Path Data="M21 16.313a2 2 0 0 1-1.114 1.793l-7 3.457a2 2 0 0 1-1.772 0l-7-3.457A2 2 0 0 1 3 16.313V7.687a2 2 0 0 1 1.114-1.793l7-3.457a2 2 0 0 1 1.772 0l7 3.457A2 2 0 0 1 21 7.687Z" Fill="{DynamicResource ToolbarIconAccent}" Opacity="{DynamicResource ToolbarIconAccentOpacity}"/>
                                 <Path Data="M21 12V7.687a2 2 0 0 0-1.114-1.793l-3.5-1.729m0 0L13 2.408a2 2 0 0 0-1.772 0l-7 3.457A2 2 0 0 0 3 7.687v8.626a2 2 0 0 0 1.114 1.793l7 3.457a2 2 0 0 0 1.772 0V10.89M3.32 6.602L12 10.89l8.68-4.287M18 21l3-3l-3-3m3 3h-6" Stroke="{DynamicResource WindowFore}" StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
                             </Canvas>
                         </Viewbox>
@@ -60,7 +60,7 @@
                             <Button x:Name="ButtonOpenExtApp" Style="{StaticResource SplitButtonLeftStyle}" Width="28" Height="28" ToolTip="Open in External App [F7]" SnapsToDevicePixels="True" UseLayoutRounding="True">
                                 <Viewbox Width="20" Height="20">
                                     <Canvas Width="24" Height="24">
-                                        <Path Data="M4 14a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v3a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4Z" Fill="{DynamicResource ToolbarIconAccent}" Opacity="0.7"/>
+                                        <Path Data="M4 14a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v3a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4Z" Fill="{DynamicResource ToolbarIconAccent}" Opacity="{DynamicResource ToolbarIconAccentOpacity}"/>
                                         <Path Data="M8 10a4 4 0 0 0-4 4v3a4 4 0 0 0 4 4h8a4 4 0 0 0 4-4v-3a4 4 0 0 0-4-4m-1-4l-3-3l-3 3m3-3v10" Stroke="{DynamicResource WindowFore}" StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
                                     </Canvas>
                                 </Viewbox>
@@ -90,12 +90,12 @@
                                     <Grid Width="24" Height="24">
                                         <!-- 1. Solid: box-bulk-round -->
                                         <Canvas x:Name="CanvasShadingSolid" Width="24" Height="24" Visibility="Collapsed">
-                                            <Path Data="M22 7.687v8.626a3 3 0 0 1-1.672 2.69l-7 3.456a3 3 0 0 1-2.656 0l-7-3.456A3 3 0 0 1 2 16.313V7.687c0-1.141.648-2.184 1.672-2.69l7-3.456a3 3 0 0 1 2.656 0l7 3.456A3 3 0 0 1 22 7.687" Fill="{DynamicResource ToolbarIconAccent}" Opacity="0.7"/>
+                                            <Path Data="M22 7.687v8.626a3 3 0 0 1-1.672 2.69l-7 3.456a3 3 0 0 1-2.656 0l-7-3.456A3 3 0 0 1 2 16.313V7.687c0-1.141.648-2.184 1.672-2.69l7-3.456a3 3 0 0 1 2.656 0l7 3.456A3 3 0 0 1 22 7.687" Fill="{DynamicResource ToolbarIconAccent}" Opacity="{DynamicResource ToolbarIconAccentOpacity}"/>
                                             <Path Data="m12 9.774l8.237-4.069a1.002 1.002 0 0 1 .886 1.794L13 11.51v10.259a1 1 0 0 1-2 0V11.51L2.877 7.499a1.002 1.002 0 0 1 .886-1.794Z" Fill="{DynamicResource WindowFore}"/>
                                         </Canvas>
                                         <!-- 2. Solid + Wire: box-duotone-round -->
                                         <Canvas x:Name="CanvasShadingSolidAndWireframe" Width="24" Height="24" Visibility="Visible">
-                                            <Path Data="M21 16.313a2 2 0 0 1-1.114 1.793l-7 3.457a2 2 0 0 1-1.772 0l-7-3.457A2 2 0 0 1 3 16.313V7.687a2 2 0 0 1 1.114-1.793l7-3.457a2 2 0 0 1 1.772 0l7 3.457A2 2 0 0 1 21 7.687Z" Fill="{DynamicResource ToolbarIconAccent}" Opacity="0.7"/>
+                                            <Path Data="M21 16.313a2 2 0 0 1-1.114 1.793l-7 3.457a2 2 0 0 1-1.772 0l-7-3.457A2 2 0 0 1 3 16.313V7.687a2 2 0 0 1 1.114-1.793l7-3.457a2 2 0 0 1 1.772 0l7 3.457A2 2 0 0 1 21 7.687Z" Fill="{DynamicResource ToolbarIconAccent}" Opacity="{DynamicResource ToolbarIconAccentOpacity}"/>
                                             <Path Data="M21 12v4.313a2 2 0 0 1-1.114 1.793l-7 3.457a2 2 0 0 1-1.772 0l-7-3.457A2 2 0 0 1 3 16.313V7.687a2 2 0 0 1 1.114-1.793l7-3.457a2 2 0 0 1 1.772 0l7 3.457A2 2 0 0 1 21 7.687zM3.32 6.602L12 10.89l8.68-4.287M12 10.89v10.88" Stroke="{DynamicResource WindowFore}" StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
                                         </Canvas>
                                         <!-- 3. Wireframe: box-round -->
@@ -130,17 +130,17 @@
                             <Grid Width="24" Height="24">
                                 <!-- Perspective: video-duotone-round -->
                                 <Canvas x:Name="CanvasCameraPerspective" Width="24" Height="24" Visibility="Visible">
-                                    <Path Data="M3 10a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v4a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z" Fill="{DynamicResource ToolbarIconAccent}" Opacity="0.7"/>
+                                    <Path Data="M3 10a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v4a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z" Fill="{DynamicResource ToolbarIconAccent}" Opacity="{DynamicResource ToolbarIconAccentOpacity}"/>
                                     <Path Data="M3 10a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v4a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Zm12 0l2-1c1.838-.919 4 .162 4 2v2c0 1.838-2.162 2.919-4 2l-2-1" Stroke="{DynamicResource WindowFore}" StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
                                 </Canvas>
                                 <!-- Orthographic: camera-duotone-round -->
                                 <Canvas x:Name="CanvasCameraOrtho" Width="24" Height="24" Visibility="Collapsed">
-                                    <Path Data="m7 7l2-2c.64-.64 1.36-1 2-1h2c.64 0 1.36.36 2 1l2 2a4 4 0 0 1 4 4v5a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4v-5a4 4 0 0 1 4-4m2 6a3 3 0 1 0 6 0a3 3 0 0 0-6 0" Fill="{DynamicResource ToolbarIconAccent}" Opacity="0.7"/>
+                                    <Path Data="m7 7l2-2c.64-.64 1.36-1 2-1h2c.64 0 1.36.36 2 1l2 2a4 4 0 0 1 4 4v5a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4v-5a4 4 0 0 1 4-4m2 6a3 3 0 1 0 6 0a3 3 0 0 0-6 0" Fill="{DynamicResource ToolbarIconAccent}" Opacity="{DynamicResource ToolbarIconAccentOpacity}"/>
                                     <Path Data="m7 7l2-2c.64-.64 1.36-1 2-1h2c.64 0 1.36.36 2 1l2 2a4 4 0 0 1 4 4v5a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4v-5a4 4 0 0 1 4-4m2 6a3 3 0 1 0 6 0a3 3 0 0 0-6 0" Stroke="{DynamicResource WindowFore}" StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
                                 </Canvas>
                                 <!-- Fisheye: aperture-duotone-round -->
                                 <Canvas x:Name="CanvasCameraFishEye" Width="24" Height="24" Visibility="Collapsed">
-                                    <Path Data="M3 12a9 9 0 0 1 9-9a9 9 0 0 1 9 9a9 9 0 0 1-9 9a9 9 0 0 1-9-9m10-5l-.008.004l-.003.001l-5.978 2.989l-.004.003L7 10v4l.008.006l3.982 2.987l.003.002L11 17l.008-.004l.003-.001l5.978-2.989l.004-.003L17 14v-4l-3.99-2.993l-.004-.002Z" Fill="{DynamicResource ToolbarIconAccent}" Opacity="0.7"/>
+                                    <Path Data="M3 12a9 9 0 0 1 9-9a9 9 0 0 1 9 9a9 9 0 0 1-9 9a9 9 0 0 1-9-9m10-5l-.008.004l-.003.001l-5.978 2.989l-.004.003L7 10v4l.008.006l3.982 2.987l.003.002L11 17l.008-.004l.003-.001l5.978-2.989l.004-.003L17 14v-4l-3.99-2.993l-.004-.002Z" Fill="{DynamicResource ToolbarIconAccent}" Opacity="{DynamicResource ToolbarIconAccentOpacity}"/>
                                     <Path Data="M3 12a9 9 0 1 0 18 0a9 9 0 0 0-18 0m0 0l10-5M9 4l8 6m0-5v9m4-2l-10 5m4 3l-8-6m0 5v-9" Stroke="{DynamicResource WindowFore}" StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
                                 </Canvas>
                             </Grid>
@@ -153,7 +153,7 @@
                             <Button x:Name="ButtonCenterCamera" Style="{StaticResource SplitButtonLeftStyle}" Width="28" Height="28" ToolTip="Center Camera on Model [F]" SnapsToDevicePixels="True" UseLayoutRounding="True">
                                 <Viewbox Width="20" Height="20">
                                     <Canvas Width="24" Height="24">
-                                        <Path Data="M3 12a9 9 0 0 1 9-9a9 9 0 0 1 9 9a9 9 0 0 1-9 9a9 9 0 0 1-9-9" Fill="{DynamicResource ToolbarIconAccent}" Opacity="0.7"/>
+                                        <Path Data="M3 12a9 9 0 0 1 9-9a9 9 0 0 1 9 9a9 9 0 0 1-9 9a9 9 0 0 1-9-9" Fill="{DynamicResource ToolbarIconAccent}" Opacity="{DynamicResource ToolbarIconAccentOpacity}"/>
                                         <Path Data="M3 12a9 9 0 1 0 18 0a9 9 0 0 0-18 0m4 0a5 5 0 0 1 10 0m0 0a5 5 0 0 1-10 0m5 0h.01" Stroke="{DynamicResource WindowFore}" StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
                                     </Canvas>
                                 </Viewbox>
@@ -179,7 +179,7 @@
                     <ToggleButton x:Name="ButtonGround" Width="30" Height="30" ToolTip="Toggle Ground Grid [P]" Margin="0,0,2,0" SnapsToDevicePixels="True" UseLayoutRounding="True">
                         <Viewbox Width="20" Height="20">
                             <Canvas Width="24" Height="24">
-                                <Path Data="M4 8a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v8a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4Z" Fill="{DynamicResource ToolbarIconAccent}" Opacity="0.7"/>
+                                <Path Data="M4 8a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v8a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4Z" Fill="{DynamicResource ToolbarIconAccent}" Opacity="{DynamicResource ToolbarIconAccentOpacity}"/>
                                 <Path Data="M8 4a4 4 0 0 0-4 4v8a4 4 0 0 0 4 4h8a4 4 0 0 0 4-4V8a4 4 0 0 0-4-4Zm-4 5h16M4 15h16M9 4v16m6-16v16" Stroke="{DynamicResource WindowFore}" StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
                             </Canvas>
                         </Viewbox>
@@ -189,7 +189,7 @@
                     <ToggleButton x:Name="ButtonShowModelInfo" Width="30" Height="30" ToolTip="Toggle Model Info [I]" Margin="0,0,2,0" SnapsToDevicePixels="True" UseLayoutRounding="True">
                         <Viewbox Width="20" Height="20">
                             <Canvas Width="24" Height="24">
-                                <Path Data="M6 6h1c1.041 0 2.236.237 3 1l2 2a4.242 4.242 0 1 1-6 6l-2-2c-.763-.764-1-1.959-1-3V9a3 3 0 0 1 3-3" Fill="{DynamicResource ToolbarIconAccent}" Opacity="0.7"/>
+                                <Path Data="M6 6h1c1.041 0 2.236.237 3 1l2 2a4.242 4.242 0 1 1-6 6l-2-2c-.763-.764-1-1.959-1-3V9a3 3 0 0 1 3-3" Fill="{DynamicResource ToolbarIconAccent}" Opacity="{DynamicResource ToolbarIconAccentOpacity}"/>
                                 <Path Data="M6 6h1c1.28 0 2.36.36 3 1l2 2a4.243 4.243 0 0 1-6 6l-2-2c-.64-.64-1-1.72-1-3V9a3 3 0 0 1 3-3m1 4h.01M15 6l3 3a4.243 4.243 0 0 1 0 6l-3 3" Stroke="{DynamicResource WindowFore}" StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
                             </Canvas>
                         </Viewbox>
@@ -249,7 +249,7 @@
                     <Button x:Name="ButtonChangeTheme" Width="30" Height="30" ToolTip="Switch Theme" SnapsToDevicePixels="True" UseLayoutRounding="True">
                         <Viewbox Width="16" Height="16">
                             <Canvas Width="24" Height="24">
-                                <Path Data="M9 9a4.27 4.27 0 1 0 6 6a6 6 0 1 1-6-6" Fill="{DynamicResource ToolbarIconAccent}" Opacity="0.7"/>
+                                <Path Data="M9 9a4.27 4.27 0 1 0 6 6a6 6 0 1 1-6-6" Fill="{DynamicResource ToolbarIconAccent}" Opacity="{DynamicResource ToolbarIconAccentOpacity}"/>
                                 <Path Data="M15 15a6 6 0 1 1-6-6a4.269 4.269 0 1 0 6 6m-1.974-5.82a3 3 0 0 1 1.793 1.794M19 12h2m-9-7V3m4.95 4.05l1.414-1.414" Stroke="{DynamicResource WindowFore}" StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
                             </Canvas>
                         </Viewbox>

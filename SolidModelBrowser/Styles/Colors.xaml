@@ -1,5 +1,6 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib">
 
 
     <!-- Common -->
@@ -22,6 +23,7 @@
     <SolidColorBrush x:Key="InfoPanel" Color="#D0202022" />
     <SolidColorBrush x:Key="WindowFore" Color="#E0E0E0" />
     <SolidColorBrush x:Key="ToolbarIconAccent" Color="#0EA5E9" />
+    <sys:Double x:Key="ToolbarIconAccentOpacity">0.7</sys:Double>
 
     <SolidColorBrush x:Key="Separator" Color="#33FFFFFF" />
 
