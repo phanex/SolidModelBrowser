@@ -88,12 +88,14 @@ namespace SolidModelBrowser
                 var btn = new Button { Content = curCol.ToString(), Margin = vmargin };
                 btn.Click += (s, e) =>
                 {
-                    using (var dlg = new FigmaColorPickerForm(System.Drawing.Color.FromArgb(curCol.A, curCol.R, curCol.G, curCol.B)))
+                    using (var dlg = new System.Windows.Forms.ColorDialog())
                     {
+                        dlg.Color = System.Drawing.Color.FromArgb(curCol.A, curCol.R, curCol.G, curCol.B);
+                        dlg.FullOpen = true;
                         if (dlg.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                         {
-                            var c = dlg.SelectedColor;
-                            var mediaCol = System.Windows.Media.Color.FromArgb(c.A, c.R, c.G, c.B);
+                            var c = dlg.Color;
+                            var mediaCol = System.Windows.Media.Color.FromArgb(curCol.A, c.R, c.G, c.B);
                             curCol = mediaCol;
                             p.Property.SetValue(p.Object, new SColor(mediaCol));
                             btn.Content = mediaCol.ToString();

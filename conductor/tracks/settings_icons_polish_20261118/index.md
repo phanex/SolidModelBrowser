@@ -2,6 +2,6 @@
 
 - **Track ID:** `settings_icons_polish_20261118`
 - **Type:** Refactor / UI Polish
-- **Status:** Planned
+- **Status:** In Progress
 - **Specification:** [spec.md](spec.md)
 - **Execution Plan:** [plan.md](plan.md)

@@ -9,6 +9,9 @@ namespace SolidModelBrowser
     {
         static App()
         {
+            System.Windows.Forms.Application.EnableVisualStyles();
+            System.Windows.Forms.Application.SetCompatibleTextRenderingDefault(false);
+
             AppDomain.CurrentDomain.AssemblyResolve += (sender, args) =>
             {
                 string assemblyName = new AssemblyName(args.Name).Name;

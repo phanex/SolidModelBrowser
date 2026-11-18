@@ -95,39 +95,37 @@ namespace SolidModelBrowser
         private void initLayout()
         {
             // 1. Top Search Bar
-            Panel pnlTop = new Panel { Dock = DockStyle.Top, Height = 38, Padding = new Padding(10, 8, 10, 4) };
-            Label lblSearch = new Label { Text = "Search:", Location = new Point(10, 10), AutoSize = true };
-            txtSearch = new TextBox { Location = new Point(lblSearch.Right + 6, 8), Width = 260 };
+            Panel pnlTop = new Panel { Dock = DockStyle.Top, Height = 42, Padding = new Padding(12, 10, 12, 6) };
+            Label lblSearch = new Label { Text = "Search:", Location = new Point(12, 12), AutoSize = true };
+            txtSearch = new TextBox { Location = new Point(lblSearch.Right + 8, 9), Width = 280 };
             txtSearch.TextChanged += (s, e) => applySearchFilter(txtSearch.Text.Trim());
             pnlTop.Controls.Add(lblSearch);
             pnlTop.Controls.Add(txtSearch);
-            this.Controls.Add(pnlTop);
 
             // 2. Bottom Command Bar
-            Panel pnlBottom = new Panel { Dock = DockStyle.Bottom, Height = 46, Padding = new Padding(10, 8, 10, 8) };
-            this.Controls.Add(pnlBottom);
+            Panel pnlBottom = new Panel { Dock = DockStyle.Bottom, Height = 48, Padding = new Padding(12, 8, 12, 8) };
 
-            btnDefaults = new Button { Text = "Reset to Defaults", Location = new Point(10, 8), Size = new Size(125, 28) };
+            btnDefaults = new Button { Text = "Reset to Defaults", Location = new Point(12, 10), Size = new Size(130, 28) };
             btnDefaults.Click += (s, e) => { WindowResult = SettingsWindowResult.ResetDefaults; this.DialogResult = DialogResult.OK; this.Close(); };
             pnlBottom.Controls.Add(btnDefaults);
 
-            btnOpenIni = new Button { Text = "Open INI", Location = new Point(btnDefaults.Right + 8, 8), Size = new Size(85, 28) };
+            btnOpenIni = new Button { Text = "Open INI", Location = new Point(btnDefaults.Right + 8, 10), Size = new Size(85, 28) };
             btnOpenIni.Click += (s, e) => { WindowResult = SettingsWindowResult.OpenEditor; this.DialogResult = DialogResult.OK; this.Close(); };
             pnlBottom.Controls.Add(btnOpenIni);
 
-            btnCancel = new Button { Text = "Cancel", DialogResult = DialogResult.Cancel, Size = new Size(80, 28) };
+            btnCancel = new Button { Text = "Cancel", DialogResult = DialogResult.Cancel, Size = new Size(85, 28) };
             this.CancelButton = btnCancel;
             pnlBottom.Controls.Add(btnCancel);
 
-            btnSave = new Button { Text = "Save", DialogResult = DialogResult.OK, Size = new Size(80, 28) };
+            btnSave = new Button { Text = "Save", DialogResult = DialogResult.OK, Size = new Size(85, 28) };
             btnSave.Click += (s, e) => { saveUIToSettings(); this.Close(); };
             this.AcceptButton = btnSave;
             pnlBottom.Controls.Add(btnSave);
 
             pnlBottom.Resize += (s, e) =>
             {
-                btnCancel.Location = new Point(pnlBottom.ClientSize.Width - btnCancel.Width - 10, 8);
-                btnSave.Location = new Point(btnCancel.Left - btnSave.Width - 8, 8);
+                btnCancel.Location = new Point(pnlBottom.ClientSize.Width - btnCancel.Width - 12, 10);
+                btnSave.Location = new Point(btnCancel.Left - btnSave.Width - 8, 10);
             };
 
             // 3. Central Native TabControl
@@ -152,25 +150,30 @@ namespace SolidModelBrowser
             initAssocTab(tabAssoc);
 
             tabControl.TabPages.AddRange(new TabPage[] { tabGeneral, tabViewport, tabColors, tabGCode, tabApps, tabAssoc });
-            this.Controls.Add(tabControl);
 
-            tabControl.BringToFront();
-            pnlTop.SendToBack();
-            pnlBottom.SendToBack();
+            // CRITICAL WINFORMS DOCK ORDER:
+            // Fill control is added, and top/bottom panels are brought to front so TabControl never overlaps button panels!
+            this.Controls.Add(tabControl);
+            this.Controls.Add(pnlTop);
+            this.Controls.Add(pnlBottom);
+
+            tabControl.SendToBack();
+            pnlTop.BringToFront();
+            pnlBottom.BringToFront();
         }
 
         private void initGeneralTab(TabPage p)
         {
             p.Padding = new Padding(12);
 
-            GroupBox grpPanel = new GroupBox { Text = "File Navigation Panel", Location = new Point(12, 12), Size = new Size(680, 110) };
+            GroupBox grpPanel = new GroupBox { Text = "File Navigation Panel", Location = new Point(12, 12), Size = new Size(680, 115) };
             chkShowFilePanel = new CheckBox { Text = "Show file navigation panel by default", Location = new Point(16, 26), AutoSize = true };
-            chkColorizeFiles = new CheckBox { Text = "Colorize file names by format extension", Location = new Point(16, 52), AutoSize = true };
-            chkSortFiles = new CheckBox { Text = "Sort files by format extension in navigation panel", Location = new Point(16, 78), AutoSize = true };
+            chkColorizeFiles = new CheckBox { Text = "Colorize file names by format extension", Location = new Point(16, 54), AutoSize = true };
+            chkSortFiles = new CheckBox { Text = "Sort files by format extension in navigation panel", Location = new Point(16, 82), AutoSize = true };
             grpPanel.Controls.AddRange(new Control[] { chkShowFilePanel, chkColorizeFiles, chkSortFiles });
             p.Controls.Add(grpPanel);
 
-            GroupBox grpShading = new GroupBox { Text = "Appearance & Theming", Location = new Point(12, grpPanel.Bottom + 12), Size = new Size(680, 140) };
+            GroupBox grpShading = new GroupBox { Text = "Appearance && Theming", Location = new Point(12, 138), Size = new Size(680, 140) };
             chkFlatShading = new CheckBox { Text = "CAD Flat Shading (automatically unsmooth loaded models)", Location = new Point(16, 26), AutoSize = true };
 
             Label lblTheme = new Label { Text = "Default Theme:", Location = new Point(16, 60), AutoSize = true };
@@ -218,20 +221,20 @@ namespace SolidModelBrowser
         {
             p.Padding = new Padding(12);
 
-            GroupBox grpMat = new GroupBox { Text = "Model Materials", Location = new Point(12, 12), Size = new Size(680, 150) };
-            GroupBox grpLight = new GroupBox { Text = "Scene Lighting & Ground", Location = new Point(12, grpMat.Bottom + 10), Size = new Size(680, 160) };
+            GroupBox grpMat = new GroupBox { Text = "Model Materials", Location = new Point(12, 12), Size = new Size(680, 110) };
+            GroupBox grpLight = new GroupBox { Text = "Scene Lighting && Ground", Location = new Point(12, 134), Size = new Size(680, 120) };
 
             ColorControlRow createRow(GroupBox parent, string title, int col, int row, Action<Color> onColorChanged)
             {
                 int x = 16 + col * 220;
-                int y = 24 + row * 38;
+                int y = 26 + row * 38;
 
-                Label lbl = new Label { Text = title, Location = new Point(x, y + 2), Size = new Size(110, 18) };
+                Label lbl = new Label { Text = title, Location = new Point(x, y + 2), Size = new Size(105, 18) };
                 parent.Controls.Add(lbl);
 
                 Button btnSwatch = new Button
                 {
-                    Location = new Point(x + 114, y),
+                    Location = new Point(x + 108, y),
                     Size = new Size(24, 22),
                     FlatStyle = FlatStyle.Flat,
                     Cursor = Cursors.Hand
@@ -243,7 +246,7 @@ namespace SolidModelBrowser
                 TextBox txtHex = new TextBox
                 {
                     Location = new Point(btnSwatch.Right + 4, y),
-                    Size = new Size(66, 22),
+                    Size = new Size(72, 22),
                     CharacterCasing = CharacterCasing.Upper,
                     Font = new Font("Consolas", 9f)
                 };
@@ -259,14 +262,19 @@ namespace SolidModelBrowser
 
                 btnSwatch.Click += (s, e) =>
                 {
-                    var flyout = new FigmaColorPickerFlyout(item.CurrentColor, newCol =>
+                    using (var dlg = new ColorDialog())
                     {
-                        item.CurrentColor = newCol;
-                        btnSwatch.BackColor = newCol;
-                        txtHex.Text = $"{newCol.R:X2}{newCol.G:X2}{newCol.B:X2}";
-                        item.OnColorChanged?.Invoke(newCol);
-                    });
-                    flyout.ShowBelow(btnSwatch);
+                        dlg.Color = item.CurrentColor;
+                        dlg.FullOpen = true;
+                        if (dlg.ShowDialog() == DialogResult.OK)
+                        {
+                            var newCol = dlg.Color;
+                            item.CurrentColor = newCol;
+                            btnSwatch.BackColor = newCol;
+                            txtHex.Text = $"{newCol.R:X2}{newCol.G:X2}{newCol.B:X2}";
+                            item.OnColorChanged?.Invoke(newCol);
+                        }
+                    }
                 };
 
                 txtHex.TextChanged += (s, e) =>
@@ -292,16 +300,16 @@ namespace SolidModelBrowser
                 return item;
             }
 
-            // Model Materials
+            // Model Materials (row 0: Diffuse, Specular, Emissive; row 1: Backside Diffuse + Checkbox)
             createRow(grpMat, "Diffuse Color:", 0, 0, c => settings.DiffuseColor = new SColor(toMedia(c)));
             createRow(grpMat, "Specular Color:", 1, 0, c => settings.SpecularColor = new SColor(toMedia(c)));
             createRow(grpMat, "Emissive Color:", 2, 0, c => settings.EmissiveColor = new SColor(toMedia(c)));
 
             createRow(grpMat, "Backside Diffuse:", 0, 1, c => settings.BackDiffuseColor = new SColor(toMedia(c)));
-            chkBacksideDiffuse = new CheckBox { Text = "Enable custom backside color", Location = new Point(236, 64), AutoSize = true };
+            chkBacksideDiffuse = new CheckBox { Text = "Enable custom backside color", Location = new Point(236, 66), AutoSize = true };
             grpMat.Controls.Add(chkBacksideDiffuse);
 
-            // Lighting
+            // Lighting (row 0: Ambient, Light 1, Light 2; row 1: Light 3, Ground Diffuse)
             createRow(grpLight, "Ambient Light:", 0, 0, c => settings.AmbientLightColor = new SColor(toMedia(c)));
             createRow(grpLight, "Light 1 Color:", 1, 0, c => settings.DirectionalLight1Color = new SColor(toMedia(c)));
             createRow(grpLight, "Light 2 Color:", 2, 0, c => settings.DirectionalLight2Color = new SColor(toMedia(c)));
