@@ -38,11 +38,11 @@ namespace SolidModelBrowser.Tests
         }
 
         [Test]
-        public void ImportSKP_InitialRotationX_IsPositive90Degrees()
+        public void ImportSKP_InitialRotationX_IsZeroDegrees()
         {
             Import.SelectImporter("test.skp");
             Assert.IsNotNull(Import.CurrentImport);
-            Assert.AreEqual(90.0, Import.CurrentImport.InitialRotationX, 0.001, "SKP models must rotate +90 deg around X to align Y-up with Z-up.");
+            Assert.AreEqual(0.0, Import.CurrentImport.InitialRotationX, 0.001, "SKP models map glTF coordinates directly to native SketchUp Z-up at load time without artificial center rotation.");
         }
 
         [Test]

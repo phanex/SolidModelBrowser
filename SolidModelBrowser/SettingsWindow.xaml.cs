@@ -80,16 +80,16 @@ namespace SolidModelBrowser
             CheckUnsmoothAfterLoading.IsChecked = s.UnsmoothAfterLoading;
 
             // Camera & Viewport
-            CheckCenterCameraAtPointsAverageCenter.IsChecked = s.CenterCameraAtPointsAverageCenter;
+            CheckCenterCameraAtPointsAverageCenter.IsChecked = s.DefaultLookAtModelPointsAvgCenter;
             TextFov.Text = s.FOV.ToString("0.#");
             TextFishEyeFov.Text = s.FishEyeFOV.ToString("0.#");
             TextCameraInitialShift.Text = s.CameraInitialShift.ToString("0.#");
             TextModelRotationAngle.Text = s.ModelRotationAngle.ToString("0.#");
 
             // G-Code Import
-            TextGCodeLineEnds.Text = s.GcodeLineEndsExt.ToString();
-            TextGCodeLayerHeight.Text = s.GcodeLayerHeight.ToString("0.##");
-            TextGCodeLineWidth.Text = s.GcodeLineWidth.ToString("0.##");
+            TextGCodeLineEnds.Text = s.GCODELineExtensions.ToString();
+            TextGCodeLayerHeight.Text = s.GCODELayerHeight.ToString("0.##");
+            TextGCodeLineWidth.Text = s.GCODELineWidth.ToString("0.##");
 
             // Colors & Materials
             ColorDiffuse.ColorValue = s.DiffuseColor.Color;
@@ -116,16 +116,16 @@ namespace SolidModelBrowser
             settings.UnsmoothAfterLoading = CheckUnsmoothAfterLoading.IsChecked == true;
 
             // Camera & Viewport
-            settings.CenterCameraAtPointsAverageCenter = CheckCenterCameraAtPointsAverageCenter.IsChecked == true;
+            settings.DefaultLookAtModelPointsAvgCenter = CheckCenterCameraAtPointsAverageCenter.IsChecked == true;
             if (double.TryParse(TextFov.Text, out double fov)) settings.FOV = Utils.MinMax(fov, 5.0, 160.0);
             if (double.TryParse(TextFishEyeFov.Text, out double feFov)) settings.FishEyeFOV = Utils.MinMax(feFov, 5.0, 160.0);
             if (double.TryParse(TextCameraInitialShift.Text, out double shift)) settings.CameraInitialShift = Utils.MinMax(shift, 0.5, 10.0);
             if (double.TryParse(TextModelRotationAngle.Text, out double rot)) settings.ModelRotationAngle = Utils.MinMax(rot, 5.0, 180.0);
 
             // G-Code Import
-            if (int.TryParse(TextGCodeLineEnds.Text, out int le)) settings.GcodeLineEndsExt = le;
-            if (double.TryParse(TextGCodeLayerHeight.Text, out double lh)) settings.GcodeLayerHeight = lh;
-            if (double.TryParse(TextGCodeLineWidth.Text, out double lw)) settings.GcodeLineWidth = lw;
+            if (double.TryParse(TextGCodeLineEnds.Text, out double le)) settings.GCODELineExtensions = le;
+            if (double.TryParse(TextGCodeLayerHeight.Text, out double lh)) settings.GCODELayerHeight = lh;
+            if (double.TryParse(TextGCodeLineWidth.Text, out double lw)) settings.GCODELineWidth = lw;
 
             // Colors & Materials
             settings.DiffuseColor = new SColor(ColorDiffuse.ColorValue);
@@ -243,9 +243,9 @@ namespace SolidModelBrowser
                     Width = 20,
                     Height = 20,
                     Padding = new Thickness(0),
-                    ToolTip = "Remove application",
-                    DockPanel.Dock = DockPanel.Dock.Right
+                    ToolTip = "Remove application"
                 };
+                DockPanel.SetDock(btnRemove, Dock.Right);
                 btnRemove.Click += (s, e) =>
                 {
                     currentApps.RemoveAt(index);

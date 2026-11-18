@@ -116,7 +116,7 @@ namespace SolidModelBrowser
             Point3DCollection p = null;
             if (axis == Axis.X) p = new Point3DCollection() { new Point3D(0, 0, 0), new Point3D(len, 0, 0), new Point3D(0, 0, 1), new Point3D(len, 0, 1) };
             if (axis == Axis.Y) p = new Point3DCollection() { new Point3D(0, 0, 0), new Point3D(0, len, 0), new Point3D(0, 0, 1), new Point3D(0, len, 1) };
-            if (axis == Axis.Z) p = new Point3DCollection() { new Point3D(0, 0, 1), new Point3D(0, 0, len), new Point3D(1, 0, 1), new Point3D(1, 0, len) };
+            if (axis == Axis.Z) p = new Point3DCollection() { new Point3D(0, 0, 0), new Point3D(0, 0, len), new Point3D(1, 0, 0), new Point3D(1, 0, len) };
             var i = new Int32Collection() { 0, 1, 2, 1, 3, 2 };
             var mesh = new MeshGeometry3D() { Positions = p, TriangleIndices = i };
             var mat = new DiffuseMaterial(new SolidColorBrush(color));

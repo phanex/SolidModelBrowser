@@ -64,9 +64,9 @@ namespace SolidModelBrowser
             };
             MenuSaveSnapshotPNG.Click += (s, e) => Utils.SaveImagePNG(scene.Viewport3D, settings.SaveImageDPI);
 
-            ButtonRotateX.Click += (s, e) => addRotation(settings.ModelRotationAngle, 0, 0);
-            ButtonRotateY.Click += (s, e) => addRotation(0, settings.ModelRotationAngle, 0);
-            ButtonRotateZ.Click += (s, e) => addRotation(0, 0, settings.ModelRotationAngle);
+            MenuRotateX.Click += (s, e) => addRotation(settings.ModelRotationAngle, 0, 0);
+            MenuRotateY.Click += (s, e) => addRotation(0, settings.ModelRotationAngle, 0);
+            MenuRotateZ.Click += (s, e) => addRotation(0, 0, settings.ModelRotationAngle);
 
             ButtonWireframe.Click += (s, e) =>
             {
@@ -425,6 +425,9 @@ namespace SolidModelBrowser
                 if (e.Key == Key.D3 || e.Key == Key.NumPad3) { setShadingMode(ShadingMode.Wireframe); e.Handled = true; return; }
 
                 double ra = settings.ModelRotationAngle;
+                if (e.Key == Key.X) { addRotation(ra, 0, 0); e.Handled = true; return; }
+                if (e.Key == Key.Y) { addRotation(0, ra, 0); e.Handled = true; return; }
+                if (e.Key == Key.Z) { addRotation(0, 0, ra); e.Handled = true; return; }
                 if (e.Key == Key.A) addRotation(0, 0, ra);
                 if (e.Key == Key.D) addRotation(0, 0, -ra);
                 if (e.Key == Key.S) addRotation(ra, 0, 0);
@@ -464,6 +467,14 @@ namespace SolidModelBrowser
                 if (e.Key == Key.O) { ButtonAxes.Toggle(); scene.IsAxesVisible = ButtonAxes.IsChecked.Value; }
                 if (e.Key == Key.P) { ButtonGround.Toggle(); scene.IsGroundVisible = ButtonGround.IsChecked.Value; }
                 if (e.Key == Key.I) { ButtonShowModelInfo.Toggle(); updateModelInfo(); }
+            }
+
+            if (CAS == "S") // SHIFT
+            {
+                double ra = settings.ModelRotationAngle;
+                if (e.Key == Key.X) { addRotation(-ra, 0, 0); e.Handled = true; return; }
+                if (e.Key == Key.Y) { addRotation(0, -ra, 0); e.Handled = true; return; }
+                if (e.Key == Key.Z) { addRotation(0, 0, -ra); e.Handled = true; return; }
             }
 
             if (CAS == "C") // CTRL
@@ -520,19 +531,20 @@ namespace SolidModelBrowser
             currentCameraProjection = proj;
             scene.Camera.SetProjection(proj, settings.FOV, settings.FishEyeFOV);
 
+            CanvasCameraPerspective.Visibility = proj == CameraProjection.Perspective ? Visibility.Visible : Visibility.Collapsed;
+            CanvasCameraOrtho.Visibility = proj == CameraProjection.Orthographic ? Visibility.Visible : Visibility.Collapsed;
+            CanvasCameraFishEye.Visibility = proj == CameraProjection.Fisheye ? Visibility.Visible : Visibility.Collapsed;
+
             if (proj == CameraProjection.Perspective)
             {
-                PathCameraPerspective.Data = Geometry.Parse("M1.5,4.5 H9.5 V12.5 H1.5 Z M9.5,7 L14.5,4 V13 L9.5,10 Z");
                 ButtonSelectCamera.ToolTip = "Camera: Perspective (Click for Orthographic) [F8]";
             }
             else if (proj == CameraProjection.Orthographic)
             {
-                PathCameraPerspective.Data = Geometry.Parse("M1.5,4.5 H9.5 V12.5 H1.5 Z M9.5,6 H15 V11 H9.5 Z");
                 ButtonSelectCamera.ToolTip = "Camera: Orthographic (Click for Fisheye) [F8]";
             }
             else // Fisheye
             {
-                PathCameraPerspective.Data = Geometry.Parse("M8,2 A6,6 0 1 0 8,14 A6,6 0 1 0 8,2 M8,2 C10.5,5 10.5,11 8,14 M8,2 C5.5,5 5.5,11 8,14 M2,8 C5,5.5 11,5.5 14,8");
                 ButtonSelectCamera.ToolTip = "Camera: Fisheye (Click for Perspective) [F8]";
             }
         }
@@ -540,21 +552,23 @@ namespace SolidModelBrowser
         void setShadingMode(ShadingMode mode)
         {
             currentShadingMode = mode;
+
+            CanvasShadingSolid.Visibility = mode == ShadingMode.Solid ? Visibility.Visible : Visibility.Collapsed;
+            CanvasShadingSolidAndWireframe.Visibility = mode == ShadingMode.SolidAndWireframe ? Visibility.Visible : Visibility.Collapsed;
+            CanvasShadingWireframe.Visibility = mode == ShadingMode.Wireframe ? Visibility.Visible : Visibility.Collapsed;
+
             if (mode == ShadingMode.Solid)
             {
-                PathShadingSolidFace.Visibility = Visibility.Visible;
                 scene.SetShadingVisibility(true, false);
                 ButtonWireframe.ToolTip = "Switch to Solid + Wireframe [Ctrl+W / 1,2,3]";
             }
             else if (mode == ShadingMode.SolidAndWireframe)
             {
-                PathShadingSolidFace.Visibility = Visibility.Visible;
                 scene.SetShadingVisibility(true, true);
                 ButtonWireframe.ToolTip = "Switch to Wireframe [Ctrl+W / 1,2,3]";
             }
             else // Wireframe
             {
-                PathShadingSolidFace.Visibility = Visibility.Collapsed;
                 scene.SetShadingVisibility(false, true);
                 ButtonWireframe.ToolTip = "Switch to Solid [Ctrl+W / 1,2,3]";
             }

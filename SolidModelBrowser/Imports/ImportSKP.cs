@@ -40,7 +40,7 @@ namespace SolidModelBrowser
             Extensions = new List<string> { "skp" };
             ExtensionsColors = new Dictionary<string, SolidColorBrush> { { "skp", new SolidColorBrush(Color.FromRgb(235, 95, 75)) } };
             ExtensionsColorsLight = new Dictionary<string, SolidColorBrush> { { "skp", new SolidColorBrush(Color.FromRgb(180, 45, 30)) } };
-            InitialRotationX = 90.0;
+            InitialRotationX = 0.0;
         }
 
         public override void Load(string filename)
@@ -70,26 +70,35 @@ namespace SolidModelBrowser
                     var prim = scene.GlbPrimitives[p];
                     int baseIndex = Positions.Count;
 
-                    // Unpack flat float array (X, Y, Z triplets, OpenSkp glTF meters -> CAD millimeters)
+                    // Unpack flat float array (OpenSkp glTF meters -> native SketchUp CAD millimeters)
+                    // glTF coordinate frame (X right, Y up, -Z forward) -> SketchUp & SolidModelBrowser (X right, Y forward, Z up)
                     if (prim.Positions != null)
                     {
                         for (int i = 0; i < prim.Positions.Length; i += 3)
                         {
-                            float x = prim.Positions[i] * 1000.0f;
-                            float y = prim.Positions[i + 1] * 1000.0f;
-                            float z = prim.Positions[i + 2] * 1000.0f;
+                            float gx = prim.Positions[i] * 1000.0f;
+                            float gy = prim.Positions[i + 1] * 1000.0f;
+                            float gz = prim.Positions[i + 2] * 1000.0f;
+
+                            double x = gx;
+                            double y = -gz;
+                            double z = gy;
                             Positions.Add(new Point3D(x, y, z));
                         }
                     }
 
-                    // Unpack flat normal array (NX, NY, NZ triplets)
+                    // Unpack flat normal array (NX, NY, NZ triplets transformed matching position mapping)
                     if (prim.Normals != null)
                     {
                         for (int i = 0; i < prim.Normals.Length; i += 3)
                         {
-                            float nx = prim.Normals[i];
-                            float ny = prim.Normals[i + 1];
-                            float nz = prim.Normals[i + 2];
+                            float gnx = prim.Normals[i];
+                            float gny = prim.Normals[i + 1];
+                            float gnz = prim.Normals[i + 2];
+
+                            double nx = gnx;
+                            double ny = -gnz;
+                            double nz = gny;
                             Normals.Add(new Vector3D(nx, ny, nz));
                         }
                     }

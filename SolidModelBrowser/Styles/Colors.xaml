@@ -21,6 +21,7 @@
     <SolidColorBrush x:Key="PanelBack" Color="#1E1E20" />
     <SolidColorBrush x:Key="InfoPanel" Color="#D0202022" />
     <SolidColorBrush x:Key="WindowFore" Color="#E0E0E0" />
+    <SolidColorBrush x:Key="ToolbarIconAccent" Color="#0EA5E9" />
 
     <SolidColorBrush x:Key="Separator" Color="#33FFFFFF" />
 
