@@ -124,10 +124,56 @@ namespace SolidModelBrowser
                     Registry.CurrentUser.DeleteSubKeyTree($@"Software\Classes\{progId}", false);
                 }
 
-                SHChangeNotify(0x08000000, 0x0000, IntPtr.Zero, IntPtr.Zero); // SHCNE_ASSOCCHANGED
+                SHChangeNotify(0x08000000, 0x1000, IntPtr.Zero, IntPtr.Zero); // SHCNE_ASSOCCHANGED, SHCNF_FLUSH
                 return true;
             }
             catch { return false; }
+        }
+
+        public static void EnsureIconsAndProgIdsRegistered()
+        {
+            try
+            {
+                string exePath = Assembly.GetEntryAssembly()?.Location ?? System.Diagnostics.Process.GetCurrentProcess().MainModule?.FileName;
+                if (string.IsNullOrEmpty(exePath) || !File.Exists(exePath)) return;
+
+                // 1. Ensure app icon for Applications\SolidModelBrowser.exe
+                try
+                {
+                    string appIco = GetOrCreateExtensionIconPath("app");
+                    using (var appKey = Registry.CurrentUser.CreateSubKey(@"Software\Classes\Applications\SolidModelBrowser.exe"))
+                    {
+                        using (var iconKey = appKey.CreateSubKey("DefaultIcon"))
+                        {
+                            iconKey.SetValue("", $"\"{appIco}\"");
+                        }
+                    }
+                }
+                catch { }
+
+                // 2. Ensure each ProgId has proper DefaultIcon and command
+                foreach (string ext in SupportedExtensions)
+                {
+                    string progId = $"SolidModelBrowser{ext}";
+                    string icoPath = GetOrCreateExtensionIconPath(ext);
+
+                    using (var progKey = Registry.CurrentUser.CreateSubKey($@"Software\Classes\{progId}"))
+                    {
+                        progKey.SetValue("", $"Solid 3D Model ({ext.TrimStart('.').ToUpperInvariant()})");
+                        using (var iconKey = progKey.CreateSubKey("DefaultIcon"))
+                        {
+                            iconKey.SetValue("", $"\"{icoPath}\"");
+                        }
+                        using (var cmdKey = progKey.CreateSubKey(@"shell\open\command"))
+                        {
+                            cmdKey.SetValue("", $"\"{exePath}\" \"%1\"");
+                        }
+                    }
+                }
+
+                SHChangeNotify(0x08000000, 0x1000, IntPtr.Zero, IntPtr.Zero); // SHCNE_ASSOCCHANGED, SHCNF_FLUSH
+            }
+            catch { }
         }
 
         [System.Runtime.InteropServices.DllImport("shell32.dll")]

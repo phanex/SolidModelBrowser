@@ -42,5 +42,15 @@ namespace SolidModelBrowser
             rdStyles.Source = new Uri("pack://application:,,,/SolidModelBrowser;component/Styles/Styles.xaml");
             Current.Resources.MergedDictionaries.Add(rdStyles);
         }
+
+        protected override void OnStartup(StartupEventArgs e)
+        {
+            base.OnStartup(e);
+            try
+            {
+                FileAssociationManager.EnsureIconsAndProgIdsRegistered();
+            }
+            catch { }
+        }
     }
 }

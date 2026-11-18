@@ -23,4 +23,5 @@ description: Instructions for building and compiling SolidModelBrowser exclusive
    - Push to `origin master` (or trigger workflow via `gh workflow run build.yml`).
    - Monitor the run with `gh run list` / `gh run watch`.
    - Download the release artifact (`SolidModelBrowser-Release`) cleanly.
-   - Place ONLY the final executable in a clean path as requested by the user, without breeding nested `dist` or temporary directories.
+   - Place ONLY the final executable in `dist/` (or clean path as requested), without breeding nested `dist` or temporary directories.
+   - **FRESH CONFIG PER NEW VERSION:** Always delete `settings.ini` in the executable folder upon updating/downloading a new build so that the application initializes a clean default configuration silently.
