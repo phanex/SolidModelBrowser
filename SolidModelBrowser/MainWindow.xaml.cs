@@ -205,7 +205,7 @@ namespace SolidModelBrowser
             MaxWidth = settings.MaxWidth < 1 ? scrsize.Width : Math.Max(settings.MaxWidth, MinWidth);
             MaxHeight = settings.MaxHeight < 1 ? scrsize.Height : Math.Max(settings.MaxHeight, MinHeight);
 
-            showInfo($"Solid Model Browser v {version}\r\nSTL, OBJ, 3MF, PLY, SKP, GCODE formats supported\r\n\r\nquestfulcat 2025 (C)\r\nhttps://github.com/questfulcat/solidmodelbrowser\r\nDistributed under MIT License\r\n\r\nF1 - keymap help");
+            showInfo($"Solid Model Browser v {version}\r\nSTL, OBJ, 3MF, PLY, SKP, GCODE formats supported\r\n\r\nOriginal author: questfulcat (C) 2025\r\nEnhanced by: desmond\r\nIcons: Coolicons by Vlad Shagov\r\nDistributed under MIT License\r\n\r\nF1 - keymap help");
             this.ContentRendered += windowRendered;
         }
 
@@ -338,8 +338,9 @@ namespace SolidModelBrowser
                 meshWireframe = null;
                 if (Utils.ShouldUnsmoothMesh(lastFilename, settings.UnsmoothAfterLoading))
                     meshBase = Utils.UnsmoothMesh(meshBase);
-                updateMeshes(true);
                 Utils.GetModelCenterAndSize(meshBase, out modelCenter, out modelPointsAvgCenter, out modelSize);
+                initSlicer();
+                updateMeshes(true);
                 scene.Camera.LookCenter = settings.DefaultLookAtModelPointsAvgCenter ? modelPointsAvgCenter : modelCenter;
                 scene.Camera.DefaultPosition(modelSize.Length, settings.CameraInitialShift);
 
@@ -353,8 +354,6 @@ namespace SolidModelBrowser
                 if (Import.CurrentImport.InitialRotationX != 0.0) addRotation(Import.CurrentImport.InitialRotationX, 0, 0);
                 if (ButtonShowModelInfo.IsChecked.Value) showModelInfo();
                 else hideInfo();
-
-                initSlicer();
             }
             catch (Exception exc)
             {
@@ -665,40 +664,65 @@ namespace SolidModelBrowser
         void initSlicer()
         {
             skipslice = true;
-            sliderSliceHeight.Maximum = modelCenter.Z + modelSize.Z / 2;
-            sliderSliceHeight.Minimum = modelCenter.Z - modelSize.Z / 2;
-            sliderSliceHeight.Value = sliderSliceHeight.Maximum;
-            sliderSliceHeight.LargeChange = 0.2;
+            double maxZ = modelCenter.Z + modelSize.Z / 2.0;
+            double minZ = modelCenter.Z - modelSize.Z / 2.0;
+            sliderSliceHeight.Minimum = minZ;
+            sliderSliceHeight.Maximum = maxZ;
+            sliderSliceHeight.Value = maxZ;
+            sliderSliceHeight.LargeChange = modelSize.Z > 0 ? modelSize.Z * 0.05 : 0.2;
             skipslice = false;
         }
 
-        //int slicescount = 0;
         bool skipslice = false;
         void slice()
         {
             if (skipslice || meshBase == null) return;
             double h = sliderSliceHeight.Value;
+            bool isAtTop = h >= sliderSliceHeight.Maximum - 1e-4;
+
             if (currentShadingMode == ShadingMode.Solid)
             {
-                Utils.SliceMesh(meshBase, scene.Mesh, h);
-                if (scene.Mesh.TriangleIndices.Count == 0) scene.Mesh.TriangleIndices.Add(0);
+                if (isAtTop)
+                {
+                    Utils.FillMesh(meshBase, scene.Mesh);
+                }
+                else
+                {
+                    Utils.SliceMesh(meshBase, scene.Mesh, h);
+                    if (scene.Mesh.TriangleIndices.Count == 0) scene.Mesh.TriangleIndices.Add(0);
+                }
             }
             else if (currentShadingMode == ShadingMode.Wireframe)
             {
                 if (meshWireframe != null)
                 {
-                    Utils.SliceMesh(meshWireframe, scene.WireframeMesh, h);
-                    if (scene.WireframeMesh.TriangleIndices.Count == 0) scene.WireframeMesh.TriangleIndices.Add(0);
+                    if (isAtTop)
+                    {
+                        Utils.FillMesh(meshWireframe, scene.WireframeMesh);
+                    }
+                    else
+                    {
+                        Utils.SliceMesh(meshWireframe, scene.WireframeMesh, h);
+                        if (scene.WireframeMesh.TriangleIndices.Count == 0) scene.WireframeMesh.TriangleIndices.Add(0);
+                    }
                 }
             }
             else // SolidAndWireframe
             {
-                Utils.SliceMesh(meshBase, scene.Mesh, h);
-                if (scene.Mesh.TriangleIndices.Count == 0) scene.Mesh.TriangleIndices.Add(0);
-                if (meshWireframe != null)
+                if (isAtTop)
                 {
-                    Utils.SliceMesh(meshWireframe, scene.WireframeMesh, h);
-                    if (scene.WireframeMesh.TriangleIndices.Count == 0) scene.WireframeMesh.TriangleIndices.Add(0);
+                    Utils.FillMesh(meshBase, scene.Mesh);
+                    if (meshWireframe != null) Utils.FillMesh(meshWireframe, scene.WireframeMesh);
+                }
+                else
+                {
+                    Utils.SliceMesh(meshBase, scene.Mesh, h);
+                    if (scene.Mesh.TriangleIndices.Count == 0) scene.Mesh.TriangleIndices.Add(0);
+                    if (meshWireframe != null)
+                    {
+                        Utils.SliceMesh(meshWireframe, scene.WireframeMesh, h);
+                        if (scene.WireframeMesh.TriangleIndices.Count == 0) scene.WireframeMesh.TriangleIndices.Add(0);
+                    }
                 }
             }
         }

@@ -15,9 +15,8 @@ namespace SolidModelBrowser
         private Settings settings;
         private List<ExternalAppItem> currentApps = new List<ExternalAppItem>();
 
-        private ListBox listCategories;
-        private Panel panelContainer;
-        private Panel[] categoryPanels;
+        private TextBox txtSearch;
+        private TabControl tabControl;
 
         // General
         private CheckBox chkShowFilePanel;
@@ -36,26 +35,17 @@ namespace SolidModelBrowser
         private CheckBox chkCenterMass;
 
         // Colors
-        private Color btnDiffuseColor;
-        private Color btnSpecularColor;
-        private Color btnEmissiveColor;
-        private Color btnBackDiffuseColor;
-        private Color btnAmbientColor;
-        private Color btnLight1Color;
-        private Color btnLight2Color;
-        private Color btnLight3Color;
-        private Color btnGroundDiffuseColor;
-        private CheckBox chkBacksideDiffuse;
+        private class ColorControlRow
+        {
+            public Label Label;
+            public Button Swatch;
+            public TextBox TextHex;
+            public Color CurrentColor;
+            public Action<Color> OnColorChanged;
+        }
 
-        private Button btnColorDiffuse;
-        private Button btnColorSpecular;
-        private Button btnColorEmissive;
-        private Button btnColorBackDiffuse;
-        private Button btnColorAmbient;
-        private Button btnColorLight1;
-        private Button btnColorLight2;
-        private Button btnColorLight3;
-        private Button btnColorGroundDiffuse;
+        private List<ColorControlRow> colorRows = new List<ColorControlRow>();
+        private CheckBox chkBacksideDiffuse;
 
         // G-Code
         private TextBox txtGCodeLayerHeight;
@@ -89,8 +79,8 @@ namespace SolidModelBrowser
             currentApps = settings.GetExternalApps();
 
             this.Text = "Settings";
-            this.Size = new Size(720, 480);
-            this.MinimumSize = new Size(680, 440);
+            this.Size = new Size(740, 520);
+            this.MinimumSize = new Size(680, 480);
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
@@ -104,249 +94,261 @@ namespace SolidModelBrowser
 
         private void initLayout()
         {
-            // Bottom Command Bar
-            Panel pnlBottom = new Panel
-            {
-                Dock = DockStyle.Bottom,
-                Height = 44,
-                Padding = new Padding(12, 8, 12, 8)
-            };
+            // 1. Top Search Bar
+            Panel pnlTop = new Panel { Dock = DockStyle.Top, Height = 38, Padding = new Padding(10, 8, 10, 4) };
+            Label lblSearch = new Label { Text = "Search:", Location = new Point(10, 10), AutoSize = true };
+            txtSearch = new TextBox { Location = new Point(lblSearch.Right + 6, 8), Width = 260 };
+            txtSearch.TextChanged += (s, e) => applySearchFilter(txtSearch.Text.Trim());
+            pnlTop.Controls.Add(lblSearch);
+            pnlTop.Controls.Add(txtSearch);
+            this.Controls.Add(pnlTop);
+
+            // 2. Bottom Command Bar
+            Panel pnlBottom = new Panel { Dock = DockStyle.Bottom, Height = 46, Padding = new Padding(10, 8, 10, 8) };
             this.Controls.Add(pnlBottom);
 
-            btnDefaults = new Button { Text = "Reset to Defaults", Location = new Point(12, 8), Size = new Size(120, 26) };
+            btnDefaults = new Button { Text = "Reset to Defaults", Location = new Point(10, 8), Size = new Size(125, 28) };
             btnDefaults.Click += (s, e) => { WindowResult = SettingsWindowResult.ResetDefaults; this.DialogResult = DialogResult.OK; this.Close(); };
             pnlBottom.Controls.Add(btnDefaults);
 
-            btnOpenIni = new Button { Text = "Open INI", Location = new Point(btnDefaults.Right + 8, 8), Size = new Size(80, 26) };
+            btnOpenIni = new Button { Text = "Open INI", Location = new Point(btnDefaults.Right + 8, 8), Size = new Size(85, 28) };
             btnOpenIni.Click += (s, e) => { WindowResult = SettingsWindowResult.OpenEditor; this.DialogResult = DialogResult.OK; this.Close(); };
             pnlBottom.Controls.Add(btnOpenIni);
 
-            btnCancel = new Button { Text = "Cancel", DialogResult = DialogResult.Cancel, Anchor = AnchorStyles.Top | AnchorStyles.Right };
-            btnCancel.Size = new Size(75, 26);
-            btnCancel.Location = new Point(pnlBottom.Width - btnCancel.Width - 14, 8);
+            btnCancel = new Button { Text = "Cancel", DialogResult = DialogResult.Cancel, Size = new Size(80, 28) };
             this.CancelButton = btnCancel;
             pnlBottom.Controls.Add(btnCancel);
 
-            btnSave = new Button { Text = "Save", DialogResult = DialogResult.OK, Anchor = AnchorStyles.Top | AnchorStyles.Right };
-            btnSave.Size = new Size(75, 26);
-            btnSave.Location = new Point(btnCancel.Left - btnSave.Width - 8, 8);
+            btnSave = new Button { Text = "Save", DialogResult = DialogResult.OK, Size = new Size(80, 28) };
             btnSave.Click += (s, e) => { saveUIToSettings(); this.Close(); };
             this.AcceptButton = btnSave;
             pnlBottom.Controls.Add(btnSave);
 
-            // Left Navigation Sidebar
-            listCategories = new ListBox
+            pnlBottom.Resize += (s, e) =>
             {
-                Dock = DockStyle.Left,
-                Width = 150,
-                IntegralHeight = false,
-                ItemHeight = 28,
-                Font = new Font(this.Font.FontFamily, 9.5f)
+                btnCancel.Location = new Point(pnlBottom.ClientSize.Width - btnCancel.Width - 10, 8);
+                btnSave.Location = new Point(btnCancel.Left - btnSave.Width - 8, 8);
             };
-            listCategories.Items.AddRange(new object[] {
-                "General",
-                "Viewport",
-                "Colors",
-                "G-Code",
-                "External Apps",
-                "File Associations"
-            });
-            listCategories.SelectedIndexChanged += (s, e) => switchCategory(listCategories.SelectedIndex);
-            this.Controls.Add(listCategories);
 
-            // Right Container
-            panelContainer = new Panel
+            // 3. Central Native TabControl
+            tabControl = new TabControl
             {
                 Dock = DockStyle.Fill,
-                Padding = new Padding(16, 12, 16, 12)
+                Padding = new Point(12, 6)
             };
-            this.Controls.Add(panelContainer);
 
-            // Category Panels
-            categoryPanels = new Panel[6];
-            for (int i = 0; i < 6; i++)
-            {
-                categoryPanels[i] = new Panel { Dock = DockStyle.Fill, Visible = false };
-                panelContainer.Controls.Add(categoryPanels[i]);
-            }
+            TabPage tabGeneral = new TabPage("General");
+            TabPage tabViewport = new TabPage("Viewport");
+            TabPage tabColors = new TabPage("Colors");
+            TabPage tabGCode = new TabPage("G-Code");
+            TabPage tabApps = new TabPage("External Apps");
+            TabPage tabAssoc = new TabPage("File Associations");
 
-            initGeneralPanel(categoryPanels[0]);
-            initViewportPanel(categoryPanels[1]);
-            initColorsPanel(categoryPanels[2]);
-            initGCodePanel(categoryPanels[3]);
-            initAppsPanel(categoryPanels[4]);
-            initAssociationsPanel(categoryPanels[5]);
+            initGeneralTab(tabGeneral);
+            initViewportTab(tabViewport);
+            initColorsTab(tabColors);
+            initGCodeTab(tabGCode);
+            initAppsTab(tabApps);
+            initAssocTab(tabAssoc);
 
-            listCategories.SelectedIndex = 0;
+            tabControl.TabPages.AddRange(new TabPage[] { tabGeneral, tabViewport, tabColors, tabGCode, tabApps, tabAssoc });
+            this.Controls.Add(tabControl);
+
+            tabControl.BringToFront();
+            pnlTop.SendToBack();
+            pnlBottom.SendToBack();
         }
 
-        private void switchCategory(int index)
+        private void initGeneralTab(TabPage p)
         {
-            if (index < 0 || index >= categoryPanels.Length) return;
-            for (int i = 0; i < categoryPanels.Length; i++)
-                categoryPanels[i].Visible = (i == index);
-        }
+            p.Padding = new Padding(12);
 
-        private void initGeneralPanel(Panel p)
-        {
-            Label lblTitle = new Label { Text = "General & Interface", Font = new Font(this.Font, FontStyle.Bold), Location = new Point(10, 10), AutoSize = true };
-            p.Controls.Add(lblTitle);
+            GroupBox grpPanel = new GroupBox { Text = "File Navigation Panel", Location = new Point(12, 12), Size = new Size(680, 110) };
+            chkShowFilePanel = new CheckBox { Text = "Show file navigation panel by default", Location = new Point(16, 26), AutoSize = true };
+            chkColorizeFiles = new CheckBox { Text = "Colorize file names by format extension", Location = new Point(16, 52), AutoSize = true };
+            chkSortFiles = new CheckBox { Text = "Sort files by format extension in navigation panel", Location = new Point(16, 78), AutoSize = true };
+            grpPanel.Controls.AddRange(new Control[] { chkShowFilePanel, chkColorizeFiles, chkSortFiles });
+            p.Controls.Add(grpPanel);
 
-            GroupBox grpFile = new GroupBox { Text = "File Panel", Location = new Point(10, 36), Size = new Size(500, 100) };
-            chkShowFilePanel = new CheckBox { Text = "Show file panel", Location = new Point(16, 22), AutoSize = true };
-            chkColorizeFiles = new CheckBox { Text = "Colorize files by extension", Location = new Point(16, 46), AutoSize = true };
-            chkSortFiles = new CheckBox { Text = "Sort files by extension", Location = new Point(16, 70), AutoSize = true };
-            grpFile.Controls.AddRange(new Control[] { chkShowFilePanel, chkColorizeFiles, chkSortFiles });
-            p.Controls.Add(grpFile);
+            GroupBox grpShading = new GroupBox { Text = "Appearance & Theming", Location = new Point(12, grpPanel.Bottom + 12), Size = new Size(680, 140) };
+            chkFlatShading = new CheckBox { Text = "CAD Flat Shading (automatically unsmooth loaded models)", Location = new Point(16, 26), AutoSize = true };
 
-            GroupBox grpApp = new GroupBox { Text = "Appearance & Shading", Location = new Point(10, grpFile.Bottom + 10), Size = new Size(500, 120) };
-            chkFlatShading = new CheckBox { Text = "CAD flat shading", Location = new Point(16, 22), AutoSize = true };
-
-            Label lblTheme = new Label { Text = "Default Theme:", Location = new Point(16, 52), AutoSize = true };
-            cmbTheme = new ComboBox { Location = new Point(120, 48), Size = new Size(180, 24), DropDownStyle = ComboBoxStyle.DropDownList };
+            Label lblTheme = new Label { Text = "Default Theme:", Location = new Point(16, 60), AutoSize = true };
+            cmbTheme = new ComboBox { Location = new Point(120, 56), Width = 220, DropDownStyle = ComboBoxStyle.DropDownList };
             cmbTheme.Items.AddRange(new object[] { "System (follow Windows)", "Dark", "Light" });
 
-            chkSystemWindow = new CheckBox { Text = "Use system style for main window", Location = new Point(16, 82), AutoSize = true };
-
-            grpApp.Controls.AddRange(new Control[] { chkFlatShading, lblTheme, cmbTheme, chkSystemWindow });
-            p.Controls.Add(grpApp);
+            chkSystemWindow = new CheckBox { Text = "Use standard system window frame for main window", Location = new Point(16, 94), AutoSize = true };
+            grpShading.Controls.AddRange(new Control[] { chkFlatShading, lblTheme, cmbTheme, chkSystemWindow });
+            p.Controls.Add(grpShading);
         }
 
-        private void initViewportPanel(Panel p)
+        private void initViewportTab(TabPage p)
         {
-            Label lblTitle = new Label { Text = "Viewport & Camera", Font = new Font(this.Font, FontStyle.Bold), Location = new Point(10, 10), AutoSize = true };
-            p.Controls.Add(lblTitle);
+            p.Padding = new Padding(12);
 
-            GroupBox grp = new GroupBox { Text = "Camera Settings", Location = new Point(10, 36), Size = new Size(500, 200) };
+            GroupBox grp = new GroupBox { Text = "Camera & Projection Parameters", Location = new Point(12, 12), Size = new Size(680, 240) };
 
-            int y = 26;
-            int h = 30;
-            int lblW = 200;
+            int y = 28;
+            int h = 34;
+            int lblW = 240;
             int txtW = 100;
 
-            void addRow(string label, out TextBox tb)
+            void addRow(string text, out TextBox tb)
             {
-                Label l = new Label { Text = label, Location = new Point(16, y + 3), Size = new Size(lblW, 20) };
-                tb = new TextBox { Location = new Point(lblW + 20, y), Size = new Size(txtW, 22) };
-                grp.Controls.Add(l);
+                Label lbl = new Label { Text = text, Location = new Point(16, y + 3), Size = new Size(lblW, 20) };
+                tb = new TextBox { Location = new Point(16 + lblW + 10, y), Size = new Size(txtW, 22) };
+                grp.Controls.Add(lbl);
                 grp.Controls.Add(tb);
                 y += h;
             }
 
-            addRow("Normal FOV (degrees):", out txtFov);
+            addRow("Perspective FOV (degrees):", out txtFov);
             addRow("Fisheye FOV (degrees):", out txtFishEyeFov);
-            addRow("Camera initial shift:", out txtCameraInitialShift);
-            addRow("Rotation angle (degrees):", out txtModelRotationAngle);
-            addRow("Wireframe edge scale:", out txtWireframeEdgeScale);
+            addRow("Camera initial distance shift:", out txtCameraInitialShift);
+            addRow("Model rotation step (degrees):", out txtModelRotationAngle);
+            addRow("Wireframe edge scale factor:", out txtWireframeEdgeScale);
 
-            chkCenterMass = new CheckBox { Text = "Center camera on mass center", Location = new Point(16, y + 4), AutoSize = true };
+            chkCenterMass = new CheckBox { Text = "Center camera on mass center by default", Location = new Point(16, y + 4), AutoSize = true };
             grp.Controls.Add(chkCenterMass);
 
             p.Controls.Add(grp);
         }
 
-        private void initColorsPanel(Panel p)
+        private void initColorsTab(TabPage p)
         {
-            Label lblTitle = new Label { Text = "Colors & Materials", Font = new Font(this.Font, FontStyle.Bold), Location = new Point(10, 10), AutoSize = true };
-            p.Controls.Add(lblTitle);
+            p.Padding = new Padding(12);
 
-            Label lblHint = new Label { Text = "Click a color box to open the Figma color picker.", Location = new Point(10, 34), AutoSize = true, ForeColor = SystemColors.GrayText };
-            p.Controls.Add(lblHint);
+            GroupBox grpMat = new GroupBox { Text = "Model Materials", Location = new Point(12, 12), Size = new Size(680, 150) };
+            GroupBox grpLight = new GroupBox { Text = "Scene Lighting & Ground", Location = new Point(12, grpMat.Bottom + 10), Size = new Size(680, 160) };
 
-            int startY = 60;
-            int colW = 160;
-            int rowH = 58;
-
-            Button createColorItem(string title, int col, int row, Color initialColor, Action<Color> onColorChanged)
+            ColorControlRow createRow(GroupBox parent, string title, int col, int row, Action<Color> onColorChanged)
             {
-                int x = 10 + col * colW;
-                int y = startY + row * rowH;
+                int x = 16 + col * 220;
+                int y = 24 + row * 38;
 
-                Label lbl = new Label { Text = title, Location = new Point(x, y), Size = new Size(colW - 10, 16) };
-                p.Controls.Add(lbl);
+                Label lbl = new Label { Text = title, Location = new Point(x, y + 2), Size = new Size(110, 18) };
+                parent.Controls.Add(lbl);
 
-                Button btn = new Button
+                Button btnSwatch = new Button
                 {
-                    Location = new Point(x, y + 18),
-                    Size = new Size(colW - 20, 28),
-                    BackColor = initialColor,
-                    Text = $"#{initialColor.R:X2}{initialColor.G:X2}{initialColor.B:X2}",
-                    ForeColor = (0.299 * initialColor.R + 0.587 * initialColor.G + 0.114 * initialColor.B) > 125 ? Color.Black : Color.White,
-                    FlatStyle = FlatStyle.Flat
+                    Location = new Point(x + 114, y),
+                    Size = new Size(24, 22),
+                    FlatStyle = FlatStyle.Flat,
+                    Cursor = Cursors.Hand
                 };
-                btn.Click += (s, e) =>
+                btnSwatch.FlatAppearance.BorderSize = 1;
+                btnSwatch.FlatAppearance.BorderColor = Color.Gray;
+                parent.Controls.Add(btnSwatch);
+
+                TextBox txtHex = new TextBox
                 {
-                    using (var dlg = new FigmaColorPickerForm(btn.BackColor))
+                    Location = new Point(btnSwatch.Right + 4, y),
+                    Size = new Size(66, 22),
+                    CharacterCasing = CharacterCasing.Upper,
+                    Font = new Font("Consolas", 9f)
+                };
+                parent.Controls.Add(txtHex);
+
+                var item = new ColorControlRow
+                {
+                    Label = lbl,
+                    Swatch = btnSwatch,
+                    TextHex = txtHex,
+                    OnColorChanged = onColorChanged
+                };
+
+                btnSwatch.Click += (s, e) =>
+                {
+                    var flyout = new FigmaColorPickerFlyout(item.CurrentColor, newCol =>
                     {
-                        if (dlg.ShowDialog(this) == DialogResult.OK)
+                        item.CurrentColor = newCol;
+                        btnSwatch.BackColor = newCol;
+                        txtHex.Text = $"{newCol.R:X2}{newCol.G:X2}{newCol.B:X2}";
+                        item.OnColorChanged?.Invoke(newCol);
+                    });
+                    flyout.ShowBelow(btnSwatch);
+                };
+
+                txtHex.TextChanged += (s, e) =>
+                {
+                    string clean = txtHex.Text.Trim().TrimStart('#');
+                    if (clean.Length == 6)
+                    {
+                        try
                         {
-                            btn.BackColor = dlg.SelectedColor;
-                            btn.Text = $"#{dlg.SelectedColor.R:X2}{dlg.SelectedColor.G:X2}{dlg.SelectedColor.B:X2}";
-                            btn.ForeColor = (0.299 * dlg.SelectedColor.R + 0.587 * dlg.SelectedColor.G + 0.114 * dlg.SelectedColor.B) > 125 ? Color.Black : Color.White;
-                            onColorChanged(dlg.SelectedColor);
+                            int r = Convert.ToInt32(clean.Substring(0, 2), 16);
+                            int g = Convert.ToInt32(clean.Substring(2, 2), 16);
+                            int b = Convert.ToInt32(clean.Substring(4, 2), 16);
+                            var col = Color.FromArgb(item.CurrentColor.A, r, g, b);
+                            item.CurrentColor = col;
+                            btnSwatch.BackColor = col;
+                            item.OnColorChanged?.Invoke(col);
                         }
+                        catch { }
                     }
                 };
-                p.Controls.Add(btn);
-                return btn;
+
+                colorRows.Add(item);
+                return item;
             }
 
-            btnColorDiffuse = createColorItem("Model Diffuse", 0, 0, Color.FromArgb(154, 162, 170), c => btnDiffuseColor = c);
-            btnColorSpecular = createColorItem("Model Specular", 1, 0, Color.FromArgb(48, 48, 48), c => btnSpecularColor = c);
-            btnColorEmissive = createColorItem("Model Emissive", 2, 0, Color.FromArgb(16, 18, 21), c => btnEmissiveColor = c);
+            // Model Materials
+            createRow(grpMat, "Diffuse Color:", 0, 0, c => settings.DiffuseColor = new SColor(toMedia(c)));
+            createRow(grpMat, "Specular Color:", 1, 0, c => settings.SpecularColor = new SColor(toMedia(c)));
+            createRow(grpMat, "Emissive Color:", 2, 0, c => settings.EmissiveColor = new SColor(toMedia(c)));
 
-            btnColorBackDiffuse = createColorItem("Backside (Inverted)", 0, 1, Color.FromArgb(255, 0, 0), c => btnBackDiffuseColor = c);
-            btnColorAmbient = createColorItem("Ambient Light", 1, 1, Color.FromArgb(48, 50, 54), c => btnAmbientColor = c);
-            btnColorLight1 = createColorItem("Directional Light 1", 2, 1, Color.FromArgb(184, 188, 196), c => btnLight1Color = c);
+            createRow(grpMat, "Backside Diffuse:", 0, 1, c => settings.BackDiffuseColor = new SColor(toMedia(c)));
+            chkBacksideDiffuse = new CheckBox { Text = "Enable custom backside color", Location = new Point(236, 64), AutoSize = true };
+            grpMat.Controls.Add(chkBacksideDiffuse);
 
-            btnColorLight2 = createColorItem("Directional Light 2", 0, 2, Color.FromArgb(104, 112, 124), c => btnLight2Color = c);
-            btnColorLight3 = createColorItem("Directional Light 3", 1, 2, Color.FromArgb(64, 68, 76), c => btnLight3Color = c);
-            btnColorGroundDiffuse = createColorItem("Ground Diffuse", 2, 2, Color.FromArgb(255, 255, 255), c => btnGroundDiffuseColor = c);
+            // Lighting
+            createRow(grpLight, "Ambient Light:", 0, 0, c => settings.AmbientLightColor = new SColor(toMedia(c)));
+            createRow(grpLight, "Light 1 Color:", 1, 0, c => settings.DirectionalLight1Color = new SColor(toMedia(c)));
+            createRow(grpLight, "Light 2 Color:", 2, 0, c => settings.DirectionalLight2Color = new SColor(toMedia(c)));
 
-            chkBacksideDiffuse = new CheckBox { Text = "Show backside in custom color", Location = new Point(10, startY + 3 * rowH + 4), AutoSize = true };
-            p.Controls.Add(chkBacksideDiffuse);
+            createRow(grpLight, "Light 3 Color:", 0, 1, c => settings.DirectionalLight3Color = new SColor(toMedia(c)));
+            createRow(grpLight, "Ground Diffuse:", 1, 1, c => settings.GroundDiffuseColor = new SColor(toMedia(c)));
+
+            p.Controls.Add(grpMat);
+            p.Controls.Add(grpLight);
         }
 
-        private void initGCodePanel(Panel p)
+        private void initGCodeTab(TabPage p)
         {
-            Label lblTitle = new Label { Text = "G-Code Import", Font = new Font(this.Font, FontStyle.Bold), Location = new Point(10, 10), AutoSize = true };
-            p.Controls.Add(lblTitle);
+            p.Padding = new Padding(12);
 
-            Label lblNote = new Label { Text = "Changes apply after reloading model", Location = new Point(10, 32), AutoSize = true, ForeColor = SystemColors.GrayText };
-            p.Controls.Add(lblNote);
+            GroupBox grp = new GroupBox { Text = "G-Code Toolpath Visualization", Location = new Point(12, 12), Size = new Size(680, 160) };
 
-            GroupBox grp = new GroupBox { Text = "Parameters", Location = new Point(10, 56), Size = new Size(500, 130) };
-
-            int y = 24;
+            int y = 28;
             int lblW = 200;
             int txtW = 100;
 
-            void addRow(string label, out TextBox tb)
+            void addRow(string text, out TextBox tb)
             {
-                Label l = new Label { Text = label, Location = new Point(16, y + 3), Size = new Size(lblW, 20) };
-                tb = new TextBox { Location = new Point(lblW + 20, y), Size = new Size(txtW, 22) };
-                grp.Controls.Add(l);
+                Label lbl = new Label { Text = text, Location = new Point(16, y + 3), Size = new Size(lblW, 20) };
+                tb = new TextBox { Location = new Point(16 + lblW + 10, y), Size = new Size(txtW, 22) };
+                grp.Controls.Add(lbl);
                 grp.Controls.Add(tb);
-                y += 30;
+                y += 34;
             }
 
-            addRow("Layer height (mm):", out txtGCodeLayerHeight);
-            addRow("Line width (mm):", out txtGCodeLineWidth);
-            addRow("Line ends extension:", out txtGCodeLineEnds);
+            addRow("Layer Height (mm):", out txtGCodeLayerHeight);
+            addRow("Extrusion Line Width (mm):", out txtGCodeLineWidth);
+            addRow("Line Ends Extension:", out txtGCodeLineEnds);
 
             p.Controls.Add(grp);
         }
 
-        private void initAppsPanel(Panel p)
+        private void initAppsTab(TabPage p)
         {
-            Label lblTitle = new Label { Text = "External Applications", Font = new Font(this.Font, FontStyle.Bold), Location = new Point(10, 10), AutoSize = true };
-            p.Controls.Add(lblTitle);
+            p.Padding = new Padding(12);
 
-            listApps = new ListBox { Location = new Point(10, 34), Size = new Size(220, 160) };
+            // Left side: Apps list
+            Label lblList = new Label { Text = "Configured Applications:", Location = new Point(12, 12), AutoSize = true };
+            listApps = new ListBox { Location = new Point(12, 34), Size = new Size(210, 200) };
             listApps.SelectedIndexChanged += (s, e) => loadSelectedAppIntoEditor();
-            p.Controls.Add(listApps);
 
-            btnAddApp = new Button { Text = "+ Add...", Location = new Point(10, listApps.Bottom + 8), Size = new Size(70, 24) };
+            btnAddApp = new Button { Text = "+ Add...", Location = new Point(12, listApps.Bottom + 8), Size = new Size(65, 26) };
             btnAddApp.Click += (s, e) =>
             {
                 using (var ofd = new OpenFileDialog { Filter = "Executables (*.exe)|*.exe|All Files (*.*)|*.*" })
@@ -366,9 +368,8 @@ namespace SolidModelBrowser
                     }
                 }
             };
-            p.Controls.Add(btnAddApp);
 
-            btnRemoveApp = new Button { Text = "Remove", Location = new Point(btnAddApp.Right + 6, listApps.Bottom + 8), Size = new Size(70, 24) };
+            btnRemoveApp = new Button { Text = "Remove", Location = new Point(btnAddApp.Right + 6, listApps.Bottom + 8), Size = new Size(65, 26) };
             btnRemoveApp.Click += (s, e) =>
             {
                 int idx = listApps.SelectedIndex;
@@ -380,9 +381,8 @@ namespace SolidModelBrowser
                     else clearAppEditor();
                 }
             };
-            p.Controls.Add(btnRemoveApp);
 
-            btnDetectSlicers = new Button { Text = "Auto-detect", Location = new Point(btnRemoveApp.Right + 6, listApps.Bottom + 8), Size = new Size(80, 24) };
+            btnDetectSlicers = new Button { Text = "Auto-detect", Location = new Point(btnRemoveApp.Right + 6, listApps.Bottom + 8), Size = new Size(80, 26) };
             btnDetectSlicers.Click += (s, e) =>
             {
                 var detected = Settings.AutoDetectSlicers();
@@ -393,51 +393,166 @@ namespace SolidModelBrowser
                 }
                 refreshAppsList();
             };
-            p.Controls.Add(btnDetectSlicers);
 
-            // Editor controls on the right
-            int exX = 246;
-            int exW = 270;
+            p.Controls.AddRange(new Control[] { lblList, listApps, btnAddApp, btnRemoveApp, btnDetectSlicers });
 
-            Label lblName = new Label { Text = "App Name:", Location = new Point(exX, 34), AutoSize = true };
-            txtAppName = new TextBox { Location = new Point(exX, 52), Size = new Size(exW, 22) };
+            // Right side: GroupBox for editor
+            GroupBox grpEdit = new GroupBox
+            {
+                Text = "Application Details",
+                Location = new Point(236, 12),
+                Size = new Size(456, 268)
+            };
+
+            Label lblName = new Label { Text = "Application Name:", Location = new Point(16, 26), AutoSize = true };
+            txtAppName = new TextBox { Location = new Point(16, 46), Size = new Size(420, 22) };
             txtAppName.TextChanged += (s, e) => saveAppEditorBack();
 
-            Label lblPath = new Label { Text = "Executable Path:", Location = new Point(exX, 80), AutoSize = true };
-            txtAppPath = new TextBox { Location = new Point(exX, 98), Size = new Size(exW - 30, 22) };
+            Label lblPath = new Label { Text = "Executable Path:", Location = new Point(16, 76), AutoSize = true };
+            txtAppPath = new TextBox { Location = new Point(16, 96), Size = new Size(382, 22) };
             txtAppPath.TextChanged += (s, e) => saveAppEditorBack();
 
-            Button btnBrowsePath = new Button { Text = "...", Location = new Point(exX + exW - 28, 97), Size = new Size(28, 24) };
-            btnBrowsePath.Click += (s, e) =>
+            Button btnBrowse = new Button { Text = "...", Location = new Point(txtAppPath.Right + 6, 95), Size = new Size(32, 24) };
+            btnBrowse.Click += (s, e) =>
             {
                 using (var ofd = new OpenFileDialog { Filter = "Executables (*.exe)|*.exe|All Files (*.*)|*.*" })
                 {
                     if (ofd.ShowDialog(this) == DialogResult.OK)
                     {
                         txtAppPath.Text = ofd.FileName;
-                        if (string.IsNullOrWhiteSpace(txtAppName.Text)) txtAppName.Text = Path.GetFileNameWithoutExtension(ofd.FileName);
+                        if (string.IsNullOrWhiteSpace(txtAppName.Text))
+                            txtAppName.Text = Path.GetFileNameWithoutExtension(ofd.FileName);
                     }
                 }
             };
 
-            Label lblArgs = new Label { Text = "Arguments (e.g. \"%1\"):", Location = new Point(exX, 126), AutoSize = true };
-            txtAppArgs = new TextBox { Location = new Point(exX, 144), Size = new Size(exW, 22) };
+            Label lblArgs = new Label { Text = "Arguments (Windows placeholder \"%1\"): ", Location = new Point(16, 126), AutoSize = true };
+            txtAppArgs = new TextBox { Location = new Point(16, 146), Size = new Size(420, 22) };
             txtAppArgs.TextChanged += (s, e) => saveAppEditorBack();
 
-            Label lblExts = new Label { Text = "Supported Extensions:", Location = new Point(exX, 172), AutoSize = true };
-
-            p.Controls.AddRange(new Control[] { lblName, txtAppName, lblPath, txtAppPath, btnBrowsePath, lblArgs, txtAppArgs, lblExts });
+            Label lblExts = new Label { Text = "Supported File Formats:", Location = new Point(16, 178), AutoSize = true };
+            grpEdit.Controls.AddRange(new Control[] { lblName, txtAppName, lblPath, txtAppPath, btnBrowse, lblArgs, txtAppArgs, lblExts });
 
             string[] exts = { "stl", "3mf", "obj", "skp", "gcode" };
             chkAppExts = new CheckBox[exts.Length];
-            int cx = exX;
+            int cx = 16;
             for (int i = 0; i < exts.Length; i++)
             {
-                chkAppExts[i] = new CheckBox { Text = "." + exts[i], Tag = exts[i], Location = new Point(cx, 192), AutoSize = true };
+                chkAppExts[i] = new CheckBox { Text = "." + exts[i], Tag = exts[i], Location = new Point(cx, 202), AutoSize = true };
                 chkAppExts[i].CheckedChanged += (s, e) => saveAppEditorBack();
-                p.Controls.Add(chkAppExts[i]);
-                cx += 52;
+                grpEdit.Controls.Add(chkAppExts[i]);
+                cx += 68;
             }
+
+            p.Controls.Add(grpEdit);
+        }
+
+        private void initAssocTab(TabPage p)
+        {
+            p.Padding = new Padding(12);
+
+            GroupBox grp = new GroupBox
+            {
+                Text = "Windows Explorer File Associations (HKCU)",
+                Location = new Point(12, 12),
+                Size = new Size(680, 180)
+            };
+
+            string[] exts = FileAssociationManager.SupportedExtensions;
+            chkAssocExts = new CheckBox[exts.Length];
+            int x = 20;
+            int y = 30;
+            for (int i = 0; i < exts.Length; i++)
+            {
+                string ext = exts[i];
+                chkAssocExts[i] = new CheckBox
+                {
+                    Text = $"3D Model {ext.ToUpperInvariant()} ({ext})",
+                    Tag = ext,
+                    Location = new Point(x, y),
+                    Size = new Size(260, 24),
+                    Checked = FileAssociationManager.IsAssociated(ext)
+                };
+                chkAssocExts[i].Click += (s, e) =>
+                {
+                    var cb = (CheckBox)s;
+                    FileAssociationManager.SetAssociation(cb.Tag as string, cb.Checked);
+                    cb.Checked = FileAssociationManager.IsAssociated(cb.Tag as string);
+                };
+                grp.Controls.Add(chkAssocExts[i]);
+
+                if (i % 2 == 1) { x = 20; y += 32; }
+                else { x = 320; }
+            }
+            p.Controls.Add(grp);
+
+            btnSelectAllAssoc = new Button { Text = "Select All", Location = new Point(12, grp.Bottom + 12), Size = new Size(100, 28) };
+            btnSelectAllAssoc.Click += (s, e) =>
+            {
+                foreach (var cb in chkAssocExts)
+                {
+                    FileAssociationManager.SetAssociation(cb.Tag as string, true);
+                    cb.Checked = FileAssociationManager.IsAssociated(cb.Tag as string);
+                }
+            };
+            p.Controls.Add(btnSelectAllAssoc);
+
+            btnDeselectAllAssoc = new Button { Text = "Deselect All", Location = new Point(btnSelectAllAssoc.Right + 10, grp.Bottom + 12), Size = new Size(100, 28) };
+            btnDeselectAllAssoc.Click += (s, e) =>
+            {
+                foreach (var cb in chkAssocExts)
+                {
+                    FileAssociationManager.SetAssociation(cb.Tag as string, false);
+                    cb.Checked = FileAssociationManager.IsAssociated(cb.Tag as string);
+                }
+            };
+            p.Controls.Add(btnDeselectAllAssoc);
+        }
+
+        private void applySearchFilter(string query)
+        {
+            if (string.IsNullOrWhiteSpace(query))
+            {
+                foreach (TabPage tab in tabControl.TabPages)
+                {
+                    tab.Text = tab.Text.TrimEnd('*');
+                }
+                return;
+            }
+
+            string q = query.ToLowerInvariant();
+            TabPage firstMatch = null;
+
+            foreach (TabPage tab in tabControl.TabPages)
+            {
+                bool hasMatch = false;
+                foreach (Control c in tab.Controls)
+                {
+                    if (controlMatchesQuery(c, q))
+                    {
+                        hasMatch = true;
+                        break;
+                    }
+                }
+                string baseName = tab.Text.TrimEnd('*');
+                tab.Text = hasMatch ? baseName + "*" : baseName;
+                if (hasMatch && firstMatch == null) firstMatch = tab;
+            }
+
+            if (firstMatch != null)
+            {
+                tabControl.SelectedTab = firstMatch;
+            }
+        }
+
+        private bool controlMatchesQuery(Control c, string q)
+        {
+            if (c.Text != null && c.Text.ToLowerInvariant().Contains(q)) return true;
+            foreach (Control child in c.Controls)
+            {
+                if (controlMatchesQuery(child, q)) return true;
+            }
+            return false;
         }
 
         private void refreshAppsList()
@@ -481,67 +596,6 @@ namespace SolidModelBrowser
             app.Extensions = string.Join(",", list);
         }
 
-        private void initAssociationsPanel(Panel p)
-        {
-            Label lblTitle = new Label { Text = "Windows File Associations (HKCU)", Font = new Font(this.Font, FontStyle.Bold), Location = new Point(10, 10), AutoSize = true };
-            p.Controls.Add(lblTitle);
-
-            Label lblSubtitle = new Label { Text = "Associate 3D file formats with SolidModelBrowser in the current user profile.", Location = new Point(10, 32), AutoSize = true, ForeColor = SystemColors.GrayText };
-            p.Controls.Add(lblSubtitle);
-
-            GroupBox grp = new GroupBox { Text = "File Formats", Location = new Point(10, 60), Size = new Size(500, 140) };
-
-            string[] exts = FileAssociationManager.SupportedExtensions;
-            chkAssocExts = new CheckBox[exts.Length];
-            int x = 16;
-            int y = 26;
-            for (int i = 0; i < exts.Length; i++)
-            {
-                string ext = exts[i];
-                chkAssocExts[i] = new CheckBox
-                {
-                    Text = $"3D Model {ext.ToUpperInvariant()} ({ext})",
-                    Tag = ext,
-                    Location = new Point(x, y),
-                    Size = new Size(220, 24),
-                    Checked = FileAssociationManager.IsAssociated(ext)
-                };
-                chkAssocExts[i].Click += (s, e) =>
-                {
-                    var cb = (CheckBox)s;
-                    FileAssociationManager.SetAssociation(cb.Tag as string, cb.Checked);
-                    cb.Checked = FileAssociationManager.IsAssociated(cb.Tag as string);
-                };
-                grp.Controls.Add(chkAssocExts[i]);
-
-                if (i % 2 == 1) { x = 16; y += 28; }
-                else { x = 250; }
-            }
-            p.Controls.Add(grp);
-
-            btnSelectAllAssoc = new Button { Text = "Select All", Location = new Point(10, grp.Bottom + 10), Size = new Size(90, 26) };
-            btnSelectAllAssoc.Click += (s, e) =>
-            {
-                foreach (var cb in chkAssocExts)
-                {
-                    FileAssociationManager.SetAssociation(cb.Tag as string, true);
-                    cb.Checked = FileAssociationManager.IsAssociated(cb.Tag as string);
-                }
-            };
-            p.Controls.Add(btnSelectAllAssoc);
-
-            btnDeselectAllAssoc = new Button { Text = "Deselect All", Location = new Point(btnSelectAllAssoc.Right + 8, grp.Bottom + 10), Size = new Size(90, 26) };
-            btnDeselectAllAssoc.Click += (s, e) =>
-            {
-                foreach (var cb in chkAssocExts)
-                {
-                    FileAssociationManager.SetAssociation(cb.Tag as string, false);
-                    cb.Checked = FileAssociationManager.IsAssociated(cb.Tag as string);
-                }
-            };
-            p.Controls.Add(btnDeselectAllAssoc);
-        }
-
         private void bindData()
         {
             // General
@@ -561,23 +615,28 @@ namespace SolidModelBrowser
             chkCenterMass.Checked = settings.DefaultLookAtModelPointsAvgCenter;
 
             // Colors
-            void setBtnCol(Button btn, Color c, out Color target)
+            Color[] colors = new Color[]
             {
-                target = c;
-                btn.BackColor = c;
-                btn.Text = $"#{c.R:X2}{c.G:X2}{c.B:X2}";
-                btn.ForeColor = (0.299 * c.R + 0.587 * c.G + 0.114 * c.B) > 125 ? Color.Black : Color.White;
+                toDrawing(settings.DiffuseColor.Color),
+                toDrawing(settings.SpecularColor.Color),
+                toDrawing(settings.EmissiveColor.Color),
+                toDrawing(settings.BackDiffuseColor.Color),
+                toDrawing(settings.AmbientLightColor.Color),
+                toDrawing(settings.DirectionalLight1Color.Color),
+                toDrawing(settings.DirectionalLight2Color.Color),
+                toDrawing(settings.DirectionalLight3Color.Color),
+                toDrawing(settings.GroundDiffuseColor.Color)
+            };
+
+            for (int i = 0; i < colorRows.Count && i < colors.Length; i++)
+            {
+                var row = colorRows[i];
+                var c = colors[i];
+                row.CurrentColor = c;
+                row.Swatch.BackColor = c;
+                row.TextHex.Text = $"{c.R:X2}{c.G:X2}{c.B:X2}";
             }
 
-            setBtnCol(btnColorDiffuse, toDrawing(settings.DiffuseColor.Color), out btnDiffuseColor);
-            setBtnCol(btnColorSpecular, toDrawing(settings.SpecularColor.Color), out btnSpecularColor);
-            setBtnCol(btnColorEmissive, toDrawing(settings.EmissiveColor.Color), out btnEmissiveColor);
-            setBtnCol(btnColorBackDiffuse, toDrawing(settings.BackDiffuseColor.Color), out btnBackDiffuseColor);
-            setBtnCol(btnColorAmbient, toDrawing(settings.AmbientLightColor.Color), out btnAmbientColor);
-            setBtnCol(btnColorLight1, toDrawing(settings.DirectionalLight1Color.Color), out btnLight1Color);
-            setBtnCol(btnColorLight2, toDrawing(settings.DirectionalLight2Color.Color), out btnLight2Color);
-            setBtnCol(btnColorLight3, toDrawing(settings.DirectionalLight3Color.Color), out btnLight3Color);
-            setBtnCol(btnColorGroundDiffuse, toDrawing(settings.GroundDiffuseColor.Color), out btnGroundDiffuseColor);
             chkBacksideDiffuse.Checked = settings.IsBackDiffuseEnabled;
 
             // G-Code
@@ -609,15 +668,6 @@ namespace SolidModelBrowser
             settings.DefaultLookAtModelPointsAvgCenter = chkCenterMass.Checked;
 
             // Colors
-            settings.DiffuseColor = new SColor(toMedia(btnDiffuseColor));
-            settings.SpecularColor = new SColor(toMedia(btnSpecularColor));
-            settings.EmissiveColor = new SColor(toMedia(btnEmissiveColor));
-            settings.BackDiffuseColor = new SColor(toMedia(btnBackDiffuseColor));
-            settings.AmbientLightColor = new SColor(toMedia(btnAmbientColor));
-            settings.DirectionalLight1Color = new SColor(toMedia(btnLight1Color));
-            settings.DirectionalLight2Color = new SColor(toMedia(btnLight2Color));
-            settings.DirectionalLight3Color = new SColor(toMedia(btnLight3Color));
-            settings.GroundDiffuseColor = new SColor(toMedia(btnGroundDiffuseColor));
             settings.IsBackDiffuseEnabled = chkBacksideDiffuse.Checked;
 
             // G-Code

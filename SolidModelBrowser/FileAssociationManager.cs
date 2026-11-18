@@ -40,73 +40,34 @@ namespace SolidModelBrowser
                 Directory.CreateDirectory(iconDir);
                 string icoPath = Path.Combine(iconDir, $"{cleanExt}.ico");
 
-                if (!File.Exists(icoPath))
+                byte[] icoBytes = null;
+
+                // 1. Try ResourceManager directly for embedded multi-resolution .ico
+                try
                 {
-                    byte[] pngBytes = null;
-
-                    // 1. Try WPF Pack URI
-                    try
+                    var rm = new System.Resources.ResourceManager("SolidModelBrowser.g", typeof(FileAssociationManager).Assembly);
+                    using (var s = rm.GetStream($"icons/{cleanExt}.ico"))
                     {
-                        var uri = new Uri($"pack://application:,,,/Icons/{cleanExt}.png", UriKind.Absolute);
-                        var sri = System.Windows.Application.GetResourceStream(uri);
-                        if (sri != null && sri.Stream != null)
+                        if (s != null)
                         {
-                            using (var s = sri.Stream)
-                            {
-                                pngBytes = new byte[s.Length];
-                                s.Read(pngBytes, 0, pngBytes.Length);
-                            }
+                            icoBytes = new byte[s.Length];
+                            s.Read(icoBytes, 0, icoBytes.Length);
                         }
                     }
-                    catch { }
+                }
+                catch { }
 
-                    // 2. Try ResourceManager directly
-                    if (pngBytes == null)
-                    {
-                        try
-                        {
-                            var rm = new System.Resources.ResourceManager("SolidModelBrowser.g", typeof(FileAssociationManager).Assembly);
-                            using (var s = rm.GetStream($"icons/{cleanExt}.png"))
-                            {
-                                if (s != null)
-                                {
-                                    pngBytes = new byte[s.Length];
-                                    s.Read(pngBytes, 0, pngBytes.Length);
-                                }
-                            }
-                        }
-                        catch { }
-                    }
+                // 2. Try disk file in application directory
+                if (icoBytes == null)
+                {
+                    string localIco = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Icons", $"{cleanExt}.ico");
+                    if (File.Exists(localIco))
+                        icoBytes = File.ReadAllBytes(localIco);
+                }
 
-                    // 3. Fallback to disk file in application directory
-                    if (pngBytes == null)
-                    {
-                        string localPng = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Icons", $"{cleanExt}.png");
-                        if (File.Exists(localPng))
-                            pngBytes = File.ReadAllBytes(localPng);
-                    }
-
-                    if (pngBytes != null && pngBytes.Length > 0)
-                    {
-                        using (var ms = new MemoryStream())
-                        using (var bw = new BinaryWriter(ms))
-                        {
-                            bw.Write((UInt16)0);               // Reserved
-                            bw.Write((UInt16)1);               // Type = Icon (1)
-                            bw.Write((UInt16)1);               // Image count = 1
-                            bw.Write((byte)16);                // Width = 16
-                            bw.Write((byte)16);                // Height = 16
-                            bw.Write((byte)0);                 // Color count = 0
-                            bw.Write((byte)0);                 // Reserved = 0
-                            bw.Write((UInt16)1);               // Planes = 1
-                            bw.Write((UInt16)32);              // Bits per pixel = 32
-                            bw.Write((UInt32)pngBytes.Length); // Size of PNG payload
-                            bw.Write((UInt32)22);              // Offset of PNG payload (6 + 16 = 22)
-                            bw.Write(pngBytes);                // Raw PNG data
-
-                            File.WriteAllBytes(icoPath, ms.ToArray());
-                        }
-                    }
+                if (icoBytes != null && icoBytes.Length > 0)
+                {
+                    File.WriteAllBytes(icoPath, icoBytes);
                 }
 
                 if (File.Exists(icoPath)) return icoPath;

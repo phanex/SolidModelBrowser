@@ -403,7 +403,6 @@ namespace SolidModelBrowser
                     Load(localPath);
                     return;
                 }
-                parseErrors.Add($"No settings file {filename}, default one is created");
                 Save();
                 return;
             }

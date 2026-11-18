@@ -5,7 +5,7 @@ using System.Windows.Forms;
 
 namespace SolidModelBrowser
 {
-    internal class FigmaColorPickerForm : Form
+    internal class FigmaColorPickerControl : UserControl
     {
         private double currentHue = 0;        // 0..360
         private double currentSat = 1.0;      // 0..1
@@ -18,13 +18,13 @@ namespace SolidModelBrowser
         private PictureBox picPreview;
         private TextBox txtHex;
         private NumericUpDown numAlpha;
-        private Button btnOk;
-        private Button btnCancel;
 
         private bool isUpdatingUI = false;
         private bool isDraggingSatVal = false;
         private bool isDraggingHue = false;
         private bool isDraggingAlpha = false;
+
+        public event Action<Color> ColorChanged;
 
         public Color SelectedColor
         {
@@ -37,25 +37,21 @@ namespace SolidModelBrowser
             }
         }
 
-        internal FigmaColorPickerForm(Color initialColor)
+        public FigmaColorPickerControl(Color initialColor)
         {
-            this.Text = "Color Picker";
-            this.Size = new Size(270, 390);
-            this.FormBorderStyle = FormBorderStyle.FixedDialog;
-            this.MaximizeBox = false;
-            this.MinimizeBox = false;
-            this.ShowInTaskbar = false;
-            this.StartPosition = FormStartPosition.CenterParent;
+            this.DoubleBuffered = true;
             this.Font = SystemFonts.MessageBoxFont;
+            this.BackColor = SystemColors.Window;
+            this.BorderStyle = BorderStyle.FixedSingle;
 
-            int pad = 12;
-            int clientW = 230;
+            int pad = 8;
+            int clientW = 224;
 
             // 1. 2D Saturation / Value Box
             picSatVal = new PictureBox
             {
                 Location = new Point(pad, pad),
-                Size = new Size(clientW, 140),
+                Size = new Size(clientW, 120),
                 BorderStyle = BorderStyle.FixedSingle,
                 Cursor = Cursors.Cross
             };
@@ -68,8 +64,8 @@ namespace SolidModelBrowser
             // 2. Hue Slider (Rainbow)
             picHue = new PictureBox
             {
-                Location = new Point(pad, picSatVal.Bottom + 10),
-                Size = new Size(clientW, 14),
+                Location = new Point(pad, picSatVal.Bottom + 8),
+                Size = new Size(clientW, 12),
                 BorderStyle = BorderStyle.FixedSingle,
                 Cursor = Cursors.Hand
             };
@@ -82,8 +78,8 @@ namespace SolidModelBrowser
             // 3. Alpha Slider (Opacity Checkerboard)
             picAlpha = new PictureBox
             {
-                Location = new Point(pad, picHue.Bottom + 8),
-                Size = new Size(clientW, 14),
+                Location = new Point(pad, picHue.Bottom + 6),
+                Size = new Size(clientW, 12),
                 BorderStyle = BorderStyle.FixedSingle,
                 Cursor = Cursors.Hand
             };
@@ -94,12 +90,12 @@ namespace SolidModelBrowser
             this.Controls.Add(picAlpha);
 
             // 4. Hex & Opacity Row
-            int rowY = picAlpha.Bottom + 12;
+            int rowY = picAlpha.Bottom + 8;
 
             picPreview = new PictureBox
             {
                 Location = new Point(pad, rowY),
-                Size = new Size(24, 24),
+                Size = new Size(22, 22),
                 BorderStyle = BorderStyle.FixedSingle
             };
             picPreview.Paint += (s, e) =>
@@ -110,20 +106,12 @@ namespace SolidModelBrowser
             };
             this.Controls.Add(picPreview);
 
-            Label lblHex = new Label
-            {
-                Text = "Hex",
-                Location = new Point(picPreview.Right + 6, rowY + 3),
-                AutoSize = true
-            };
-            this.Controls.Add(lblHex);
-
             txtHex = new TextBox
             {
-                Location = new Point(lblHex.Right + 4, rowY),
-                Size = new Size(72, 24),
+                Location = new Point(picPreview.Right + 6, rowY),
+                Size = new Size(84, 22),
                 CharacterCasing = CharacterCasing.Upper,
-                Font = new Font("Consolas", 9.5f)
+                Font = new Font("Consolas", 9f)
             };
             txtHex.TextChanged += (s, e) =>
             {
@@ -142,6 +130,7 @@ namespace SolidModelBrowser
                         picHue.Invalidate();
                         picAlpha.Invalidate();
                         picPreview.Invalidate();
+                        ColorChanged?.Invoke(SelectedColor);
                     }
                     catch { }
                 }
@@ -150,8 +139,8 @@ namespace SolidModelBrowser
 
             numAlpha = new NumericUpDown
             {
-                Location = new Point(txtHex.Right + 8, rowY),
-                Size = new Size(58, 24),
+                Location = new Point(txtHex.Right + 6, rowY),
+                Size = new Size(58, 22),
                 Minimum = 0,
                 Maximum = 100,
                 Increment = 5,
@@ -163,33 +152,20 @@ namespace SolidModelBrowser
                 currentAlpha = (int)Math.Round((double)numAlpha.Value * 255.0 / 100.0);
                 picAlpha.Invalidate();
                 picPreview.Invalidate();
+                ColorChanged?.Invoke(SelectedColor);
             };
             this.Controls.Add(numAlpha);
 
-            // 5. OK and Cancel Buttons
-            int btnY = rowY + 36;
-            btnOk = new Button
+            Label lblPercent = new Label
             {
-                Text = "OK",
-                DialogResult = DialogResult.OK,
-                Location = new Point(clientW + pad - 146, btnY),
-                Size = new Size(68, 26)
+                Text = "%",
+                Location = new Point(numAlpha.Right + 2, rowY + 3),
+                AutoSize = true,
+                ForeColor = SystemColors.GrayText
             };
-            this.AcceptButton = btnOk;
-            this.Controls.Add(btnOk);
+            this.Controls.Add(lblPercent);
 
-            btnCancel = new Button
-            {
-                Text = "Cancel",
-                DialogResult = DialogResult.Cancel,
-                Location = new Point(clientW + pad - 72, btnY),
-                Size = new Size(68, 26)
-            };
-            this.CancelButton = btnCancel;
-            this.Controls.Add(btnCancel);
-
-            this.ClientSize = new Size(clientW + pad * 2, btnY + 36);
-
+            this.Size = new Size(clientW + pad * 2, rowY + 30);
             SelectedColor = initialColor;
         }
 
@@ -200,6 +176,7 @@ namespace SolidModelBrowser
             currentSat = x / picSatVal.Width;
             currentVal = 1.0 - (y / picSatVal.Height);
             updateAllControls();
+            ColorChanged?.Invoke(SelectedColor);
         }
 
         private void handleHueMouse(MouseEventArgs e)
@@ -208,6 +185,7 @@ namespace SolidModelBrowser
             currentHue = (x / picHue.Width) * 360.0;
             if (currentHue >= 360.0) currentHue = 0;
             updateAllControls();
+            ColorChanged?.Invoke(SelectedColor);
         }
 
         private void handleAlphaMouse(MouseEventArgs e)
@@ -215,6 +193,7 @@ namespace SolidModelBrowser
             double x = Math.Max(0, Math.Min(picAlpha.Width, e.X));
             currentAlpha = (int)Math.Round((x / picAlpha.Width) * 255.0);
             updateAllControls();
+            ColorChanged?.Invoke(SelectedColor);
         }
 
         private void updateAllControls()
@@ -239,19 +218,16 @@ namespace SolidModelBrowser
 
             var pureHue = ColorFromHSV(currentHue, 1.0, 1.0, 255);
 
-            // Horizontal gradient: White to Pure Hue
             using (var brushH = new LinearGradientBrush(new Point(0, 0), new Point(w, 0), Color.White, pureHue))
             {
                 e.Graphics.FillRectangle(brushH, 0, 0, w, h);
             }
 
-            // Vertical gradient: Transparent to Black
             using (var brushV = new LinearGradientBrush(new Point(0, 0), new Point(0, h), Color.FromArgb(0, 0, 0, 0), Color.FromArgb(255, 0, 0, 0)))
             {
                 e.Graphics.FillRectangle(brushV, 0, 0, w, h);
             }
 
-            // Target ring
             int cx = (int)Math.Round(currentSat * w);
             int cy = (int)Math.Round((1.0 - currentVal) * h);
             cx = Math.Max(4, Math.Min(w - 5, cx));
@@ -280,7 +256,6 @@ namespace SolidModelBrowser
                 e.Graphics.FillRectangle(brush, 0, 0, w, h);
             }
 
-            // Thumb
             int tx = (int)Math.Round((currentHue / 360.0) * w);
             tx = Math.Max(2, Math.Min(w - 3, tx));
             using (var pen = new Pen(Color.White, 2f))
@@ -305,7 +280,6 @@ namespace SolidModelBrowser
                 e.Graphics.FillRectangle(brush, 0, 0, w, h);
             }
 
-            // Thumb
             int tx = (int)Math.Round((currentAlpha / 255.0) * w);
             tx = Math.Max(2, Math.Min(w - 3, tx));
             using (var pen = new Pen(Color.White, 2f))
@@ -363,6 +337,80 @@ namespace SolidModelBrowser
             else if (hi == 3) return Color.FromArgb(alpha, p, q, v);
             else if (hi == 4) return Color.FromArgb(alpha, t, p, v);
             else return Color.FromArgb(alpha, v, p, q);
+        }
+    }
+
+    internal class FigmaColorPickerFlyout : ToolStripDropDown
+    {
+        private FigmaColorPickerControl pickerControl;
+        private ToolStripControlHost host;
+
+        public Color SelectedColor
+        {
+            get => pickerControl.SelectedColor;
+            set => pickerControl.SelectedColor = value;
+        }
+
+        public FigmaColorPickerFlyout(Color initialColor, Action<Color> onColorChanged)
+        {
+            pickerControl = new FigmaColorPickerControl(initialColor);
+            pickerControl.ColorChanged += onColorChanged;
+            host = new ToolStripControlHost(pickerControl)
+            {
+                Margin = Padding.Empty,
+                Padding = Padding.Empty,
+                AutoSize = false,
+                Size = pickerControl.Size
+            };
+            this.Items.Add(host);
+            this.Padding = new Padding(1);
+            this.DropShadowEnabled = true;
+            this.AutoClose = true;
+        }
+
+        public void ShowBelow(Control control)
+        {
+            Point screenPos = control.PointToScreen(new Point(0, control.Height + 2));
+            var screen = Screen.FromControl(control).WorkingArea;
+            if (screenPos.X + pickerControl.Width > screen.Right)
+                screenPos.X = screen.Right - pickerControl.Width - 4;
+            if (screenPos.Y + pickerControl.Height > screen.Bottom)
+                screenPos.Y = control.PointToScreen(Point.Empty).Y - pickerControl.Height - 2;
+
+            this.Show(screenPos);
+        }
+    }
+
+    internal class FigmaColorPickerForm : Form
+    {
+        private FigmaColorPickerControl pickerControl;
+        public Color SelectedColor
+        {
+            get => pickerControl.SelectedColor;
+            set => pickerControl.SelectedColor = value;
+        }
+
+        internal FigmaColorPickerForm(Color initialColor)
+        {
+            this.Text = "Color Picker";
+            this.FormBorderStyle = FormBorderStyle.FixedDialog;
+            this.MaximizeBox = false;
+            this.MinimizeBox = false;
+            this.ShowInTaskbar = false;
+            this.StartPosition = FormStartPosition.CenterParent;
+            this.Font = SystemFonts.MessageBoxFont;
+
+            pickerControl = new FigmaColorPickerControl(initialColor) { Location = new Point(8, 8) };
+            this.Controls.Add(pickerControl);
+
+            Button btnOk = new Button { Text = "OK", DialogResult = DialogResult.OK, Location = new Point(pickerControl.Right - 150, pickerControl.Bottom + 8), Size = new Size(70, 26) };
+            Button btnCancel = new Button { Text = "Cancel", DialogResult = DialogResult.Cancel, Location = new Point(pickerControl.Right - 74, pickerControl.Bottom + 8), Size = new Size(70, 26) };
+            this.AcceptButton = btnOk;
+            this.CancelButton = btnCancel;
+            this.Controls.Add(btnOk);
+            this.Controls.Add(btnCancel);
+
+            this.ClientSize = new Size(pickerControl.Right + 8, btnOk.Bottom + 8);
         }
     }
 }

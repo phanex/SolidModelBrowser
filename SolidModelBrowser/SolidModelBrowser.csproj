@@ -189,6 +189,13 @@
     <Resource Include="Icons\skp.png" />
     <Resource Include="Icons\stl.png" />
     <Resource Include="Icons\app.png" />
+    <Resource Include="Icons\3mf.ico" />
+    <Resource Include="Icons\gcode.ico" />
+    <Resource Include="Icons\obj.ico" />
+    <Resource Include="Icons\ply.ico" />
+    <Resource Include="Icons\skp.ico" />
+    <Resource Include="Icons\stl.ico" />
+    <Resource Include="Icons\app.ico" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
