@@ -327,35 +327,61 @@ namespace SolidModelBrowser
         public double GCODELineExtensions { get; set; } = 0.0;
 
 
-        string defPath = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "settings.ini");
+        private static string GetDefaultSettingsPath()
+        {
+            string dir = null;
+            try
+            {
+                string exe = System.Reflection.Assembly.GetEntryAssembly()?.Location ?? System.Diagnostics.Process.GetCurrentProcess().MainModule?.FileName;
+                if (!string.IsNullOrEmpty(exe)) dir = Path.GetDirectoryName(exe);
+            }
+            catch { }
+            if (string.IsNullOrEmpty(dir)) dir = AppDomain.CurrentDomain.BaseDirectory;
+            return Path.Combine(dir, "settings.ini");
+        }
 
-        
-
+        string defPath = GetDefaultSettingsPath();
 
         // --- Save ---
 
         public void Save() => Save(defPath, true);
         public void Save(string filename, bool writeDescriptions)
         {
-            var pi = PropertyInfoAttribute.GetPropertiesInfoList(this, true);
-            List<string> lines = new List<string>();
-
-            string currentCatName = null;
-            foreach (var p in pi)
+            try
             {
-                if (p.Category != currentCatName)
+                var pi = PropertyInfoAttribute.GetPropertiesInfoList(this, true);
+                List<string> lines = new List<string>();
+
+                string currentCatName = null;
+                foreach (var p in pi)
                 {
-                    if (lines.Count > 0) lines.Add("");
-                    lines.Add($"[{p.Category}]");
-                    currentCatName = p.Category;
+                    if (p.Category != currentCatName)
+                    {
+                        if (lines.Count > 0) lines.Add("");
+                        lines.Add($"[{p.Category}]");
+                        currentCatName = p.Category;
+                    }
+                    if (p.Value != null)
+                    {
+                        if (writeDescriptions && p.Description != null) lines.Add("# " + p.Description.Replace("\r\n", "\r\n# "));
+                        lines.Add($"{p.Name}={escape(p.Value.ToString())}");
+                    }
                 }
-                if (p.Value != null)
-                {
-                    if (writeDescriptions && p.Description != null) lines.Add("# " + p.Description.Replace("\r\n", "\r\n# "));
-                    lines.Add($"{p.Name}={escape(p.Value.ToString())}");
-                }
+                File.WriteAllLines(filename, lines);
             }
-            File.WriteAllLines(filename, lines);
+            catch (UnauthorizedAccessException)
+            {
+                try
+                {
+                    string localDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SolidModelBrowser");
+                    Directory.CreateDirectory(localDir);
+                    defPath = Path.Combine(localDir, "settings.ini");
+                    if (!filename.Equals(defPath, StringComparison.OrdinalIgnoreCase))
+                        Save(defPath, writeDescriptions);
+                }
+                catch { }
+            }
+            catch { }
         }
 
 
@@ -370,6 +396,13 @@ namespace SolidModelBrowser
         {
             if (!File.Exists(filename))
             {
+                string localPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SolidModelBrowser", "settings.ini");
+                if (File.Exists(localPath))
+                {
+                    defPath = localPath;
+                    Load(localPath);
+                    return;
+                }
                 parseErrors.Add($"No settings file {filename}, default one is created");
                 Save();
                 return;
