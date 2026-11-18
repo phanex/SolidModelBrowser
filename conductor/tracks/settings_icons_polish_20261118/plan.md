@@ -15,6 +15,6 @@
 - [x] Task 3.2: Rebuild `SettingsForm` with standard Win32 `TabControl`, search filter, swatch + Hex TextBox rows, and clean External Apps layout.
 
 ## Phase 4: CI Verification & Local Deployment
-- [ ] Task 4.1: Commit all changes and push to `origin master`.
-- [ ] Task 4.2: Verify GitHub Actions CI build and unit tests pass.
-- [ ] Task 4.3: Download and update `dist/SolidModelBrowser.exe` and verify associations.
+- [x] Task 4.1: Commit all changes and push to `origin master`.
+- [x] Task 4.2: Verify GitHub Actions CI build and unit tests pass.
+- [x] Task 4.3: Download and update `dist/SolidModelBrowser.exe` and verify associations.
