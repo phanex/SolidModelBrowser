@@ -41,10 +41,10 @@
 ---
 
 ## Phase 4: Build Verification & Deployment
-- [ ] Task: Local Build & Git Commit
-  - [ ] Stage and commit all changes to `master`.
-  - [ ] Push to GitHub and trigger GitHub Actions CI build.
-- [ ] Task: Update Release Binary
-  - [ ] Verify GitHub Actions run completes successfully.
-  - [ ] Download release artifact and update `dist/SolidModelBrowser.exe`.
-- [ ] Task: Final Track Verification
+- [x] Task: Local Build & Git Commit
+  - [x] Stage and commit all changes to `master`.
+  - [x] Push to GitHub and trigger GitHub Actions CI build.
+- [x] Task: Update Release Binary
+  - [x] Verify GitHub Actions run completes successfully.
+  - [x] Download release artifact and update `dist/SolidModelBrowser.exe`.
+- [x] Task: Final Track Verification
