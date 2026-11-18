@@ -84,13 +84,26 @@ namespace SolidModelBrowser
             }
             if (type == typeof(SColor))
             {
-                ColorInput cs = new ColorInput() { ColorValue = ((SColor)p.Value).Color };
-                cs.ValueChanged += valueChanged;
-                cs.Tag = p;
+                var curCol = ((SColor)p.Value).Color;
+                var btn = new Button { Content = curCol.ToString(), Margin = vmargin };
+                btn.Click += (s, e) =>
+                {
+                    using (var dlg = new FigmaColorPickerForm(System.Drawing.Color.FromArgb(curCol.A, curCol.R, curCol.G, curCol.B)))
+                    {
+                        if (dlg.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                        {
+                            var c = dlg.SelectedColor;
+                            var mediaCol = System.Windows.Media.Color.FromArgb(c.A, c.R, c.G, c.B);
+                            curCol = mediaCol;
+                            p.Property.SetValue(p.Object, new SColor(mediaCol));
+                            btn.Content = mediaCol.ToString();
+                        }
+                    }
+                };
 
                 StackPanel sp = new StackPanel() { Orientation = Orientation.Vertical, Margin = vmargin };
                 sp.Children.Add(new TextBlock() { Text = p.MenuLabel, ToolTip = p.Description });
-                sp.Children.Add(cs);
+                sp.Children.Add(btn);
                 panel.Children.Add(sp);
             }
             if (type == typeof(Rect))
@@ -156,7 +169,6 @@ namespace SolidModelBrowser
                 if (t == typeof(bool)) p.Property.SetValue(p.Object, (Sender as CheckBox).IsChecked);
                 if (t == typeof(int)) p.Property.SetValue(p.Object, (int)((Sender as NumericBox).Value));
                 if (t == typeof(double)) p.Property.SetValue(p.Object, (Sender as NumericBox).Value);
-                if (t == typeof(SColor)) p.Property.SetValue(p.Object, new SColor((Sender as ColorInput).ColorValue));
                 if (t == typeof(Rect)) p.Property.SetValue(p.Object, new Rect((Sender as DoubleValuesInput)[0], (Sender as DoubleValuesInput)[1], (Sender as DoubleValuesInput)[2], (Sender as DoubleValuesInput)[3]));
                 if (t == typeof(Vector3D)) p.Property.SetValue(p.Object, new Vector3D((Sender as DoubleValuesInput)[0], (Sender as DoubleValuesInput)[1], (Sender as DoubleValuesInput)[2]));
             }
