@@ -13,49 +13,6 @@ namespace SolidModelBrowser
 {
     public partial class FileNavigationPanel : UserControl
     {
-        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
-        private struct SHFILEINFO
-        {
-            public IntPtr hIcon;
-            public int iIcon;
-            public uint dwAttributes;
-            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 260)]
-            public string szDisplayName;
-            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 80)]
-            public string szTypeName;
-        }
-
-        [DllImport("shell32.dll", CharSet = CharSet.Auto)]
-        private static extern IntPtr SHGetFileInfo(string pszPath, uint dwFileAttributes, ref SHFILEINFO psfi, uint cbFileInfo, uint uFlags);
-
-        [DllImport("user32.dll", SetLastError = true)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        private static extern bool DestroyIcon(IntPtr hIcon);
-
-        private const uint SHGFI_ICON = 0x000000100;
-        private const uint SHGFI_SMALLICON = 0x000000001;
-
-        private static ImageSource GetSystemIcon(string path)
-        {
-            try
-            {
-                var shinfo = new SHFILEINFO();
-                IntPtr res = SHGetFileInfo(path, 0, ref shinfo, (uint)Marshal.SizeOf(shinfo), SHGFI_ICON | SHGFI_SMALLICON);
-                if (res != IntPtr.Zero && shinfo.hIcon != IntPtr.Zero)
-                {
-                    var img = System.Windows.Interop.Imaging.CreateBitmapSourceFromHIcon(
-                        shinfo.hIcon,
-                        Int32Rect.Empty,
-                        BitmapSizeOptions.FromEmptyOptions());
-                    img.Freeze();
-                    DestroyIcon(shinfo.hIcon);
-                    return img;
-                }
-            }
-            catch { }
-            return null;
-        }
-
         public event SelectionChangedEventHandler SelectionChanged;
 
         public delegate void FileNavigationEventHandler(object Sender, string filename);
@@ -84,22 +41,31 @@ namespace SolidModelBrowser
 
                 var stack = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(6, 2, 6, 2) };
                 
-                // Genuine Windows Shell System Drive Icon (16x16, no Viewbox downscale)
-                var driveIcon = GetSystemIcon(drivePath);
-                if (driveIcon != null)
+                // Hard Drive Icon (coolicons hard-drive-duotone-round 16x16 vector)
+                var vb = new Viewbox { Width = 16, Height = 16, Margin = new Thickness(0, 0, 4, 0), VerticalAlignment = VerticalAlignment.Center };
+                var canvas = new Canvas { Width = 24, Height = 24 };
+
+                var pAccent = new System.Windows.Shapes.Path
                 {
-                    var img = new Image
-                    {
-                        Source = driveIcon,
-                        Width = 16,
-                        Height = 16,
-                        Margin = new Thickness(0, 0, 4, 0),
-                        VerticalAlignment = VerticalAlignment.Center,
-                        SnapsToDevicePixels = true
-                    };
-                    RenderOptions.SetBitmapScalingMode(img, BitmapScalingMode.NearestNeighbor);
-                    stack.Children.Add(img);
-                }
+                    Data = Geometry.Parse("M3 13h18v2a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Zm4 4a1 1 0 1 0 0-2a1 1 0 0 0 0 2m4 0a1 1 0 1 0 0-2a1 1 0 0 0 0 2"),
+                    Opacity = 0.7
+                };
+                pAccent.SetResourceReference(System.Windows.Shapes.Path.FillProperty, "ToolbarIconAccent");
+
+                var pStroke = new System.Windows.Shapes.Path
+                {
+                    Data = Geometry.Parse("M12 19H6a3 3 0 0 1-3-3v-3l3-6c.613-1.226 1.774-2 3-2h6c1.226 0 2.387.774 3 2l3 6v3a3 3 0 0 1-3 3zm-9-6h18M7 16h.01M11 16h.01"),
+                    StrokeThickness = 2.0,
+                    StrokeStartLineCap = PenLineCap.Round,
+                    StrokeEndLineCap = PenLineCap.Round,
+                    StrokeLineJoin = PenLineJoin.Round
+                };
+                pStroke.SetResourceReference(System.Windows.Shapes.Path.StrokeProperty, "WindowFore");
+
+                canvas.Children.Add(pAccent);
+                canvas.Children.Add(pStroke);
+                vb.Child = canvas;
+                stack.Children.Add(vb);
 
                 var tb = new TextBlock
                 {
