@@ -218,17 +218,20 @@ namespace SolidModelBrowser
                 Margin = new Thickness(2, 2, 2, 2),
                 Background = Brushes.Transparent,
                 HorizontalAlignment = HorizontalAlignment.Stretch,
+                SnapsToDevicePixels = true,
+                UseLayoutRounding = true,
                 Tag = fullPath
             };
 
             if (isFolder)
             {
                 // Classic clean yellow folder (16x16 pixel-perfect, no Viewbox downscale)
-                var canvas = new Canvas { Width = 16, Height = 16, Margin = new Thickness(0, 0, 6, 0), VerticalAlignment = VerticalAlignment.Center };
+                var canvas = new Canvas { Width = 16, Height = 16, Margin = new Thickness(0, 0, 6, 0), VerticalAlignment = VerticalAlignment.Center, SnapsToDevicePixels = true, UseLayoutRounding = true };
                 var p = new System.Windows.Shapes.Path
                 {
                     Data = Geometry.Parse("M1.5,3.5 L6,3.5 L7.5,5.5 L14.5,5.5 A1,1 0 0,1 15.5,6.5 L15.5,13.5 A1,1 0 0,1 14.5,14.5 L1.5,14.5 A1,1 0 0,1 0.5,13.5 L0.5,4.5 A1,1 0 0,1 1.5,3.5 Z"),
-                    Fill = new SolidColorBrush(Color.FromRgb(225, 175, 70))
+                    Fill = new SolidColorBrush(Color.FromRgb(225, 175, 70)),
+                    SnapsToDevicePixels = true
                 };
                 canvas.Children.Add(p);
                 sp.Children.Add(canvas);
@@ -245,7 +248,8 @@ namespace SolidModelBrowser
                         Height = 16,
                         Margin = new Thickness(0, 0, 6, 0),
                         VerticalAlignment = VerticalAlignment.Center,
-                        SnapsToDevicePixels = true
+                        SnapsToDevicePixels = true,
+                        UseLayoutRounding = true
                     };
                     RenderOptions.SetBitmapScalingMode(img, BitmapScalingMode.NearestNeighbor);
                     sp.Children.Add(img);
