@@ -22,8 +22,8 @@
     <SolidColorBrush x:Key="PanelBack" Color="#E4E7EB" />
     <SolidColorBrush x:Key="InfoPanel" Color="#D0E8ECF0" />
     <SolidColorBrush x:Key="WindowFore" Color="#24292E" />
-    <SolidColorBrush x:Key="ToolbarIconAccent" Color="#0284C7" />
-    <sys:Double x:Key="ToolbarIconAccentOpacity">0.95</sys:Double>
+    <SolidColorBrush x:Key="ToolbarIconAccent" Color="#0EA5E9" />
+    <sys:Double x:Key="ToolbarIconAccentOpacity">0.40</sys:Double>
 
     <SolidColorBrush x:Key="Separator" Color="#25000000" />
 
