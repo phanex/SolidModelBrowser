@@ -9,7 +9,7 @@ namespace SolidModelBrowser
 {
     public enum SettingsWindowResult { None, ResetDefaults, OpenEditor };
 
-    public class SettingsForm : Form
+    internal class SettingsForm : Form
     {
         public SettingsWindowResult WindowResult { get; set; } = SettingsWindowResult.None;
         private Settings settings;
@@ -83,7 +83,7 @@ namespace SolidModelBrowser
         private Button btnSave;
         private Button btnCancel;
 
-        public SettingsForm(Settings s)
+        internal SettingsForm(Settings s)
         {
             settings = s;
             currentApps = settings.GetExternalApps();

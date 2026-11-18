@@ -5,7 +5,7 @@ using System.Windows.Forms;
 
 namespace SolidModelBrowser
 {
-    public class FigmaColorPickerForm : Form
+    internal class FigmaColorPickerForm : Form
     {
         private double currentHue = 0;        // 0..360
         private double currentSat = 1.0;      // 0..1
@@ -37,7 +37,7 @@ namespace SolidModelBrowser
             }
         }
 
-        public FigmaColorPickerForm(Color initialColor)
+        internal FigmaColorPickerForm(Color initialColor)
         {
             this.Text = "Color Picker";
             this.Size = new Size(270, 390);
