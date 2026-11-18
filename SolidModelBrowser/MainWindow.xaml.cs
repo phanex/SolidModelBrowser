@@ -556,6 +556,10 @@ namespace SolidModelBrowser
             CanvasShadingSolidAndWireframe.Visibility = mode == ShadingMode.SolidAndWireframe ? Visibility.Visible : Visibility.Collapsed;
             CanvasShadingWireframe.Visibility = mode == ShadingMode.Wireframe ? Visibility.Visible : Visibility.Collapsed;
 
+            if (MenuSolid != null) MenuSolid.IsChecked = mode == ShadingMode.Solid;
+            if (MenuSolidAndWireframe != null) MenuSolidAndWireframe.IsChecked = mode == ShadingMode.SolidAndWireframe;
+            if (MenuWireframeOnly != null) MenuWireframeOnly.IsChecked = mode == ShadingMode.Wireframe;
+
             if (mode == ShadingMode.Solid)
             {
                 scene.SetShadingVisibility(true, false);

@@ -59,7 +59,7 @@ namespace SolidModelBrowser
         private CheckBox[] chkAppExts;
         private Button btnAddApp;
         private Button btnRemoveApp;
-        private Button btnDetectSlicers;
+        private bool isBindingApp = false;
 
         // File Associations
         private CheckBox[] chkAssocExts;
@@ -69,8 +69,9 @@ namespace SolidModelBrowser
         // Command Bar
         private Button btnDefaults;
         private Button btnOpenIni;
-        private Button btnSave;
+        private Button btnOk;
         private Button btnCancel;
+        private Button btnApply;
 
         internal SettingsForm(Settings s)
         {
@@ -104,19 +105,24 @@ namespace SolidModelBrowser
             btnOpenIni.Click += (s, e) => { WindowResult = SettingsWindowResult.OpenEditor; this.DialogResult = DialogResult.OK; this.Close(); };
             pnlBottom.Controls.Add(btnOpenIni);
 
+            btnOk = new Button { Text = "OK", DialogResult = DialogResult.OK, Size = new Size(85, 28) };
+            btnOk.Click += (s, e) => { saveUIToSettings(); this.Close(); };
+            this.AcceptButton = btnOk;
+            pnlBottom.Controls.Add(btnOk);
+
             btnCancel = new Button { Text = "Cancel", DialogResult = DialogResult.Cancel, Size = new Size(85, 28) };
             this.CancelButton = btnCancel;
             pnlBottom.Controls.Add(btnCancel);
 
-            btnSave = new Button { Text = "Save", DialogResult = DialogResult.OK, Size = new Size(85, 28) };
-            btnSave.Click += (s, e) => { saveUIToSettings(); this.Close(); };
-            this.AcceptButton = btnSave;
-            pnlBottom.Controls.Add(btnSave);
+            btnApply = new Button { Text = "Apply", Size = new Size(85, 28) };
+            btnApply.Click += (s, e) => { saveUIToSettings(); };
+            pnlBottom.Controls.Add(btnApply);
 
             pnlBottom.Resize += (s, e) =>
             {
-                btnCancel.Location = new Point(pnlBottom.ClientSize.Width - btnCancel.Width - 12, 10);
-                btnSave.Location = new Point(btnCancel.Left - btnSave.Width - 8, 10);
+                btnApply.Location = new Point(pnlBottom.ClientSize.Width - btnApply.Width - 12, 10);
+                btnCancel.Location = new Point(btnApply.Left - btnCancel.Width - 8, 10);
+                btnOk.Location = new Point(btnCancel.Left - btnOk.Width - 8, 10);
             };
 
             // 2. Central Native TabControl
@@ -249,19 +255,14 @@ namespace SolidModelBrowser
 
                 btnSwatch.Click += (s, e) =>
                 {
-                    using (var dlg = new ColorDialog())
+                    var flyout = new ColorPickerFlyout(item.CurrentColor, newCol =>
                     {
-                        dlg.Color = item.CurrentColor;
-                        dlg.FullOpen = true;
-                        if (dlg.ShowDialog() == DialogResult.OK)
-                        {
-                            var newCol = dlg.Color;
-                            item.CurrentColor = newCol;
-                            btnSwatch.BackColor = newCol;
-                            txtHex.Text = $"{newCol.R:X2}{newCol.G:X2}{newCol.B:X2}";
-                            item.OnColorChanged?.Invoke(newCol);
-                        }
-                    }
+                        item.CurrentColor = newCol;
+                        btnSwatch.BackColor = newCol;
+                        txtHex.Text = $"{newCol.R:X2}{newCol.G:X2}{newCol.B:X2}";
+                        item.OnColorChanged?.Invoke(newCol);
+                    });
+                    flyout.ShowBelow(btnSwatch);
                 };
 
                 txtHex.TextChanged += (s, e) =>
@@ -377,19 +378,7 @@ namespace SolidModelBrowser
                 }
             };
 
-            btnDetectSlicers = new Button { Text = "Auto-detect", Location = new Point(btnRemoveApp.Right + 6, listApps.Bottom + 8), Size = new Size(80, 26) };
-            btnDetectSlicers.Click += (s, e) =>
-            {
-                var detected = Settings.AutoDetectSlicers();
-                foreach (var d in detected)
-                {
-                    if (!currentApps.Any(a => a.Path.Equals(d.Path, StringComparison.OrdinalIgnoreCase)))
-                        currentApps.Add(d);
-                }
-                refreshAppsList();
-            };
-
-            p.Controls.AddRange(new Control[] { lblList, listApps, btnAddApp, btnRemoveApp, btnDetectSlicers });
+            p.Controls.AddRange(new Control[] { lblList, listApps, btnAddApp, btnRemoveApp });
 
             // Right side: GroupBox for editor
             GroupBox grpEdit = new GroupBox
@@ -508,31 +497,51 @@ namespace SolidModelBrowser
         {
             listApps.Items.Clear();
             foreach (var a in currentApps)
-                listApps.Items.Add(string.IsNullOrWhiteSpace(a.Name) ? Path.GetFileName(a.Path) : a.Name);
+            {
+                string label = string.IsNullOrWhiteSpace(a.Name) ? a.Path : $"{a.Name} ({a.Path})";
+                listApps.Items.Add(label);
+            }
         }
 
         private void loadSelectedAppIntoEditor()
         {
             int idx = listApps.SelectedIndex;
             if (idx < 0 || idx >= currentApps.Count) { clearAppEditor(); return; }
-            var app = currentApps[idx];
-            txtAppName.Text = app.Name;
-            txtAppPath.Text = app.Path;
-            txtAppArgs.Text = app.Arguments;
-            foreach (var cb in chkAppExts)
-                cb.Checked = app.SupportsExtension(cb.Tag as string);
+            isBindingApp = true;
+            try
+            {
+                var app = currentApps[idx];
+                txtAppName.Text = app.Name;
+                txtAppPath.Text = app.Path;
+                txtAppArgs.Text = app.Arguments;
+                foreach (var cb in chkAppExts)
+                    cb.Checked = app.SupportsExtension(cb.Tag as string);
+            }
+            finally
+            {
+                isBindingApp = false;
+            }
         }
 
         private void clearAppEditor()
         {
-            txtAppName.Text = "";
-            txtAppPath.Text = "";
-            txtAppArgs.Text = "";
-            foreach (var cb in chkAppExts) cb.Checked = false;
+            isBindingApp = true;
+            try
+            {
+                txtAppName.Text = "";
+                txtAppPath.Text = "";
+                txtAppArgs.Text = "";
+                foreach (var cb in chkAppExts) cb.Checked = false;
+            }
+            finally
+            {
+                isBindingApp = false;
+            }
         }
 
         private void saveAppEditorBack()
         {
+            if (isBindingApp) return;
             int idx = listApps.SelectedIndex;
             if (idx < 0 || idx >= currentApps.Count) return;
             var app = currentApps[idx];
@@ -543,6 +552,12 @@ namespace SolidModelBrowser
             foreach (var cb in chkAppExts)
                 if (cb.Checked) list.Add(cb.Tag as string);
             app.Extensions = string.Join(",", list);
+
+            string label = string.IsNullOrWhiteSpace(app.Name) ? app.Path : $"{app.Name} ({app.Path})";
+            if (idx < listApps.Items.Count && (string)listApps.Items[idx] != label)
+            {
+                listApps.Items[idx] = label;
+            }
         }
 
         private void bindData()

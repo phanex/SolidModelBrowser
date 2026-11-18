@@ -88,17 +88,17 @@
                             <Button x:Name="ButtonWireframe" Style="{StaticResource SplitButtonLeftStyle}" Width="28" Height="28" ToolTip="Toggle Shading [W]" SnapsToDevicePixels="True" UseLayoutRounding="True">
                                 <Viewbox Width="20" Height="20">
                                     <Grid Width="24" Height="24">
-                                        <!-- 1. Solid: box-bulk-round -->
-                                        <Canvas x:Name="CanvasShadingSolid" Width="24" Height="24" Visibility="Collapsed">
-                                            <Path Data="M22 7.687v8.626a3 3 0 0 1-1.672 2.69l-7 3.456a3 3 0 0 1-2.656 0l-7-3.456A3 3 0 0 1 2 16.313V7.687c0-1.141.648-2.184 1.672-2.69l7-3.456a3 3 0 0 1 2.656 0l7 3.456A3 3 0 0 1 22 7.687" Fill="{DynamicResource ToolbarIconAccent}" Opacity="{DynamicResource ToolbarIconAccentOpacity}"/>
-                                            <Path Data="m12 9.774l8.237-4.069a1.002 1.002 0 0 1 .886 1.794L13 11.51v10.259a1 1 0 0 1-2 0V11.51L2.877 7.499a1.002 1.002 0 0 1 .886-1.794Z" Fill="{DynamicResource WindowFore}"/>
-                                        </Canvas>
-                                        <!-- 2. Solid + Wire: box-duotone-round -->
-                                        <Canvas x:Name="CanvasShadingSolidAndWireframe" Width="24" Height="24" Visibility="Visible">
+                                        <!-- 1. Solid: duotone (contours + accent fill) -->
+                                        <Canvas x:Name="CanvasShadingSolid" Width="24" Height="24" Visibility="Visible">
                                             <Path Data="M21 16.313a2 2 0 0 1-1.114 1.793l-7 3.457a2 2 0 0 1-1.772 0l-7-3.457A2 2 0 0 1 3 16.313V7.687a2 2 0 0 1 1.114-1.793l7-3.457a2 2 0 0 1 1.772 0l7 3.457A2 2 0 0 1 21 7.687Z" Fill="{DynamicResource ToolbarIconAccent}" Opacity="{DynamicResource ToolbarIconAccentOpacity}"/>
                                             <Path Data="M21 12v4.313a2 2 0 0 1-1.114 1.793l-7 3.457a2 2 0 0 1-1.772 0l-7-3.457A2 2 0 0 1 3 16.313V7.687a2 2 0 0 1 1.114-1.793l7-3.457a2 2 0 0 1 1.772 0l7 3.457A2 2 0 0 1 21 7.687zM3.32 6.602L12 10.89l8.68-4.287M12 10.89v10.88" Stroke="{DynamicResource WindowFore}" StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
                                         </Canvas>
-                                        <!-- 3. Wireframe: box-round -->
+                                        <!-- 2. Solid + Wire: bulk variation (showing solid + ribs) -->
+                                        <Canvas x:Name="CanvasShadingSolidAndWireframe" Width="24" Height="24" Visibility="Collapsed">
+                                            <Path Data="M22 7.687v8.626a3 3 0 0 1-1.672 2.69l-7 3.456a3 3 0 0 1-2.656 0l-7-3.456A3 3 0 0 1 2 16.313V7.687c0-1.141.648-2.184 1.672-2.69l7-3.456a3 3 0 0 1 2.656 0l7 3.456A3 3 0 0 1 22 7.687" Fill="{DynamicResource ToolbarIconAccent}" Opacity="{DynamicResource ToolbarIconAccentOpacity}"/>
+                                            <Path Data="m12 9.774l8.237-4.069a1.002 1.002 0 0 1 .886 1.794L13 11.51v10.259a1 1 0 0 1-2 0V11.51L2.877 7.499a1.002 1.002 0 0 1 .886-1.794Z" Fill="{DynamicResource WindowFore}"/>
+                                        </Canvas>
+                                        <!-- 3. Wireframe: box-round (outlines only, no fill) -->
                                         <Canvas x:Name="CanvasShadingWireframe" Width="24" Height="24" Visibility="Collapsed">
                                             <Path Data="M21 12v4.313a2 2 0 0 1-1.114 1.793l-7 3.457a2 2 0 0 1-1.772 0l-7-3.457A2 2 0 0 1 3 16.313V7.687a2 2 0 0 1 1.114-1.793l7-3.457a2 2 0 0 1 1.772 0l7 3.457A2 2 0 0 1 21 7.687zM3.32 6.602L12 10.89l8.68-4.287M12 10.89v10.88" Stroke="{DynamicResource WindowFore}" StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
                                         </Canvas>

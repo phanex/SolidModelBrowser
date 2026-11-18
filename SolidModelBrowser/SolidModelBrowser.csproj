@@ -94,6 +94,7 @@
     <Compile Include="Controls\PropertyPanel.xaml.cs">
       <DependentUpon>PropertyPanel.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Controls\ColorPickerFlyout.cs" />
     <Compile Include="PropertyInfoAttribute.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="FileAssociationManager.cs" />

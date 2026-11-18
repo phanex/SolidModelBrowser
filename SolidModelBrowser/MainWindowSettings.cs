@@ -89,6 +89,7 @@ namespace SolidModelBrowser
 
             scene.CreateAxes(settings.AxesLength);
             scene.CreateGround(settings.GroundRectangle, settings.GroundCheckerSize, settings.GroundDiffuseColor.Color, settings.GroundEmissiveColor.Color);
+            setShadingMode(currentShadingMode);
         }
 
         void setFilePanelVisibility(bool isVisible)
