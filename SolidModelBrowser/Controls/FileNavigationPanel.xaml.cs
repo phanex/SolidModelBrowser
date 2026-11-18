@@ -192,14 +192,26 @@ namespace SolidModelBrowser
             catch { }
         }
 
-        static readonly Dictionary<string, System.Windows.Media.Imaging.BitmapImage> iconCache = new Dictionary<string, System.Windows.Media.Imaging.BitmapImage>();
-        private static System.Windows.Media.Imaging.BitmapImage getExtensionIcon(string ext)
+        static readonly Dictionary<string, System.Windows.Media.Imaging.BitmapSource> iconCache = new Dictionary<string, System.Windows.Media.Imaging.BitmapSource>();
+        private static System.Windows.Media.Imaging.BitmapSource getExtensionIcon(string ext)
         {
             if (iconCache.TryGetValue(ext, out var cached)) return cached;
             try
             {
                 var uri = new Uri($"pack://application:,,,/Icons/{ext}.png", UriKind.Absolute);
                 var bmp = new System.Windows.Media.Imaging.BitmapImage(uri);
+                if (Math.Abs(bmp.DpiX - 96.0) > 1.0 || Math.Abs(bmp.DpiY - 96.0) > 1.0)
+                {
+                    int stride = bmp.PixelWidth * 4;
+                    byte[] pixels = new byte[stride * bmp.PixelHeight];
+                    bmp.CopyPixels(pixels, stride, 0);
+                    var fixedDpi = System.Windows.Media.Imaging.BitmapSource.Create(
+                        bmp.PixelWidth, bmp.PixelHeight, 96.0, 96.0,
+                        bmp.Format, bmp.Palette, pixels, stride);
+                    fixedDpi.Freeze();
+                    iconCache[ext] = fixedDpi;
+                    return fixedDpi;
+                }
                 bmp.Freeze();
                 iconCache[ext] = bmp;
                 return bmp;
