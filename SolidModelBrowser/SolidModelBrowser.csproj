@@ -64,9 +64,8 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="Controls\ColorInput.xaml.cs">
-      <DependentUpon>ColorInput.xaml</DependentUpon>
-    </Compile>
+    <Compile Include="Controls\FigmaColorPickerForm.cs" />
+    <Compile Include="SettingsForm.cs" />
     <Compile Include="Controls\DoubleValuesInput.xaml.cs">
       <DependentUpon>DoubleValuesInput.xaml</DependentUpon>
     </Compile>
@@ -102,13 +101,6 @@
     <Compile Include="Controls\TextEncodedImage.cs" />
     <Compile Include="Controls\UCamera.cs" />
     <Compile Include="Utils.cs" />
-    <Compile Include="SettingsWindow.xaml.cs">
-      <DependentUpon>SettingsWindow.xaml</DependentUpon>
-    </Compile>
-    <Page Include="Controls\ColorInput.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="Controls\DoubleValuesInput.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -152,10 +144,6 @@
     <Page Include="Styles\Styles.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
-    </Page>
-    <Page Include="SettingsWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>
   <ItemGroup>

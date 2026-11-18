@@ -259,9 +259,9 @@ namespace SolidModelBrowser
                 }
                 else if (rec.Count == 2)
                 {
-                    // Dihedral angle check: cos(30 deg) ~ 0.866
+                    // Dihedral angle check: cos(15 deg) ~ 0.966
                     double dot = Vector3D.DotProduct(rec.N1, rec.N2);
-                    if (dot < 0.866) // Angle > 30 degrees (sharp crease)
+                    if (dot < 0.966) // Angle > 15 degrees (crease edge)
                     {
                         isFeatureEdge = true;
                     }
@@ -285,36 +285,60 @@ namespace SolidModelBrowser
                 Point3D bBiased = pB + avgN * biasDist;
 
                 Vector3D edgeVec = bBiased - aBiased;
-                Vector3D perp = Vector3D.CrossProduct(edgeVec, avgN);
-                if (perp.LengthSquared > 1e-8) perp.Normalize();
-                else perp = new Vector3D(0, 0, 1);
+                double edgeLen = edgeVec.Length;
+                if (edgeLen < 1e-6) continue;
+                Vector3D dir = edgeVec / edgeLen;
 
-                Vector3D side = perp * halfWidth;
+                // Two orthogonal perpendicular vectors to form a 3D tube
+                Vector3D u = avgN - Vector3D.DotProduct(avgN, dir) * dir;
+                if (u.LengthSquared > 1e-6) u.Normalize();
+                else
+                {
+                    u = Math.Abs(dir.Z) < 0.9 ? Vector3D.CrossProduct(dir, new Vector3D(0, 0, 1)) : Vector3D.CrossProduct(dir, new Vector3D(0, 1, 0));
+                    u.Normalize();
+                }
+                Vector3D v = Vector3D.CrossProduct(dir, u);
+                v.Normalize();
 
-                Point3D v1 = aBiased - side;
-                Point3D v2 = aBiased + side;
-                Point3D v3 = bBiased + side;
-                Point3D v4 = bBiased - side;
+                double radius = halfWidth * 0.7071;
+                Vector3D o0 = (u + v) * radius;
+                Vector3D o1 = (-u + v) * radius;
+                Vector3D o2 = (-u - v) * radius;
+                Vector3D o3 = (u - v) * radius;
 
-                outPositions.Add(v1);
-                outPositions.Add(v2);
-                outPositions.Add(v3);
-                outPositions.Add(v4);
+                Point3D a0 = aBiased + o0;
+                Point3D a1 = aBiased + o1;
+                Point3D a2 = aBiased + o2;
+                Point3D a3 = aBiased + o3;
 
-                outNormals.Add(avgN);
-                outNormals.Add(avgN);
-                outNormals.Add(avgN);
-                outNormals.Add(avgN);
+                Point3D b0 = bBiased + o0;
+                Point3D b1 = bBiased + o1;
+                Point3D b2 = bBiased + o2;
+                Point3D b3 = bBiased + o3;
 
-                outIndices.Add(curIdx);
-                outIndices.Add(curIdx + 1);
-                outIndices.Add(curIdx + 2);
+                // 4 rectangular faces forming an opaque 3D tube with volume from all angles
+                Point3D[] tubeVerts = { a0, b0, b1, a1, a1, b1, b2, a2, a2, b2, b3, a3, a3, b3, b0, a0 };
+                Vector3D[] tubeNorms = { v, v, v, v, -u, -u, -u, -u, -v, -v, -v, -v, u, u, u, u };
 
-                outIndices.Add(curIdx);
-                outIndices.Add(curIdx + 2);
-                outIndices.Add(curIdx + 3);
+                for (int i = 0; i < 16; i++)
+                {
+                    outPositions.Add(tubeVerts[i]);
+                    outNormals.Add(tubeNorms[i]);
+                }
 
-                curIdx += 4;
+                for (int f = 0; f < 4; f++)
+                {
+                    int baseIdx = curIdx + f * 4;
+                    outIndices.Add(baseIdx);
+                    outIndices.Add(baseIdx + 1);
+                    outIndices.Add(baseIdx + 2);
+
+                    outIndices.Add(baseIdx);
+                    outIndices.Add(baseIdx + 2);
+                    outIndices.Add(baseIdx + 3);
+                }
+
+                curIdx += 16;
             }
 
             dest.Positions = outPositions;
@@ -476,7 +500,31 @@ namespace SolidModelBrowser
         {
             if (!File.Exists(fname)) { MessageWindow("Select file first"); return; }
             if (string.IsNullOrWhiteSpace(path)) { MessageWindow("No app specified in settings"); return; }
-            System.Diagnostics.Process.Start(path, args.Replace("$file$", fname));
+            string formattedArgs = args;
+            if (string.IsNullOrWhiteSpace(formattedArgs))
+            {
+                formattedArgs = $"\"{fname}\"";
+            }
+            else if (formattedArgs.Contains("%1"))
+            {
+                formattedArgs = formattedArgs.Replace("%1", fname);
+            }
+            else if (formattedArgs.Contains("$file$"))
+            {
+                formattedArgs = formattedArgs.Replace("$file$", fname);
+            }
+            else
+            {
+                formattedArgs = $"{formattedArgs} \"{fname}\"";
+            }
+            try
+            {
+                System.Diagnostics.Process.Start(path, formattedArgs);
+            }
+            catch (Exception ex)
+            {
+                MessageWindow($"Failed to start {path}:\r\n{ex.Message}");
+            }
         }
 
         //public static GeometryModel3D GetAxesModel()

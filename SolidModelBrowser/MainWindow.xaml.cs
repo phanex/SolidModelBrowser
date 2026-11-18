@@ -170,7 +170,7 @@ namespace SolidModelBrowser
             ButtonSettings.Click += (s, e) => runSettings();
             ButtonExport.Click += (s, e) => export();
 
-            ButtonChangeTheme.Click += (s, e) => { settings.LightTheme = !settings.LightTheme; setAppTheme(); };
+            ButtonChangeTheme.Click += (s, e) => { currentSessionLightTheme = !currentSessionLightTheme; applySessionTheme(currentSessionLightTheme); };
             ButtonMinimize.Click += (s, e) => WindowState = WindowState.Minimized;
             ButtonMaximize.Click += (s, e) => WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
             ButtonClose.Click += (s, e) => Close();
@@ -518,7 +518,7 @@ namespace SolidModelBrowser
         {
             if (!(ButtonDiffuseMaterial.IsChecked.Value || ButtonSpecularMaterial.IsChecked.Value || ButtonEmissiveMaterial.IsChecked.Value)) ButtonDiffuseMaterial.IsChecked = true;
             scene.ApplyMaterials(ButtonDiffuseMaterial.IsChecked.Value, ButtonSpecularMaterial.IsChecked.Value, ButtonEmissiveMaterial.IsChecked.Value, ButtonBacksideDiffuseMaterial.IsChecked.Value);
-            scene.UpdateWireframeColor(currentShadingMode == ShadingMode.Wireframe, settings.LightTheme, settings.DiffuseColor.Color);
+            scene.UpdateWireframeColor(currentShadingMode == ShadingMode.Wireframe, currentSessionLightTheme, settings.DiffuseColor.Color);
         }
 
         void updateCameraModes()
@@ -572,7 +572,7 @@ namespace SolidModelBrowser
                 scene.SetShadingVisibility(false, true);
                 ButtonWireframe.ToolTip = "Switch to Solid [Ctrl+W / 1,2,3]";
             }
-            scene.UpdateWireframeColor(mode == ShadingMode.Wireframe, settings.LightTheme, settings.DiffuseColor.Color);
+            scene.UpdateWireframeColor(mode == ShadingMode.Wireframe, currentSessionLightTheme, settings.DiffuseColor.Color);
             updateMeshes(false);
         }
 
@@ -582,13 +582,21 @@ namespace SolidModelBrowser
             if (e.ChangedButton == MouseButton.Left) this.DragMove();
         }
 
+        private bool currentSessionLightTheme;
+
         void setAppTheme()
         {
-            if (settings.LightTheme) App.SetTheme("ColorsLight.xaml");
+            currentSessionLightTheme = settings.ResolveIsLightTheme();
+            applySessionTheme(currentSessionLightTheme);
+        }
+
+        void applySessionTheme(bool isLight)
+        {
+            if (isLight) App.SetTheme("ColorsLight.xaml");
             else App.SetTheme("Colors.xaml");
-            scene.UpdateWireframeColor(currentShadingMode == ShadingMode.Wireframe, settings.LightTheme, settings.DiffuseColor.Color);
+            scene.UpdateWireframeColor(currentShadingMode == ShadingMode.Wireframe, isLight, settings.DiffuseColor.Color);
             filePanel.ExtensionsColors.Clear();
-            if (settings.ColorizeFiles) { Import.FillColorsDictionary(filePanel.ExtensionsColors, settings.LightTheme); filePanel.Refresh(); }
+            if (settings.ColorizeFiles) { Import.FillColorsDictionary(filePanel.ExtensionsColors, isLight); filePanel.Refresh(); }
         }
 
         void updateModelInfo()
@@ -597,16 +605,35 @@ namespace SolidModelBrowser
             else hideInfo();
         }
 
+        private class Win32WindowOwner : System.Windows.Forms.IWin32Window
+        {
+            public IntPtr Handle { get; }
+            public Win32WindowOwner(IntPtr handle) { Handle = handle; }
+        }
+
         void runSettings()
         {
-            var settingsWindow = new SettingsWindow();
-            settingsWindow.Owner = this;
-            settingsWindow.BindSettings(settings);
-            settingsWindow.ShowDialog();
-            if (settingsWindow.WindowResult == SettingsWindowResult.ResetDefaults) { settings = new Settings(); }
-            saveSettings();
-            loadSettings();
-            if (settingsWindow.WindowResult == SettingsWindowResult.OpenEditor) { settings.StartProcess(); Close(); }
+            var owner = new Win32WindowOwner(new System.Windows.Interop.WindowInteropHelper(this).Handle);
+            using (var settingsForm = new SettingsForm(settings))
+            {
+                var result = settingsForm.ShowDialog(owner);
+                if (settingsForm.WindowResult == SettingsWindowResult.ResetDefaults)
+                {
+                    settings = new Settings();
+                    saveSettings();
+                    loadSettings();
+                }
+                else if (result == System.Windows.Forms.DialogResult.OK)
+                {
+                    saveSettings();
+                    loadSettings();
+                }
+                else if (settingsForm.WindowResult == SettingsWindowResult.OpenEditor)
+                {
+                    settings.StartProcess();
+                    Close();
+                }
+            }
         }
 
         void updateMeshes(bool forceUpdateWireframe)

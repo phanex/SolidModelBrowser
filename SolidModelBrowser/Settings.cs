@@ -9,10 +9,39 @@ using System.Windows.Media.Media3D;
 
 namespace SolidModelBrowser
 {
+    public enum AppThemeMode { System = 0, Dark = 1, Light = 2 }
+
     internal class Settings
     {
-        [PropertyInfo(Category = "Interface", Description = "Use application light theme")]
+        [PropertyInfo(Category = "Interface", Description = "Default application theme mode: System (follow Windows), Dark, or Light")]
+        public AppThemeMode ThemeMode { get; set; } = AppThemeMode.System;
+
+        [PropertyInfo(Category = "Interface", Description = "Use application light theme (legacy fallback)")]
         public bool LightTheme { get; set; } = false;
+
+        public static bool IsWindowsInLightTheme()
+        {
+            try
+            {
+                using (var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize"))
+                {
+                    if (key != null)
+                    {
+                        object val = key.GetValue("AppsUseLightTheme");
+                        if (val is int i) return i > 0;
+                    }
+                }
+            }
+            catch { }
+            return false;
+        }
+
+        public bool ResolveIsLightTheme()
+        {
+            if (ThemeMode == AppThemeMode.Light) return true;
+            if (ThemeMode == AppThemeMode.Dark) return false;
+            return IsWindowsInLightTheme();
+        }
 
         [PropertyInfo(Category = "Main Window", Description = "Window state")]
         public WindowState WindowState { get; set; } = WindowState.Normal;
@@ -127,11 +156,11 @@ namespace SolidModelBrowser
                 }
             }
 
-            check("Bambu Studio", Path.Combine(progFiles, @"Bambu Studio\bambu-studio.exe"), "$file$", "3mf,stl,obj");
-            check("Bambu Studio", Path.Combine(localAppData, @"Programs\Bambu Studio\bambu-studio.exe"), "$file$", "3mf,stl,obj");
-            check("OrcaSlicer", Path.Combine(progFiles, @"OrcaSlicer\orca-slicer.exe"), "$file$", "3mf,stl,obj,gcode");
-            check("OrcaSlicer", Path.Combine(localAppData, @"Programs\OrcaSlicer\orca-slicer.exe"), "$file$", "3mf,stl,obj,gcode");
-            check("PrusaSlicer", Path.Combine(progFiles, @"Prusa3D\PrusaSlicer\prusa-slicer.exe"), "$file$", "3mf,stl,obj,gcode");
+            check("Bambu Studio", Path.Combine(progFiles, @"Bambu Studio\bambu-studio.exe"), "\"%1\"", "3mf,stl,obj");
+            check("Bambu Studio", Path.Combine(localAppData, @"Programs\Bambu Studio\bambu-studio.exe"), "\"%1\"", "3mf,stl,obj");
+            check("OrcaSlicer", Path.Combine(progFiles, @"OrcaSlicer\orca-slicer.exe"), "\"%1\"", "3mf,stl,obj,gcode");
+            check("OrcaSlicer", Path.Combine(localAppData, @"Programs\OrcaSlicer\orca-slicer.exe"), "\"%1\"", "3mf,stl,obj,gcode");
+            check("PrusaSlicer", Path.Combine(progFiles, @"Prusa3D\PrusaSlicer\prusa-slicer.exe"), "\"%1\"", "3mf,stl,obj,gcode");
 
             if (Directory.Exists(progFiles))
             {
@@ -140,7 +169,7 @@ namespace SolidModelBrowser
                     var curaDirs = Directory.GetDirectories(progFiles, "UltiMaker Cura*");
                     foreach (var dir in curaDirs)
                     {
-                        check("UltiMaker Cura", Path.Combine(dir, "UltiMaker-Cura.exe"), "$file$", "stl,3mf,obj,gcode");
+                        check("UltiMaker Cura", Path.Combine(dir, "UltiMaker-Cura.exe"), "\"%1\"", "stl,3mf,obj,gcode");
                     }
                 }
                 catch { }

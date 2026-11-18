@@ -109,5 +109,12 @@ namespace SolidModelBrowser.Tests
             Assert.IsTrue(loaded[0].SupportsExtension("gcode"));
             Assert.IsFalse(loaded[1].SupportsExtension("gcode"));
         }
+
+        [Test]
+        public void DefaultSettings_ThemeMode_DefaultsToSystem()
+        {
+            var settings = new Settings();
+            Assert.AreEqual(AppThemeMode.System, settings.ThemeMode);
+        }
     }
 }
