@@ -279,10 +279,10 @@ namespace SolidModelBrowser
                             int r = Convert.ToInt32(clean.Substring(0, 2), 16);
                             int g = Convert.ToInt32(clean.Substring(2, 2), 16);
                             int b = Convert.ToInt32(clean.Substring(4, 2), 16);
-                            var col = Color.FromArgb(item.CurrentColor.A, r, g, b);
-                            item.CurrentColor = col;
-                            btnSwatch.BackColor = col;
-                            item.OnColorChanged?.Invoke(col);
+                            var parsedCol = Color.FromArgb(item.CurrentColor.A, r, g, b);
+                            item.CurrentColor = parsedCol;
+                            btnSwatch.BackColor = parsedCol;
+                            item.OnColorChanged?.Invoke(parsedCol);
                         }
                         catch { }
                     }
