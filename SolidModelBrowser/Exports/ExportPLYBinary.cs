@@ -9,7 +9,7 @@ namespace SolidModelBrowser
         public ExportPLYBinary()
         {
             Extension = "ply";
-            Description = "PLY Binary";
+            Description = "Polygon File Format (*.ply)";
         }
 
         public override void Save(MeshGeometry3D mesh, string filename)

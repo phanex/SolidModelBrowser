@@ -82,9 +82,7 @@
     <Compile Include="Exports\Export.cs" />
     <Compile Include="Exports\Export3MF.cs" />
     <Compile Include="Exports\ExportOBJ.cs" />
-    <Compile Include="Exports\ExportPLYAscii.cs" />
     <Compile Include="Exports\ExportPLYBinary.cs" />
-    <Compile Include="Exports\ExportSTLAscii.cs" />
     <Compile Include="Exports\ExportSTLBinary.cs" />
     <Compile Include="HelpString.cs" />
     <Compile Include="Imports\Import.cs" />

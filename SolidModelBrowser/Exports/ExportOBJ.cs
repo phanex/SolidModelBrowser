@@ -9,7 +9,7 @@ namespace SolidModelBrowser
         public ExportOBJ()
         {
             Extension = "obj";
-            Description = "OBJ";
+            Description = "Wavefront OBJ (*.obj)";
             InitialRotationX = -90.0;
         }
 

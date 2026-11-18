@@ -601,11 +601,8 @@ namespace SolidModelBrowser
         {
             var settingsWindow = new SettingsWindow();
             settingsWindow.Owner = this;
-            Utils.SetWindowStyle(settingsWindow, settings.UseSystemWindowStyle, settingsWindow.ButtonClose);
             settingsWindow.BindSettings(settings);
-            this.Effect = new BlurEffect() { Radius = 4.0 };
             settingsWindow.ShowDialog();
-            this.Effect = null;
             if (settingsWindow.WindowResult == SettingsWindowResult.ResetDefaults) { settings = new Settings(); }
             saveSettings();
             loadSettings();
@@ -769,12 +766,25 @@ namespace SolidModelBrowser
         void export()
         {
             if (meshBase == null || scene.Mesh == null || scene.Mesh.Positions.Count == 0) return;
-            string exporters = string.Join(",", Export.Exports.Select(e => e.Description).OrderBy(e => e));
-            string r = Utils.MessageWindow("Select export format", this, exporters, Orientation.Vertical);
-            var exp = Export.Exports.FirstOrDefault(e => e.Description == r);
-            if (exp == null) return;
-            var sfd = new System.Windows.Forms.SaveFileDialog() { DefaultExt = exp.Extension, Filter = $"{exp.Description}|*.{exp.Extension}" };
-            if (sfd.ShowDialog() != System.Windows.Forms.DialogResult.OK) return;
+            var exportOrder = new[] { "stl", "obj", "3mf", "ply" };
+            var sortedExports = Export.Exports
+                .OrderBy(e => { int idx = Array.IndexOf(exportOrder, e.Extension.ToLowerInvariant()); return idx >= 0 ? idx : 999; })
+                .ToList();
+            var filter = string.Join("|", sortedExports.Select(e => $"{e.Description}|*.{e.Extension}"));
+            var sfd = new Microsoft.Win32.SaveFileDialog
+            {
+                Title = "Export Model",
+                Filter = filter,
+                FilterIndex = 1,
+                FileName = string.IsNullOrEmpty(lastFilename) ? "model" : Path.GetFileNameWithoutExtension(lastFilename)
+            };
+            if (sfd.ShowDialog(this) != true) return;
+
+            int selectedIndex = sfd.FilterIndex - 1;
+            var exp = (selectedIndex >= 0 && selectedIndex < sortedExports.Count)
+                ? sortedExports[selectedIndex]
+                : sortedExports.FirstOrDefault(e => sfd.FileName.EndsWith("." + e.Extension, StringComparison.OrdinalIgnoreCase)) ?? sortedExports[0];
+
             try
             {
                 MeshGeometry3D m = scene.Mesh;

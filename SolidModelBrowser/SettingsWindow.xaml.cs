@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Input;
 using System.Windows.Media;
 
 namespace SolidModelBrowser
@@ -21,8 +20,8 @@ namespace SolidModelBrowser
         {
             InitializeComponent();
 
-            ButtonClose.Click += (s, e) => Close();
-            BorderHeader.MouseDown += (s, e) => { if (e.ChangedButton == MouseButton.Left) this.DragMove(); };
+            ListCategories.SelectionChanged += (s, e) => updateCategoryPanels();
+            ListCategories.SelectedIndex = 0;
 
             ButtonLoadDefaults.Click += (s, e) =>
             {
@@ -47,15 +46,23 @@ namespace SolidModelBrowser
 
             ButtonCancel.Click += (s, e) => Close();
 
-            TextBoxSearch.TextChanged += (s, e) => filterSettings(TextBoxSearch.Text);
-            ButtonClearSearch.Click += (s, e) => TextBoxSearch.Text = "";
-
             ButtonAddApp.Click += ButtonAddApp_Click;
+            ButtonDetectSlicers.Click += (s, e) =>
+            {
+                var detected = Settings.AutoDetectSlicers();
+                foreach (var d in detected)
+                {
+                    if (!currentApps.Any(a => a.Path.Equals(d.Path, StringComparison.OrdinalIgnoreCase)))
+                        currentApps.Add(d);
+                }
+                renderExternalAppsList();
+            };
 
             ButtonSelectAllAssoc.Click += (s, e) =>
             {
+                string args = TextAssocArgs.Text.Trim();
                 foreach (var ext in FileAssociationManager.SupportedExtensions)
-                    FileAssociationManager.SetAssociation(ext, true);
+                    FileAssociationManager.SetAssociation(ext, true, args);
                 renderFileAssociationsList();
             };
 
@@ -67,38 +74,57 @@ namespace SolidModelBrowser
             };
         }
 
+        private void updateCategoryPanels()
+        {
+            int idx = ListCategories.SelectedIndex;
+            PanelGeneral.Visibility = idx == 0 ? Visibility.Visible : Visibility.Collapsed;
+            PanelViewport.Visibility = idx == 1 ? Visibility.Visible : Visibility.Collapsed;
+            PanelColors.Visibility = idx == 2 ? Visibility.Visible : Visibility.Collapsed;
+            PanelGCode.Visibility = idx == 3 ? Visibility.Visible : Visibility.Collapsed;
+            PanelApps.Visibility = idx == 4 ? Visibility.Visible : Visibility.Collapsed;
+            PanelAssociations.Visibility = idx == 5 ? Visibility.Visible : Visibility.Collapsed;
+        }
+
         internal void BindSettings(Settings s)
         {
             settings = s;
             currentApps = settings.GetExternalApps();
 
-            // General & Interface
+            // 1. General
             CheckShowFilePanel.IsChecked = s.ShowFilePanel;
             CheckColorizeFiles.IsChecked = s.ColorizeFiles;
             CheckSortFilesByExtensions.IsChecked = s.SortFilesByExtensions;
-            CheckUseSystemWindowStyle.IsChecked = s.UseSystemWindowStyle;
             CheckUnsmoothAfterLoading.IsChecked = s.UnsmoothAfterLoading;
+            CheckLightTheme.IsChecked = s.LightTheme;
+            CheckUseSystemWindowStyle.IsChecked = s.UseSystemWindowStyle;
 
-            // Camera & Viewport
+            // 2. Viewport
             CheckCenterCameraAtPointsAverageCenter.IsChecked = s.DefaultLookAtModelPointsAvgCenter;
             TextFov.Text = s.FOV.ToString("0.#");
             TextFishEyeFov.Text = s.FishEyeFOV.ToString("0.#");
             TextCameraInitialShift.Text = s.CameraInitialShift.ToString("0.#");
             TextModelRotationAngle.Text = s.ModelRotationAngle.ToString("0.#");
+            TextWireframeEdgeScale.Text = s.WireframeEdgeScale.ToString("0.###");
 
-            // G-Code Import
-            TextGCodeLineEnds.Text = s.GCODELineExtensions.ToString();
-            TextGCodeLayerHeight.Text = s.GCODELayerHeight.ToString("0.##");
-            TextGCodeLineWidth.Text = s.GCODELineWidth.ToString("0.##");
-
-            // Colors & Materials
+            // 3. Colors
             ColorDiffuse.ColorValue = s.DiffuseColor.Color;
             ColorSpecular.ColorValue = s.SpecularColor.Color;
+            ColorEmissive.ColorValue = s.EmissiveColor.Color;
+            ColorBackDiffuse.ColorValue = s.BackDiffuseColor.Color;
             ColorAmbient.ColorValue = s.AmbientLightColor.Color;
             ColorLight1.ColorValue = s.DirectionalLight1Color.Color;
             ColorLight2.ColorValue = s.DirectionalLight2Color.Color;
             ColorLight3.ColorValue = s.DirectionalLight3Color.Color;
+            ColorGroundDiffuse.ColorValue = s.GroundDiffuseColor.Color;
             CheckBacksideDiffuseMaterial.IsChecked = s.IsBackDiffuseEnabled;
+
+            // 4. G-Code
+            TextGCodeLayerHeight.Text = s.GCODELayerHeight.ToString("0.##");
+            TextGCodeLineWidth.Text = s.GCODELineWidth.ToString("0.##");
+            TextGCodeLineEnds.Text = s.GCODELineExtensions.ToString();
+
+            // 5. File Associations
+            TextAssocArgs.Text = string.IsNullOrWhiteSpace(s.FileAssociationArguments) ? "\"%1\"" : s.FileAssociationArguments;
 
             renderExternalAppsList();
             renderFileAssociationsList();
@@ -108,76 +134,44 @@ namespace SolidModelBrowser
         {
             if (settings == null) return;
 
-            // General & Interface
+            // 1. General
             settings.ShowFilePanel = CheckShowFilePanel.IsChecked == true;
             settings.ColorizeFiles = CheckColorizeFiles.IsChecked == true;
             settings.SortFilesByExtensions = CheckSortFilesByExtensions.IsChecked == true;
-            settings.UseSystemWindowStyle = CheckUseSystemWindowStyle.IsChecked == true;
             settings.UnsmoothAfterLoading = CheckUnsmoothAfterLoading.IsChecked == true;
+            settings.LightTheme = CheckLightTheme.IsChecked == true;
+            settings.UseSystemWindowStyle = CheckUseSystemWindowStyle.IsChecked == true;
 
-            // Camera & Viewport
+            // 2. Viewport
             settings.DefaultLookAtModelPointsAvgCenter = CheckCenterCameraAtPointsAverageCenter.IsChecked == true;
             if (double.TryParse(TextFov.Text, out double fov)) settings.FOV = Utils.MinMax(fov, 5.0, 160.0);
             if (double.TryParse(TextFishEyeFov.Text, out double feFov)) settings.FishEyeFOV = Utils.MinMax(feFov, 5.0, 160.0);
             if (double.TryParse(TextCameraInitialShift.Text, out double shift)) settings.CameraInitialShift = Utils.MinMax(shift, 0.5, 10.0);
             if (double.TryParse(TextModelRotationAngle.Text, out double rot)) settings.ModelRotationAngle = Utils.MinMax(rot, 5.0, 180.0);
+            if (double.TryParse(TextWireframeEdgeScale.Text, out double wes)) settings.WireframeEdgeScale = Utils.MinMax(wes, 0.001, 0.9);
 
-            // G-Code Import
-            if (double.TryParse(TextGCodeLineEnds.Text, out double le)) settings.GCODELineExtensions = le;
-            if (double.TryParse(TextGCodeLayerHeight.Text, out double lh)) settings.GCODELayerHeight = lh;
-            if (double.TryParse(TextGCodeLineWidth.Text, out double lw)) settings.GCODELineWidth = lw;
-
-            // Colors & Materials
+            // 3. Colors
             settings.DiffuseColor = new SColor(ColorDiffuse.ColorValue);
             settings.SpecularColor = new SColor(ColorSpecular.ColorValue);
+            settings.EmissiveColor = new SColor(ColorEmissive.ColorValue);
+            settings.BackDiffuseColor = new SColor(ColorBackDiffuse.ColorValue);
             settings.AmbientLightColor = new SColor(ColorAmbient.ColorValue);
             settings.DirectionalLight1Color = new SColor(ColorLight1.ColorValue);
             settings.DirectionalLight2Color = new SColor(ColorLight2.ColorValue);
             settings.DirectionalLight3Color = new SColor(ColorLight3.ColorValue);
+            settings.GroundDiffuseColor = new SColor(ColorGroundDiffuse.ColorValue);
             settings.IsBackDiffuseEnabled = CheckBacksideDiffuseMaterial.IsChecked == true;
 
+            // 4. G-Code
+            if (double.TryParse(TextGCodeLayerHeight.Text, out double lh)) settings.GCODELayerHeight = lh;
+            if (double.TryParse(TextGCodeLineWidth.Text, out double lw)) settings.GCODELineWidth = lw;
+            if (double.TryParse(TextGCodeLineEnds.Text, out double le)) settings.GCODELineExtensions = le;
+
+            // 5. External Apps
             settings.SetExternalApps(currentApps);
-        }
 
-        private void filterSettings(string query)
-        {
-            string q = (query ?? "").Trim().ToLowerInvariant();
-            GroupBox[] groups = { GroupInterface, GroupCamera, GroupGCode, GroupMaterials, GroupApps, GroupAssociations };
-
-            if (string.IsNullOrEmpty(q))
-            {
-                foreach (var g in groups) g.Visibility = Visibility.Visible;
-                return;
-            }
-
-            foreach (var g in groups)
-            {
-                bool matches = false;
-                string header = (g.Header as string) ?? "";
-                if (header.ToLowerInvariant().Contains(q))
-                {
-                    matches = true;
-                }
-                else
-                {
-                    // Check text of child elements
-                    matches = checkChildMatches(g, q);
-                }
-                g.Visibility = matches ? Visibility.Visible : Visibility.Collapsed;
-            }
-        }
-
-        private bool checkChildMatches(DependencyObject parent, string q)
-        {
-            int count = VisualTreeHelper.GetChildrenCount(parent);
-            for (int i = 0; i < count; i++)
-            {
-                var child = VisualTreeHelper.GetChild(parent, i);
-                if (child is TextBlock tb && tb.Text.ToLowerInvariant().Contains(q)) return true;
-                if (child is CheckBox cb && (cb.Content as string ?? "").ToLowerInvariant().Contains(q)) return true;
-                if (checkChildMatches(child, q)) return true;
-            }
-            return false;
+            // 6. File Associations
+            settings.FileAssociationArguments = TextAssocArgs.Text.Trim();
         }
 
         private void ButtonAddApp_Click(object sender, RoutedEventArgs e)
@@ -194,7 +188,7 @@ namespace SolidModelBrowser
                 {
                     Name = exeName,
                     Path = ofd.FileName,
-                    Arguments = "\"%1\"",
+                    Arguments = "$file$",
                     Extensions = "stl,3mf,obj,skp"
                 });
                 renderExternalAppsList();
@@ -208,12 +202,11 @@ namespace SolidModelBrowser
             {
                 PanelAppsList.Children.Add(new TextBlock
                 {
-                    Text = "No external applications configured. Click '+ Add Application...' to add one.",
-                    FontStyle = FontStyles.Italic,
+                    Text = "No external applications configured. Click '+ Add Application...' or 'Auto-detect Slicers'.",
                     FontSize = 11,
                     Foreground = (Brush)Application.Current.FindResource("WindowFore"),
                     Opacity = 0.6,
-                    Margin = new Thickness(0, 4, 0, 4)
+                    Margin = new Thickness(0, 8, 0, 8)
                 });
                 return;
             }
@@ -229,19 +222,19 @@ namespace SolidModelBrowser
                     BorderBrush = (Brush)Application.Current.FindResource("Separator"),
                     BorderThickness = new Thickness(1),
                     CornerRadius = new CornerRadius(4),
-                    Padding = new Thickness(8, 6, 8, 6),
-                    Margin = new Thickness(0, 0, 0, 6)
+                    Padding = new Thickness(10, 8, 10, 8),
+                    Margin = new Thickness(0, 0, 0, 8)
                 };
 
                 var sp = new StackPanel();
 
-                // Row 1: Name + Remove
+                // Row 1: Name + Remove Button
                 var topRow = new DockPanel();
                 var btnRemove = new Button
                 {
                     Content = "✕",
-                    Width = 20,
-                    Height = 20,
+                    Width = 22,
+                    Height = 22,
                     Padding = new Thickness(0),
                     ToolTip = "Remove application"
                 };
@@ -257,7 +250,7 @@ namespace SolidModelBrowser
                 {
                     Text = app.Name,
                     FontWeight = FontWeights.SemiBold,
-                    Height = 22,
+                    Height = 24,
                     VerticalContentAlignment = VerticalAlignment.Center,
                     Margin = new Thickness(0, 0, 8, 0)
                 };
@@ -272,13 +265,38 @@ namespace SolidModelBrowser
                     FontSize = 10,
                     Opacity = 0.7,
                     TextTrimming = TextTrimming.CharacterEllipsis,
-                    Margin = new Thickness(0, 2, 0, 4),
+                    Margin = new Thickness(0, 3, 0, 4),
                     ToolTip = app.Path
                 };
                 pathTb.SetResourceReference(TextBlock.ForegroundProperty, "WindowFore");
                 sp.Children.Add(pathTb);
 
-                // Row 3: Extension checkboxes
+                // Row 3: Launch Arguments
+                var argsDock = new DockPanel { Margin = new Thickness(0, 2, 0, 4) };
+                var argsLabel = new TextBlock
+                {
+                    Text = "Arguments:",
+                    FontSize = 11,
+                    VerticalAlignment = VerticalAlignment.Center,
+                    Margin = new Thickness(0, 0, 6, 0)
+                };
+                argsLabel.SetResourceReference(TextBlock.ForegroundProperty, "WindowFore");
+                DockPanel.SetDock(argsLabel, Dock.Left);
+                argsDock.Children.Add(argsLabel);
+
+                var txtArgs = new TextBox
+                {
+                    Text = app.Arguments,
+                    Height = 22,
+                    FontSize = 11,
+                    VerticalContentAlignment = VerticalAlignment.Center,
+                    ToolTip = "Command line arguments ($file$ is replaced by model file path)"
+                };
+                txtArgs.TextChanged += (s, e) => app.Arguments = txtArgs.Text;
+                argsDock.Children.Add(txtArgs);
+                sp.Children.Add(argsDock);
+
+                // Row 4: Extension checkboxes
                 var extsWrap = new WrapPanel { Margin = new Thickness(0, 2, 0, 0) };
                 string[] allExts = { "stl", "3mf", "obj", "skp", "gcode" };
                 foreach (var ext in allExts)
@@ -287,8 +305,8 @@ namespace SolidModelBrowser
                     {
                         Content = "." + ext,
                         IsChecked = app.SupportsExtension(ext),
-                        Margin = new Thickness(0, 0, 8, 0),
-                        FontSize = 10
+                        Margin = new Thickness(0, 0, 10, 0),
+                        FontSize = 11
                     };
                     cb.Checked += (s, e) => updateAppExtensions(app, ext, true);
                     cb.Unchecked += (s, e) => updateAppExtensions(app, ext, false);
@@ -317,6 +335,7 @@ namespace SolidModelBrowser
         private void renderFileAssociationsList()
         {
             PanelAssociationsList.Children.Clear();
+            string args = TextAssocArgs.Text.Trim();
             foreach (var ext in FileAssociationManager.SupportedExtensions)
             {
                 string currentExt = ext;
@@ -324,12 +343,13 @@ namespace SolidModelBrowser
                 {
                     Content = $"3D Model {currentExt.ToUpperInvariant()} ({currentExt})",
                     IsChecked = FileAssociationManager.IsAssociated(currentExt),
-                    Margin = new Thickness(0, 2, 0, 2)
+                    Margin = new Thickness(0, 4, 16, 4),
+                    FontSize = 11
                 };
                 cb.Click += (s, e) =>
                 {
                     bool want = cb.IsChecked == true;
-                    FileAssociationManager.SetAssociation(currentExt, want);
+                    FileAssociationManager.SetAssociation(currentExt, want, args);
                     cb.IsChecked = FileAssociationManager.IsAssociated(currentExt);
                 };
                 PanelAssociationsList.Children.Add(cb);

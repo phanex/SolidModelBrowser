@@ -9,7 +9,7 @@ namespace SolidModelBrowser
         public ExportSTLBinary()
         {
             Extension = "stl";
-            Description = "STL Binary";
+            Description = "STL (*.stl)";
         }
 
         public override void Save(MeshGeometry3D mesh, string filename)

@@ -69,6 +69,9 @@ namespace SolidModelBrowser
         [PropertyInfo(Category = "Utils", Description = "External application command line arguments\r\nVariable $file$ = current filename", MenuLabel = "External Application Arguments")]
         public string ExternalAppArguments { get; set; } = "$file$";
 
+        [PropertyInfo(Category = "Utils", Description = "Command line arguments when opening via Windows file associations")]
+        public string FileAssociationArguments { get; set; } = "\"%1\"";
+
         [PropertyInfo(Category = "Utils", Description = "Configured external applications list")]
         public string ExternalAppsList { get; set; } = "";
 
@@ -163,7 +166,7 @@ namespace SolidModelBrowser
         public SColor EmissiveColor { get; set; } = new SColor("#FF101215");
 
         [PropertyInfo(Category = "Materials", Description = "Model backside diffuse color ARGB", MenuLabel = "Inner diffuse color", SortPrefix = "03")]
-        public SColor BackDiffuseColor { get; set; } = new SColor("#FFD9534F");
+        public SColor BackDiffuseColor { get; set; } = new SColor("#FFFF0000");
 
         [PropertyInfo(Category = "Materials", Description = "Value that specifies the degree to which a material applied to a 3-D model reflects the lighting model as shine", MenuLabel = "Specular power", Min = 0.0, Max = 10000.0)]
         public double SpecularPower { get; set; } = 40.0;

@@ -10,7 +10,7 @@ namespace SolidModelBrowser
         public Export3MF()
         {
             Extension = "3mf";
-            Description = "3MF";
+            Description = "3D Manufacturing Format (*.3mf)";
         }
 
         void addZipEntry(ZipArchive zip, string entryname, string content)

@@ -31,7 +31,7 @@ namespace SolidModelBrowser
             catch { return false; }
         }
 
-        public static bool SetAssociation(string extension, bool associate)
+        public static bool SetAssociation(string extension, bool associate, string args = "\"%1\"")
         {
             try
             {
@@ -56,7 +56,8 @@ namespace SolidModelBrowser
                         }
                         using (var cmdKey = progKey.CreateSubKey(@"shell\open\command"))
                         {
-                            cmdKey.SetValue("", $"\"{exePath}\" \"%1\"");
+                            string launchArgs = string.IsNullOrWhiteSpace(args) ? "\"%1\"" : args;
+                            cmdKey.SetValue("", $"\"{exePath}\" {launchArgs}");
                         }
                     }
                 }
