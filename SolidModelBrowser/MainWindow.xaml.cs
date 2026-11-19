@@ -207,7 +207,7 @@ namespace SolidModelBrowser
             MaxWidth = settings.MaxWidth < 1 ? scrsize.Width : Math.Max(settings.MaxWidth, MinWidth);
             MaxHeight = settings.MaxHeight < 1 ? scrsize.Height : Math.Max(settings.MaxHeight, MinHeight);
 
-            showInfo($"Solid Model Browser v {version}\r\nSTL, OBJ, 3MF, PLY, SKP, GCODE formats supported\r\n\r\nOriginal author: questfulcat (C) 2025\r\nEnhanced by: desmond\r\nSKP parser: OpenSkp by Ahsan Mehmood\r\nIcons: Coolicons by Vlad Shagov\r\nDistributed under MIT License\r\n\r\nF1 - keymap help");
+            showInfo($"Solid Model Browser v {version}\r\nSTL, OBJ, 3MF, PLY, SKP, GCODE formats supported\r\n\r\nOriginal project: questfulcat/SolidModelBrowser (C) 2025\r\nSKP parser: OpenSkp\r\nIcons: Coolicons\r\nDistributed under MIT License\r\n\r\nF1 - keymap help");
             this.ContentRendered += windowRendered;
         }
 
