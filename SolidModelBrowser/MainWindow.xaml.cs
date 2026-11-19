@@ -231,6 +231,9 @@ namespace SolidModelBrowser
 
             if (targetFile != null)
             {
+                this.WindowState = WindowState.Normal;
+                updateMaximizeRestoreButton();
+                ButtonShowModelInfo.IsChecked = true;
                 setFilePanelVisibility(false);
                 filePanel.SelectFile(targetFile, false);
                 loadFile(targetFile);
@@ -397,7 +400,6 @@ namespace SolidModelBrowser
                     meshBase = Utils.UnsmoothMesh(meshBase);
                 Utils.GetModelCenterAndSize(meshBase, out modelCenter, out modelPointsAvgCenter, out modelSize);
                 initSlicer();
-                scene.SetGroundZ(modelCenter.Z - modelSize.Z / 2.0);
                 updateMeshes(true);
                 scene.Camera.LookCenter = settings.DefaultLookAtModelPointsAvgCenter ? modelPointsAvgCenter : modelCenter;
                 scene.Camera.DefaultPosition(modelSize.Length, settings.CameraInitialShift);

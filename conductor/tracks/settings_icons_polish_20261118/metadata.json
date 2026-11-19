@@ -1,8 +1,0 @@
-{
-  "track_id": "settings_icons_polish_20261118",
-  "type": "Refactor / UI Polish",
-  "status": "planned",
-  "created_at": "2026-11-18T23:08:00Z",
-  "updated_at": "2026-11-18T23:08:00Z",
-  "description": "Settings dialog polish (Win32 TabControl, search, direct hex inputs, flyout picker, layout fix), multi-resolution pixel-perfect icon compilation, silent INI creation, and startup credits"
-}

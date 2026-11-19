@@ -3,7 +3,7 @@
 A lightweight, portable 3D model viewer and format converter for Windows (STL, 3MF, OBJ, PLY, SKP, G-Code).
 Browse 3D models and g-code files effortlessly with smooth navigation, floating HUD panels, and instant visual inspection.
 
-![cover01](https://github.com/user-attachments/assets/c996f67c-7100-4a8b-92c1-af75fd2d44bb)
+![Solid Model Browser](docs/preview_main.png)
 
 ## Requirements
 
@@ -48,8 +48,8 @@ No installation required — single portable executable. Settings file (`setting
 
 ## Credits & Acknowledgments
 
-- **Original Author:** Grigoriy E. (`questfulcat`), 2025 (C)
+- **Original Author:** [Grigoriy E. (questfulcat)](https://github.com/questfulcat/SolidModelBrowser), 2025 (C)
 - **Enhanced by:** Desmond
-- **SketchUp (.skp) Parser:** OpenSkp by [Ahsan Mehmood](https://github.com/ahsan-mehmood)
-- **Icons:** Coolicons by Vlad Shagov
-- **License:** Distributed under the MIT License
+- **SketchUp (.skp) Parser:** OpenSkp by [Ahsan Mehmood](https://github.com/iamahsanmehmood/openskp)
+- **Icons:** Coolicons by [Vlad Shagov](https://coolicons.cool/)
+- **License:** Distributed under the [MIT License](LICENSE.txt)

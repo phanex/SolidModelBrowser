@@ -2,7 +2,7 @@
 
 ## v0.7.0 (19.11.2026)
 
-- SketchUp format import added (`.skp` binary parser via OpenSkp by Ahsan Mehmood)
+- SketchUp format import added (`.skp` binary parser via OpenSkp by [Ahsan Mehmood](https://github.com/iamahsanmehmood/openskp))
 - Modern floating HUD UI architecture: File Navigation Panel and Model Info Card redesigned as frosted semi-transparent floating cards with uniform 16px window margins and rounded corners
 - Z-Height Slicer alignment: vertical slider and info box margins synchronized to uniform 16px geometry grid
 - Modern Windows 11 DWM Color Picker Flyout with rounded corners, native shadow, alpha channel slider, spectrum wheel, mouse wheel adjustment, and direct HEX code input

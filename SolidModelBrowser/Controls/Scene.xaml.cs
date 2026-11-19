@@ -139,52 +139,62 @@ namespace SolidModelBrowser
         // ground
 
         GeometryModel3D ground = new GeometryModel3D();
-        Rect lastGroundRect;
-        double lastCheckerSize;
-        Color lastGroundDiffuse;
-        Color lastGroundEmissive;
-        double currentGroundZ = 0.0;
 
         public void CreateGround(Rect r, double checkerSize, Color diffuseColor, Color emissiveColor)
         {
-            lastGroundRect = r;
-            lastCheckerSize = checkerSize;
-            lastGroundDiffuse = diffuseColor;
-            lastGroundEmissive = emissiveColor;
-            UpdateGroundMesh();
-        }
+            if (r.Width <= 0 || r.Height <= 0 || checkerSize <= 0) return;
 
-        public void SetGroundZ(double z)
-        {
-            currentGroundZ = z;
-            UpdateGroundMesh();
-        }
+            var p = new Point3DCollection();
+            var idx = new Int32Collection();
 
-        private void UpdateGroundMesh()
-        {
-            Rect r = lastGroundRect;
-            double checkerSize = lastCheckerSize;
-            if (r.Width == 0 || r.Height == 0 || checkerSize == 0) return;
+            double startX = r.Left;
+            double endX = r.Right;
+            double startY = r.Top;
+            double endY = r.Bottom;
 
-            double z = currentGroundZ;
-            var p = new Point3DCollection() {
-                new Point3D(r.Left, r.Top, z),
-                new Point3D(r.Right, r.Top, z),
-                new Point3D(r.Left, r.Bottom, z),
-                new Point3D(r.Right, r.Bottom, z)
-            };
-            var texcoord = new PointCollection() { new Point(0, 0), new Point(1, 0), new Point(0, 1), new Point(1, 1) };
-            var i = new Int32Collection() { 0, 1, 2, 1, 3, 2 };
-            var mesh = new MeshGeometry3D { Positions = p, TextureCoordinates = texcoord, TriangleIndices = i };
+            if (startX > endX) { double t = startX; startX = endX; endX = t; }
+            if (startY > endY) { double t = startY; startY = endY; endY = t; }
 
-            var geomcoll = new GeometryCollection() { new RectangleGeometry(new Rect(0, 0, 50, 50)), new RectangleGeometry(new Rect(50, 50, 50, 50)) };
-            var coloredDrawing = new GeometryDrawing() { Brush = new SolidColorBrush(lastGroundDiffuse), Geometry = new GeometryGroup() { Children = geomcoll } };
-            var drawingBrush = new DrawingBrush { Viewport = new Rect(0, 0, 2 * checkerSize / r.Width, 2 * checkerSize / r.Height), TileMode = TileMode.Tile, Drawing = coloredDrawing };
-            var diffuseMaterial = new DiffuseMaterial() { Brush = drawingBrush };
+            int numX = (int)Math.Ceiling((endX - startX) / checkerSize);
+            int numY = (int)Math.Ceiling((endY - startY) / checkerSize);
+
+            int vertIdx = 0;
+            for (int ix = 0; ix < numX; ix++)
+            {
+                double x0 = startX + ix * checkerSize;
+                double x1 = Math.Min(x0 + checkerSize, endX);
+
+                for (int iy = 0; iy < numY; iy++)
+                {
+                    if ((ix + iy) % 2 != 0) continue; // Only filled squares, empty squares have no geometry
+
+                    double y0 = startY + iy * checkerSize;
+                    double y1 = Math.Min(y0 + checkerSize, endY);
+
+                    p.Add(new Point3D(x0, y0, 0.0));
+                    p.Add(new Point3D(x1, y0, 0.0));
+                    p.Add(new Point3D(x0, y1, 0.0));
+                    p.Add(new Point3D(x1, y1, 0.0));
+
+                    // Triangles facing +Z (CCW winding)
+                    idx.Add(vertIdx);
+                    idx.Add(vertIdx + 1);
+                    idx.Add(vertIdx + 2);
+
+                    idx.Add(vertIdx + 1);
+                    idx.Add(vertIdx + 3);
+                    idx.Add(vertIdx + 2);
+
+                    vertIdx += 4;
+                }
+            }
+
+            var mesh = new MeshGeometry3D { Positions = p, TriangleIndices = idx };
+            var diffuseMaterial = new DiffuseMaterial(new SolidColorBrush(diffuseColor));
             var materialGroup = new MaterialGroup();
             materialGroup.Children.Add(diffuseMaterial);
-            if (lastGroundEmissive.A > 0)
-                materialGroup.Children.Add(new EmissiveMaterial() { Brush = new SolidColorBrush(lastGroundEmissive) });
+            if (emissiveColor.A > 0)
+                materialGroup.Children.Add(new EmissiveMaterial(new SolidColorBrush(emissiveColor)));
 
             ground.Geometry = mesh;
             ground.Material = materialGroup;

@@ -368,3 +368,8 @@ FodyWeavers.xsd
 # Local UI preview tools
 icon_preview.html
 open_preview.bat
+preview-ui.*
+ci_dist/
+conductor/
+.gemini/
+SolidModelBrowser.Tests/
