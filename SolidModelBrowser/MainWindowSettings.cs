@@ -96,8 +96,9 @@ namespace SolidModelBrowser
         {
             if (isVisible)
             {
-                double w = settings.FilePanelWidth > 50 ? settings.FilePanelWidth : 200;
+                double w = settings.FilePanelWidth > 50 ? settings.FilePanelWidth : 220;
                 FilePanelColumn.Width = new GridLength(w);
+                if (filePanelContainer != null) filePanelContainer.Visibility = Visibility.Visible;
                 filePanel.Visibility = Visibility.Visible;
                 FilePanelSplitter.Visibility = Visibility.Visible;
             }
@@ -106,6 +107,7 @@ namespace SolidModelBrowser
                 if (filePanel.Visibility == Visibility.Visible && FilePanelColumn.Width.Value > 20)
                     settings.FilePanelWidth = FilePanelColumn.Width.Value;
                 FilePanelColumn.Width = new GridLength(0);
+                if (filePanelContainer != null) filePanelContainer.Visibility = Visibility.Collapsed;
                 filePanel.Visibility = Visibility.Collapsed;
                 FilePanelSplitter.Visibility = Visibility.Collapsed;
             }

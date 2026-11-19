@@ -1,5 +1,18 @@
 # Solid Model Browser, change log
 
+## v0.7.0 (19.11.2026)
+
+- SketchUp format import added (`.skp` binary parser via OpenSkp by Ahsan Mehmood)
+- Modern floating HUD UI architecture: File Navigation Panel and Model Info Card redesigned as frosted semi-transparent floating cards with uniform 16px window margins and rounded corners
+- Z-Height Slicer alignment: vertical slider and info box margins synchronized to uniform 16px geometry grid
+- Modern Windows 11 DWM Color Picker Flyout with rounded corners, native shadow, alpha channel slider, spectrum wheel, mouse wheel adjustment, and direct HEX code input
+- Settings Form overhaul: modern system visual styles, External Applications manager with auto-detect (Cura, PrusaSlicer, OrcaSlicer, etc.), and file type association manager
+- Direct binary export via native `SaveFileDialog` (STL, Wavefront OBJ, 3MF, PLY) without modal blocking or background blur
+- Shading mode toggle on toolbar with duotone icons: Solid, Solid + Wireframe, and Wireframe
+- Multi-resolution file icons compiled with complete 10-frame sets (16, 20, 24, 28, 32, 40, 48, 64, 96, and 256px) for crisp rendering in Windows Explorer
+- Automatic CLI screenshot generation flag: `--screenshot <output.png> [--sidebar]`
+- Model Z-slicing fix: slider at maximum height bypasses mesh slicing, rendering full model directly without top-layer clipping
+
 ## v0.6.1 (23.04.2025)
 
 - Added settings to GCODE import (Layer height, Line width)

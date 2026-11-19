@@ -205,7 +205,7 @@ namespace SolidModelBrowser
             MaxWidth = settings.MaxWidth < 1 ? scrsize.Width : Math.Max(settings.MaxWidth, MinWidth);
             MaxHeight = settings.MaxHeight < 1 ? scrsize.Height : Math.Max(settings.MaxHeight, MinHeight);
 
-            showInfo($"Solid Model Browser v {version}\r\nSTL, OBJ, 3MF, PLY, SKP, GCODE formats supported\r\n\r\nOriginal author: questfulcat (C) 2025\r\nEnhanced by: desmond\r\nIcons: Coolicons by Vlad Shagov\r\nDistributed under MIT License\r\n\r\nF1 - keymap help");
+            showInfo($"Solid Model Browser v {version}\r\nSTL, OBJ, 3MF, PLY, SKP, GCODE formats supported\r\n\r\nOriginal author: questfulcat (C) 2025\r\nEnhanced by: desmond\r\nSKP parser: OpenSkp by Ahsan Mehmood\r\nIcons: Coolicons by Vlad Shagov\r\nDistributed under MIT License\r\n\r\nF1 - keymap help");
             this.ContentRendered += windowRendered;
         }
 
@@ -224,6 +224,33 @@ namespace SolidModelBrowser
                 setFilePanelVisibility(true);
             }
             this.ContentRendered -= windowRendered;
+
+            // CLI Screenshot handler: --screenshot <outPath> [--sidebar]
+            for (int i = 1; i < args.Length; i++)
+            {
+                if (args[i].Equals("--screenshot", StringComparison.OrdinalIgnoreCase) && i + 1 < args.Length)
+                {
+                    string outPng = args[i + 1];
+                    bool withSidebar = false;
+                    for (int j = 1; j < args.Length; j++)
+                    {
+                        if (args[j].Equals("--sidebar", StringComparison.OrdinalIgnoreCase)) withSidebar = true;
+                    }
+                    if (withSidebar) setFilePanelVisibility(true);
+
+                    this.Dispatcher.BeginInvoke(new Action(() =>
+                    {
+                        this.UpdateLayout();
+                        try
+                        {
+                            Utils.RenderElementToPNG(this, outPng, 96);
+                        }
+                        catch { }
+                        Application.Current.Shutdown();
+                    }), System.Windows.Threading.DispatcherPriority.Loaded);
+                    break;
+                }
+            }
         }
         
 

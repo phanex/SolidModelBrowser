@@ -282,13 +282,26 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <!-- Opaque File Navigation Panel (Hidden by default, zero startup flicker) -->
-                <local:FileNavigationPanel x:Name="filePanel" Visibility="Collapsed" Background="{DynamicResource PanelBack}" Foreground="{DynamicResource WindowFore}" Padding="0,0,5,0" Grid.Column="0"/>
+                <!-- Floating File Navigation Panel HUD Card matching infoContainer -->
+                <Border x:Name="filePanelContainer" Grid.Column="0"
+                        Margin="16,16,6,16"
+                        CornerRadius="6"
+                        Background="{DynamicResource InfoPanel}"
+                        BorderBrush="{DynamicResource ButtonBorder}"
+                        BorderThickness="1"
+                        Visibility="Collapsed"
+                        SnapsToDevicePixels="True"
+                        ClipToBounds="True">
+                    <local:FileNavigationPanel x:Name="filePanel"
+                                               Background="Transparent"
+                                               Foreground="{DynamicResource WindowFore}"
+                                               Padding="6,6,6,6"/>
+                </Border>
 
-                <GridSplitter x:Name="FilePanelSplitter" Visibility="Collapsed" Background="{DynamicResource TransparentHandle}" Width="5" HorizontalAlignment="Right" VerticalAlignment="Stretch" ResizeBehavior="CurrentAndNext"/>
+                <GridSplitter x:Name="FilePanelSplitter" Visibility="Collapsed" Background="{DynamicResource TransparentHandle}" Width="6" HorizontalAlignment="Right" VerticalAlignment="Stretch" ResizeBehavior="CurrentAndNext"/>
 
                 <!-- Model Info Floating HUD Card (Toggled via I key, cleared from right slider) -->
-                <Border x:Name="infoContainer" Margin="16,16,44,16" CornerRadius="6" Background="{DynamicResource InfoPanel}" BorderBrush="{DynamicResource ButtonBorder}" BorderThickness="1" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Bottom" Padding="14,10" SnapsToDevicePixels="True">
+                <Border x:Name="infoContainer" Margin="16,16,48,16" CornerRadius="6" Background="{DynamicResource InfoPanel}" BorderBrush="{DynamicResource ButtonBorder}" BorderThickness="1" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Bottom" Padding="14,10" SnapsToDevicePixels="True">
                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                         <TextBlock x:Name="textBlockInfo" FontSize="11" LineHeight="18" LineStackingStrategy="BlockLineHeight" Foreground="{DynamicResource WindowFore}" TextWrapping="Wrap" />
                     </ScrollViewer>
@@ -300,7 +313,7 @@
                 </Border>
 
                 <!-- Z-Height Slicer (Vertical on Right, Circular Thumb) -->
-                <Border Grid.Column="1" HorizontalAlignment="Right" Margin="8,24,18,24">
+                <Border Grid.Column="1" HorizontalAlignment="Right" Margin="0,16,16,16">
                     <Slider x:Name="sliderSliceHeight" Orientation="Vertical" SnapsToDevicePixels="True"/>
                 </Border>
             </Grid>

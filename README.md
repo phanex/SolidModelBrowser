@@ -1,7 +1,7 @@
 # Solid Model Browser
 
-This app is viewer and converter for STL, 3MF, OBJ, PLY, GCODE files.
-User can select files in left file panel and observe it's 3D content.
+A lightweight, portable 3D model viewer and format converter for Windows (STL, 3MF, OBJ, PLY, SKP, G-Code).
+Browse 3D models and g-code files effortlessly with smooth navigation, floating HUD panels, and instant visual inspection.
 
 ![cover01](https://github.com/user-attachments/assets/c996f67c-7100-4a8b-92c1-af75fd2d44bb)
 
@@ -11,46 +11,45 @@ User can select files in left file panel and observe it's 3D content.
 
 ## Installation
 
-No installation needed, just copy executable to any empty folder. Settings file with defaults will be created after first startup.
-
-## Build
-
-Build project with Visual Studio 2022
+No installation required — single portable executable. Settings file (`settings.ini`) is created automatically on first startup in the app directory or `%LocalAppData%`.
 
 ## Features
 
-- Open binary and ASCII STL files, load main 3Dmodel from 3MF files (CURA projects), partial support for OBJ files with triangle faces, PLY (ASCII and binary little-endian), experimental GCODE support with linear movements (Marlin compatible codes)
+- **Supported 3D Formats:**
+  - **STL** (Binary and ASCII)
+  - **3MF** (3D Manufacturing Format, full mesh and components)
+  - **OBJ** (Wavefront OBJ with triangulated faces)
+  - **PLY** (Polygon File Format, ASCII and binary little-endian)
+  - **SKP** (SketchUp binary models via OpenSkp parser)
+  - **G-Code** (Marlin / linear movement toolpaths visualization)
 
-- Export model to file formats STL (ASCII/Bin), 3MF (simplified), OBJ, PLY (ASCII/Bin)
+- **Direct Export:**
+  - Fast binary export via native `SaveFileDialog` (STL, Wavefront OBJ, 3MF, PLY).
 
-- Model slicing along Z axis (mostly to view GCODE layers) with vertical slider.
+- **Modern Floating HUD Interface:**
+  - Frosted semi-transparent floating cards for File Navigation and Model Metadata.
+  - Symmetrical 16px window margins and unified rounded corners.
+  - Z-Height Slicer with circular knob for layer-by-layer inspection (bypassed at 100% for full mesh rendering).
 
-![Image](https://github.com/user-attachments/assets/cae961b2-a81f-4781-9cdd-b1b331ee9393)
+- **Shading Modes & Viewport:**
+  - Instant toggle between **Solid**, **Solid + Wireframe**, and **Wireframe** shading.
+  - Flat/CAD shading toggle (`Ctrl+F`).
+  - Perspective and Orthographic camera projection modes, plus Fish-Eye FOV model.
+  - Ground plane and coordinate XYZ axes.
 
-- Fly camera around model
+- **Lighting & Color Customization:**
+  - Windows 11 DWM Color Picker with alpha slider, mouse wheel adjustments, and direct HEX input.
+  - Configurable Diffuse, Specular, Emissive, Ambient, Directional lights, and Backside coloring.
+  - Dark and Light application themes.
 
-- Save current view from camera to PNG with selected DPI (in settings file)
+- **CLI & Automation:**
+  - Open model directly: `SolidModelBrowser.exe "model.stl"`
+  - Render off-screen snapshot to PNG: `SolidModelBrowser.exe "model.stl" --screenshot "preview.png" [--sidebar]`
 
-- Open current file with local installed application like slicer or 3D editor
+## Credits & Acknowledgments
 
-- Rotate model
-
-- Set up materials for model and scene lights
-
-- Perspective and orthographic camera modes, fish eye FOV model
-
-- Show XYZ axes and ground plane
-
-- Resolve normals problems, polygon vertex order
-
-- Show basic model info
-
-- Dark and Light app themes
-
-![img01](https://github.com/user-attachments/assets/dd72c856-e867-4916-bc21-bff514890afe)
-
-## Other Screenshots
-
-![img02](https://github.com/user-attachments/assets/03dd9a9f-9a7e-477d-a349-92937fc5d4d3)
-
-![img03](https://github.com/user-attachments/assets/dc0cea81-80e8-407a-b1f1-e9d900b76b83)
+- **Original Author:** Grigoriy E. (`questfulcat`), 2025 (C)
+- **Enhanced by:** Desmond
+- **SketchUp (.skp) Parser:** OpenSkp by [Ahsan Mehmood](https://github.com/ahsan-mehmood)
+- **Icons:** Coolicons by Vlad Shagov
+- **License:** Distributed under the MIT License

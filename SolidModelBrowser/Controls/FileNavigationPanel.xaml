@@ -6,18 +6,19 @@
              xmlns:local="clr-namespace:SolidModelBrowser"
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300"
+             Background="Transparent"
              SnapsToDevicePixels="True" UseLayoutRounding="True">
     <UserControl.Resources>
         <Style TargetType="RadioButton" BasedOn="{StaticResource {x:Type ToggleButton}}" />
     </UserControl.Resources>
-    <DockPanel DockPanel.Dock="Left" >
+    <DockPanel DockPanel.Dock="Left">
         <!--ComboBox DockPanel.Dock="Top" Name="comboBoxDisk"></ComboBox-->
         <WrapPanel Name="drivesWrapPanel" DockPanel.Dock="Top" Margin="4,4,4,4"></WrapPanel>
         <ListBox BorderThickness="0" FocusVisualStyle="{x:Null}"
                  HorizontalContentAlignment="Stretch"
                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                  Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
-                 Background="{Binding Path=Background, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
+                 Background="Transparent"
                  Name="listBoxFiles" SnapsToDevicePixels="True" UseLayoutRounding="True"></ListBox>
     </DockPanel>
 </UserControl>
