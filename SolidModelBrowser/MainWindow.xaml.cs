@@ -37,6 +37,7 @@ namespace SolidModelBrowser
         string lastFilename;
 
         DispatcherTimer loadingTimer = new DispatcherTimer() { Interval = new TimeSpan(0, 0, 0, 0, 100), IsEnabled = false };
+        string pendingScreenshotPath = null;
 
         Settings settings = new Settings();
 
@@ -212,12 +213,26 @@ namespace SolidModelBrowser
         void windowRendered(object s, EventArgs a)
         {
             var args = Environment.GetCommandLineArgs();
-            bool hasFileArg = args.Length >= 2 && File.Exists(args[1]) && Import.SelectImporter(args[1]);
-            if (hasFileArg)
+            string targetFile = null;
+            for (int i = 1; i < args.Length; i++)
+            {
+                if (args[i].StartsWith("--", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (args[i].Equals("--screenshot", StringComparison.OrdinalIgnoreCase)) i++;
+                    continue;
+                }
+                if (File.Exists(args[i]) && Import.SelectImporter(args[i]))
+                {
+                    targetFile = Path.GetFullPath(args[i]);
+                    break;
+                }
+            }
+
+            if (targetFile != null)
             {
                 setFilePanelVisibility(false);
-                filePanel.SelectFile(args[1], false);
-                loadFile(args[1]);
+                filePanel.SelectFile(targetFile, false);
+                loadFile(targetFile);
             }
             else
             {
@@ -230,7 +245,7 @@ namespace SolidModelBrowser
             {
                 if (args[i].Equals("--screenshot", StringComparison.OrdinalIgnoreCase) && i + 1 < args.Length)
                 {
-                    string outPng = args[i + 1];
+                    pendingScreenshotPath = Path.GetFullPath(args[i + 1]);
                     bool withSidebar = false;
                     for (int j = 1; j < args.Length; j++)
                     {
@@ -238,16 +253,19 @@ namespace SolidModelBrowser
                     }
                     if (withSidebar) setFilePanelVisibility(true);
 
-                    this.Dispatcher.BeginInvoke(new Action(() =>
+                    if (targetFile == null)
                     {
-                        this.UpdateLayout();
-                        try
+                        this.Dispatcher.BeginInvoke(new Action(() =>
                         {
-                            Utils.RenderElementToPNG(this, outPng, 96);
-                        }
-                        catch { }
-                        Application.Current.Shutdown();
-                    }), System.Windows.Threading.DispatcherPriority.Loaded);
+                            this.UpdateLayout();
+                            try
+                            {
+                                Utils.RenderElementToPNG(this, pendingScreenshotPath, 96);
+                            }
+                            catch { }
+                            Application.Current.Shutdown();
+                        }), System.Windows.Threading.DispatcherPriority.Loaded);
+                    }
                     break;
                 }
             }
@@ -357,6 +375,17 @@ namespace SolidModelBrowser
                 {
                     clearView();
                     showInfo(Import.ExceptionMessage);
+                    if (!string.IsNullOrEmpty(pendingScreenshotPath))
+                    {
+                        string targetPng = pendingScreenshotPath;
+                        pendingScreenshotPath = null;
+                        this.Dispatcher.BeginInvoke(new Action(() =>
+                        {
+                            this.UpdateLayout();
+                            try { Utils.RenderElementToPNG(this, targetPng, 96); } catch { }
+                            Application.Current.Shutdown();
+                        }), System.Windows.Threading.DispatcherPriority.Loaded);
+                    }
                     return;
                 }
 
@@ -381,12 +410,39 @@ namespace SolidModelBrowser
                 if (Import.CurrentImport.InitialRotationX != 0.0) addRotation(Import.CurrentImport.InitialRotationX, 0, 0);
                 if (ButtonShowModelInfo.IsChecked.Value) showModelInfo();
                 else hideInfo();
+
+                if (!string.IsNullOrEmpty(pendingScreenshotPath))
+                {
+                    string targetPng = pendingScreenshotPath;
+                    pendingScreenshotPath = null;
+                    this.Dispatcher.BeginInvoke(new Action(() =>
+                    {
+                        this.UpdateLayout();
+                        try
+                        {
+                            Utils.RenderElementToPNG(this, targetPng, 96);
+                        }
+                        catch { }
+                        Application.Current.Shutdown();
+                    }), System.Windows.Threading.DispatcherPriority.Loaded);
+                }
             }
             catch (Exception exc)
             {
                 loadingTimer.Stop();
                 clearView();
                 showInfo(exc.Message);
+                if (!string.IsNullOrEmpty(pendingScreenshotPath))
+                {
+                    string targetPng = pendingScreenshotPath;
+                    pendingScreenshotPath = null;
+                    this.Dispatcher.BeginInvoke(new Action(() =>
+                    {
+                        this.UpdateLayout();
+                        try { Utils.RenderElementToPNG(this, targetPng, 96); } catch { }
+                        Application.Current.Shutdown();
+                    }), System.Windows.Threading.DispatcherPriority.Loaded);
+                }
             }
         }
                 
@@ -405,9 +461,27 @@ namespace SolidModelBrowser
                     Import.StopFlag = true;
                     currentTask.Wait(3000);
                 }
-                currentTask?.Dispose();
+                if (currentTask != null && (currentTask.IsCompleted || currentTask.IsFaulted || currentTask.IsCanceled))
+                {
+                    try { currentTask.Dispose(); } catch { }
+                }
 
-                if (!Import.SelectImporter(filename)) { clearView(); return; }
+                if (!Import.SelectImporter(filename))
+                {
+                    clearView();
+                    if (!string.IsNullOrEmpty(pendingScreenshotPath))
+                    {
+                        string targetPng = pendingScreenshotPath;
+                        pendingScreenshotPath = null;
+                        this.Dispatcher.BeginInvoke(new Action(() =>
+                        {
+                            this.UpdateLayout();
+                            try { Utils.RenderElementToPNG(this, targetPng, 96); } catch { }
+                            Application.Current.Shutdown();
+                        }), System.Windows.Threading.DispatcherPriority.Loaded);
+                    }
+                    return;
+                }
 
                 currentTask = new Task(() =>
                 {
