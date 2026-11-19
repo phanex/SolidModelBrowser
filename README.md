@@ -48,7 +48,7 @@ No installation required — single portable executable. Settings file (`setting
 
 ## Credits & Acknowledgments
 
-- **Original Project:** [questfulcat/SolidModelBrowser](https://github.com/questfulcat/SolidModelBrowser) (C) 2025
+- **Original Project:** [SolidModelBrowser](https://github.com/questfulcat/SolidModelBrowser)
 - **SketchUp (.skp) Parser:** [OpenSkp](https://github.com/iamahsanmehmood/openskp)
 - **Icons:** [Coolicons](https://coolicons.cool/)
 - **License:** Distributed under the [MIT License](LICENSE.txt)

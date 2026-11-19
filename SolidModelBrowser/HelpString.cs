@@ -34,7 +34,7 @@ I - show/hide model info
 Tab, F9, CTRL+B - Show/hide file browser panel
 LeftShift - hold left shift to drag window by viewport
 
-Original project: questfulcat/SolidModelBrowser (C) 2025
+Original project: SolidModelBrowser
 SKP parser: OpenSkp
 Icons: Coolicons";
     }
