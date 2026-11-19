@@ -33,18 +33,14 @@ No installation required — single portable executable. Settings file (`setting
 
 - **Shading Modes & Viewport:**
   - Instant toggle between **Solid**, **Solid + Wireframe**, and **Wireframe** shading.
-  - Flat/CAD shading toggle (`Ctrl+F`).
-  - Perspective and Orthographic camera projection modes, plus Fish-Eye FOV model.
+  - Flat and smooth shading modes.
+  - Perspective, Orthographic, and Fish-Eye camera projection modes.
   - Ground plane and coordinate XYZ axes.
 
 - **Lighting & Color Customization:**
   - Windows 11 DWM Color Picker with alpha slider, mouse wheel adjustments, and direct HEX input.
   - Configurable Diffuse, Specular, Emissive, Ambient, Directional lights, and Backside coloring.
   - Dark and Light application themes.
-
-- **CLI & Automation:**
-  - Open model directly: `SolidModelBrowser.exe "model.stl"`
-  - Render off-screen snapshot to PNG: `SolidModelBrowser.exe "model.stl" --screenshot "preview.png" [--sidebar]`
 
 ## Credits & Acknowledgments
 
