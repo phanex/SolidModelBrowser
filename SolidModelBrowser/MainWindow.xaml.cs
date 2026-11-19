@@ -907,41 +907,6 @@ namespace SolidModelBrowser
         protected override void OnSourceInitialized(EventArgs e)
         {
             base.OnSourceInitialized(e);
-            HwndSource source = PresentationSource.FromVisual(this) as HwndSource;
-            source?.AddHook(WndProc);
-        }
-
-        private const int WM_NCHITTEST = 0x0084;
-        private const int HTMAXBUTTON = 9;
-        private const int WM_NCLBUTTONUP = 0x00A2;
-
-        private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
-        {
-            if (msg == WM_NCHITTEST && ButtonMaximize != null && ButtonMaximize.IsVisible)
-            {
-                try
-                {
-                    int x = unchecked((short)(long)lParam);
-                    int y = unchecked((short)((long)lParam >> 16));
-                    Point screenPoint = new Point(x, y);
-
-                    Point buttonPos = ButtonMaximize.PointToScreen(new Point(0, 0));
-                    Rect buttonRect = new Rect(buttonPos.X, buttonPos.Y, ButtonMaximize.ActualWidth, ButtonMaximize.ActualHeight);
-
-                    if (buttonRect.Contains(screenPoint))
-                    {
-                        handled = true;
-                        return new IntPtr(HTMAXBUTTON);
-                    }
-                }
-                catch { }
-            }
-            else if (msg == WM_NCLBUTTONUP && wParam.ToInt32() == HTMAXBUTTON)
-            {
-                WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
-                handled = true;
-            }
-            return IntPtr.Zero;
         }
 
         void export()
