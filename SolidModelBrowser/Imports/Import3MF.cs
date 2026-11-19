@@ -205,7 +205,7 @@ namespace SolidModelBrowser
                     model = readZipEntry(zfile, path);
                     resources = getTag(model, "resources", false);
                     objects = getTags(resources, "object", false);
-                    componentCache.Add(path, objects);
+                    componentCache[path] = objects;
                 }
             }
             else // if no path specified use local model
@@ -223,6 +223,7 @@ namespace SolidModelBrowser
 
         public override void Load(string filename)
         {
+            componentCache.Clear();
             basepos = 0;
             string model;
             using (var zfile = ZipFile.OpenRead(filename))

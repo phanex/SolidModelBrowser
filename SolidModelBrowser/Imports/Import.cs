@@ -74,7 +74,7 @@ namespace SolidModelBrowser
             foreach(var i in Imports)
             {
                 var d = lightTheme ? i.ExtensionsColorsLight : i.ExtensionsColors;
-                foreach (var c in d) cd.Add(c.Key, c.Value);
+                foreach (var c in d) cd[c.Key] = c.Value;
             }
         }
     }

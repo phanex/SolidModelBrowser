@@ -73,7 +73,7 @@ namespace SolidModelBrowser
                     {
                         var s = line.Substring(i1 + 12).Trim().Split(separator, StringSplitOptions.RemoveEmptyEntries);
                         if (s.Length != 3) throw new Exception($"Bad format, line {c} '{line}' should have 3 values");
-                        var v = new Vector3D(double.Parse(s[0]), double.Parse(s[1]), double.Parse(s[2]));
+                        var v = new Vector3D(double.Parse(s[0], System.Globalization.CultureInfo.InvariantCulture), double.Parse(s[1], System.Globalization.CultureInfo.InvariantCulture), double.Parse(s[2], System.Globalization.CultureInfo.InvariantCulture));
                         Normals.Add(v);
                         Normals.Add(v);
                         Normals.Add(v);
@@ -89,7 +89,7 @@ namespace SolidModelBrowser
                         {
                             var s = line.Substring(i2 + 6).Trim().Split(separator, StringSplitOptions.RemoveEmptyEntries);
                             if (s.Length != 3) throw new Exception($"Bad format, line {c} '{line}' should have 3 values");
-                            var p = new Point3D(double.Parse(s[0]), double.Parse(s[1]), double.Parse(s[2]));
+                            var p = new Point3D(double.Parse(s[0], System.Globalization.CultureInfo.InvariantCulture), double.Parse(s[1], System.Globalization.CultureInfo.InvariantCulture), double.Parse(s[2], System.Globalization.CultureInfo.InvariantCulture));
                             Positions.Add(p);
                         }
                     }

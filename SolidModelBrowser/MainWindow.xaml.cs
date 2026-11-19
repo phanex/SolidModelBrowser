@@ -174,6 +174,7 @@ namespace SolidModelBrowser
             ButtonChangeTheme.Click += (s, e) => { currentSessionLightTheme = !currentSessionLightTheme; applySessionTheme(currentSessionLightTheme); };
             ButtonMinimize.Click += (s, e) => WindowState = WindowState.Minimized;
             ButtonMaximize.Click += (s, e) => WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+            this.StateChanged += (s, e) => updateMaximizeRestoreButton();
             ButtonClose.Click += (s, e) => Close();
 
             scene.ShiftAndDrag += (s, e) => this.DragMove();
@@ -185,7 +186,6 @@ namespace SolidModelBrowser
             filePanel.Extensions = new List<string>();
             foreach (Import importer in Import.Imports) filePanel.Extensions.AddRange(importer.Extensions);
             filePanel.Opacity = 1.0;
-            filePanel.SelectionChanged += (s, e) => clearView();
             filePanel.FileNavigated += (s, filename) => loadFile(filename);
             filePanel.DirectoryChanged += (s, e) =>
             {
@@ -198,6 +198,7 @@ namespace SolidModelBrowser
             loadingTimer.Tick += LoadingTimer_Tick;
 
             loadSettings();
+            updateMaximizeRestoreButton();
             this.Closing += (s, e) => saveSettings();
             Import.BindSettings(settings);
 
@@ -367,7 +368,7 @@ namespace SolidModelBrowser
                 borderProgressContainer.Visibility = Visibility.Visible;
                 borderProgress.Width = Import.Progress < 0 ? 0 : (Import.Progress > 100 ? 100 : Import.Progress);
 
-                if (currentTask?.Status == TaskStatus.Running) return;
+                if (currentTask != null && !currentTask.IsCompleted) return;
                 loadingTimer.Stop();
                 borderProgressContainer.Visibility = Visibility.Hidden;
 
@@ -396,6 +397,7 @@ namespace SolidModelBrowser
                     meshBase = Utils.UnsmoothMesh(meshBase);
                 Utils.GetModelCenterAndSize(meshBase, out modelCenter, out modelPointsAvgCenter, out modelSize);
                 initSlicer();
+                scene.SetGroundZ(modelCenter.Z - modelSize.Z / 2.0);
                 updateMeshes(true);
                 scene.Camera.LookCenter = settings.DefaultLookAtModelPointsAvgCenter ? modelPointsAvgCenter : modelCenter;
                 scene.Camera.DefaultPosition(modelSize.Length, settings.CameraInitialShift);
@@ -453,13 +455,16 @@ namespace SolidModelBrowser
             if (!File.Exists(filename)) return;
             string dir = Path.GetDirectoryName(filename);
             if (!string.IsNullOrEmpty(dir) && Directory.Exists(dir)) settings.SelectedPath = dir;
-            lastFilename = null;
+            lastFilename = filename;
+            string bare = Path.GetFileName(filename);
+            textBlockTitle.Text = bare;
+            this.Title = bare;
             try
             {
-                if (currentTask?.Status == TaskStatus.Running)
+                if (currentTask != null && !currentTask.IsCompleted)
                 {
                     Import.StopFlag = true;
-                    currentTask.Wait(3000);
+                    try { currentTask.Wait(3000); } catch { }
                 }
                 if (currentTask != null && (currentTask.IsCompleted || currentTask.IsFaulted || currentTask.IsCanceled))
                 {
@@ -637,15 +642,15 @@ namespace SolidModelBrowser
 
             if (proj == CameraProjection.Perspective)
             {
-                ButtonSelectCamera.ToolTip = "Camera: Perspective (Click for Orthographic) [F8]";
+                ButtonSelectCamera.ToolTip = "Camera: Perspective [F8]\r\nClick to switch to Orthographic";
             }
             else if (proj == CameraProjection.Orthographic)
             {
-                ButtonSelectCamera.ToolTip = "Camera: Orthographic (Click for Fisheye) [F8]";
+                ButtonSelectCamera.ToolTip = "Camera: Orthographic [F8]\r\nClick to switch to Fisheye";
             }
             else // Fisheye
             {
-                ButtonSelectCamera.ToolTip = "Camera: Fisheye (Click for Perspective) [F8]";
+                ButtonSelectCamera.ToolTip = "Camera: Fisheye [F8]\r\nClick to switch to Perspective";
             }
         }
 
@@ -664,20 +669,36 @@ namespace SolidModelBrowser
             if (mode == ShadingMode.Solid)
             {
                 scene.SetShadingVisibility(true, false);
-                ButtonWireframe.ToolTip = "Switch to Solid + Wireframe [Ctrl+W / 1,2,3]";
+                ButtonWireframe.ToolTip = "Shading: Solid [Ctrl+W / 1]\r\nClick to switch to Solid + Wireframe";
             }
             else if (mode == ShadingMode.SolidAndWireframe)
             {
                 scene.SetShadingVisibility(true, true);
-                ButtonWireframe.ToolTip = "Switch to Wireframe [Ctrl+W / 1,2,3]";
+                ButtonWireframe.ToolTip = "Shading: Solid + Wireframe [Ctrl+W / 2]\r\nClick to switch to Wireframe";
             }
             else // Wireframe
             {
                 scene.SetShadingVisibility(false, true);
-                ButtonWireframe.ToolTip = "Switch to Solid [Ctrl+W / 1,2,3]";
+                ButtonWireframe.ToolTip = "Shading: Wireframe [Ctrl+W / 3]\r\nClick to switch to Solid";
             }
             scene.UpdateWireframeColor(mode == ShadingMode.Wireframe, currentSessionLightTheme, settings.DiffuseColor.Color);
             updateMeshes(false);
+        }
+
+        void updateMaximizeRestoreButton()
+        {
+            if (this.WindowState == WindowState.Maximized)
+            {
+                if (PathMaximize != null) PathMaximize.Visibility = Visibility.Collapsed;
+                if (PathRestore != null) PathRestore.Visibility = Visibility.Visible;
+                if (ButtonMaximize != null) ButtonMaximize.ToolTip = "Restore";
+            }
+            else
+            {
+                if (PathMaximize != null) PathMaximize.Visibility = Visibility.Visible;
+                if (PathRestore != null) PathRestore.Visibility = Visibility.Collapsed;
+                if (ButtonMaximize != null) ButtonMaximize.ToolTip = "Maximize";
+            }
         }
 
         private void Handler_MouseDown(object sender, MouseButtonEventArgs e)
@@ -726,11 +747,13 @@ namespace SolidModelBrowser
                     settings = new Settings();
                     saveSettings();
                     loadSettings();
+                    updateMaximizeRestoreButton();
                 }
                 else if (result == System.Windows.Forms.DialogResult.OK)
                 {
                     saveSettings();
                     loadSettings();
+                    updateMaximizeRestoreButton();
                 }
                 else if (settingsForm.WindowResult == SettingsWindowResult.OpenEditor)
                 {

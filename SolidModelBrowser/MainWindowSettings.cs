@@ -30,6 +30,7 @@ namespace SolidModelBrowser
             settings.IsFishEyeModeEnabled = currentCameraProjection == CameraProjection.Fisheye;
             settings.IsAxesEnabled = ButtonAxes.IsChecked.Value;
             settings.IsGroundEnabled = ButtonGround.IsChecked.Value;
+            settings.ShowModelInfo = ButtonShowModelInfo.IsChecked == true;
 
             settings.Save();
         }
@@ -60,6 +61,7 @@ namespace SolidModelBrowser
             ButtonFishEyeFOV.IsChecked = settings.IsFishEyeModeEnabled;
             ButtonAxes.IsChecked = settings.IsAxesEnabled;
             ButtonGround.IsChecked = settings.IsGroundEnabled;
+            ButtonShowModelInfo.IsChecked = settings.ShowModelInfo;
 
             if (settings.IsFishEyeModeEnabled)
                 currentCameraProjection = CameraProjection.Fisheye;

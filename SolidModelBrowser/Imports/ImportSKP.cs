@@ -74,7 +74,7 @@ namespace SolidModelBrowser
                     // glTF coordinate frame (X right, Y up, -Z forward) -> SketchUp & SolidModelBrowser (X right, Y forward, Z up)
                     if (prim.Positions != null)
                     {
-                        for (int i = 0; i < prim.Positions.Length; i += 3)
+                        for (int i = 0; i + 2 < prim.Positions.Length; i += 3)
                         {
                             float gx = prim.Positions[i] * 1000.0f;
                             float gy = prim.Positions[i + 1] * 1000.0f;
@@ -90,7 +90,7 @@ namespace SolidModelBrowser
                     // Unpack flat normal array (NX, NY, NZ triplets transformed matching position mapping)
                     if (prim.Normals != null)
                     {
-                        for (int i = 0; i < prim.Normals.Length; i += 3)
+                        for (int i = 0; i + 2 < prim.Normals.Length; i += 3)
                         {
                             float gnx = prim.Normals[i];
                             float gny = prim.Normals[i + 1];
@@ -104,11 +104,24 @@ namespace SolidModelBrowser
                     }
 
                     // Unpack triangle vertex indices
-                    if (prim.Indices != null)
+                    if (prim.Indices != null && prim.Indices.Length > 0)
                     {
+                        int maxVertIdx = (prim.Positions != null ? prim.Positions.Length / 3 : 0);
                         for (int i = 0; i < prim.Indices.Length; i++)
                         {
-                            Indices.Add(baseIndex + (int)prim.Indices[i]);
+                            int idx = (int)prim.Indices[i];
+                            if (idx >= 0 && idx < maxVertIdx)
+                            {
+                                Indices.Add(baseIndex + idx);
+                            }
+                        }
+                    }
+                    else if (prim.Positions != null)
+                    {
+                        int numV = prim.Positions.Length / 3;
+                        for (int i = 0; i < numV; i++)
+                        {
+                            Indices.Add(baseIndex + i);
                         }
                     }
 

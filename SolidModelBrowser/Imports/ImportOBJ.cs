@@ -55,9 +55,13 @@ namespace SolidModelBrowser
                     for (int i = 1; i < p.Length; i++)
                     {
                         var p2 = p[i].Split('/');
-                        int pos = int.Parse(p2[0]) - 1;
-                        Positions.Add(pre_positions[pos]);
-                        Indices.Add(index++);
+                        int rawIdx = int.Parse(p2[0]);
+                        int pos = rawIdx < 0 ? pre_positions.Count + rawIdx : rawIdx - 1;
+                        if (pos >= 0 && pos < pre_positions.Count)
+                        {
+                            Positions.Add(pre_positions[pos]);
+                            Indices.Add(index++);
+                        }
 
                         if (p2.Length == 3)
                         {

@@ -257,13 +257,14 @@
                     <StackPanel x:Name="StackPanelSystemButtons" Orientation="Horizontal">
                         <Rectangle Width="1" Height="18" Fill="{DynamicResource Separator}" Margin="4,0"/>
                         <Button x:Name="ButtonMinimize" Width="30" Height="30" ToolTip="Minimize" SnapsToDevicePixels="True" UseLayoutRounding="True">
-                            <Canvas Width="10" Height="10">
-                                <Path Data="M0,6 H10" Stroke="{DynamicResource WindowFore}" StrokeThickness="1.0"/>
+                            <Canvas Width="10" Height="10" SnapsToDevicePixels="True" RenderOptions.EdgeMode="Aliased">
+                                <Line X1="0" Y1="5" X2="10" Y2="5" Stroke="{DynamicResource WindowFore}" StrokeThickness="1"/>
                             </Canvas>
                         </Button>
                         <Button x:Name="ButtonMaximize" Width="30" Height="30" ToolTip="Maximize" SnapsToDevicePixels="True" UseLayoutRounding="True">
-                            <Canvas Width="10" Height="10">
-                                <Path Data="M0.5,0.5 H9.5 V9.5 H0.5 Z" Stroke="{DynamicResource WindowFore}" StrokeThickness="1.0"/>
+                            <Canvas Width="10" Height="10" SnapsToDevicePixels="True" RenderOptions.EdgeMode="Aliased">
+                                <Path x:Name="PathMaximize" Data="M0.5,0.5 H9.5 V9.5 H0.5 Z" Stroke="{DynamicResource WindowFore}" StrokeThickness="1.0"/>
+                                <Path x:Name="PathRestore" Visibility="Collapsed" Data="M2.5,2.5 V0.5 H9.5 V7.5 H7.5 M0.5,2.5 H7.5 V9.5 H0.5 Z" Stroke="{DynamicResource WindowFore}" StrokeThickness="1.0"/>
                             </Canvas>
                         </Button>
                         <Button x:Name="ButtonClose" Width="30" Height="30" ToolTip="Close" SnapsToDevicePixels="True" UseLayoutRounding="True">
@@ -301,7 +302,7 @@
                 <GridSplitter x:Name="FilePanelSplitter" Visibility="Collapsed" Background="{DynamicResource TransparentHandle}" Width="6" HorizontalAlignment="Right" VerticalAlignment="Stretch" ResizeBehavior="CurrentAndNext"/>
 
                 <!-- Model Info Floating HUD Card (Toggled via I key, cleared from right slider) -->
-                <Border x:Name="infoContainer" Margin="16,16,48,16" CornerRadius="6" Background="{DynamicResource InfoPanel}" BorderBrush="{DynamicResource ButtonBorder}" BorderThickness="1" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Bottom" Padding="14,10" SnapsToDevicePixels="True">
+                <Border x:Name="infoContainer" Margin="16,16,32,16" CornerRadius="6" Background="{DynamicResource InfoPanel}" BorderBrush="{DynamicResource ButtonBorder}" BorderThickness="1" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Bottom" Padding="14,10" SnapsToDevicePixels="True">
                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                         <TextBlock x:Name="textBlockInfo" FontSize="11" LineHeight="18" LineStackingStrategy="BlockLineHeight" Foreground="{DynamicResource WindowFore}" TextWrapping="Wrap" />
                     </ScrollViewer>
@@ -313,7 +314,7 @@
                 </Border>
 
                 <!-- Z-Height Slicer (Vertical on Right, Circular Thumb) -->
-                <Border Grid.Column="1" HorizontalAlignment="Right" Margin="0,16,16,16">
+                <Border Grid.Column="1" HorizontalAlignment="Right" Width="14" Margin="0,16,9,16">
                     <Slider x:Name="sliderSliceHeight" Orientation="Vertical" SnapsToDevicePixels="True"/>
                 </Border>
             </Grid>

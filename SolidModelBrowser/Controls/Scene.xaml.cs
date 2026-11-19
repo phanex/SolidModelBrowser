@@ -13,7 +13,9 @@ namespace SolidModelBrowser
         MeshGeometry3D mesh = new MeshGeometry3D();
         GeometryModel3D wireframeGeometry = new GeometryModel3D();
         MeshGeometry3D wireframeMesh = new MeshGeometry3D();
-        EmissiveMaterial wireframeMaterial = new EmissiveMaterial();
+        MaterialGroup wireframeMaterial = new MaterialGroup();
+        DiffuseMaterial wireframeDiffuse = new DiffuseMaterial();
+        EmissiveMaterial wireframeEmissive = new EmissiveMaterial();
         UCamera camera;
 
         public Scene()
@@ -21,6 +23,8 @@ namespace SolidModelBrowser
             InitializeComponent();
             geometry.Geometry = mesh;
             geometry.Material = materials;
+            wireframeMaterial.Children.Add(wireframeDiffuse);
+            wireframeMaterial.Children.Add(wireframeEmissive);
             wireframeGeometry.Geometry = wireframeMesh;
             wireframeGeometry.Material = wireframeMaterial;
             wireframeGeometry.BackMaterial = wireframeMaterial;
@@ -135,28 +139,56 @@ namespace SolidModelBrowser
         // ground
 
         GeometryModel3D ground = new GeometryModel3D();
+        Rect lastGroundRect;
+        double lastCheckerSize;
+        Color lastGroundDiffuse;
+        Color lastGroundEmissive;
+        double currentGroundZ = 0.0;
+
         public void CreateGround(Rect r, double checkerSize, Color diffuseColor, Color emissiveColor)
         {
+            lastGroundRect = r;
+            lastCheckerSize = checkerSize;
+            lastGroundDiffuse = diffuseColor;
+            lastGroundEmissive = emissiveColor;
+            UpdateGroundMesh();
+        }
+
+        public void SetGroundZ(double z)
+        {
+            currentGroundZ = z;
+            UpdateGroundMesh();
+        }
+
+        private void UpdateGroundMesh()
+        {
+            Rect r = lastGroundRect;
+            double checkerSize = lastCheckerSize;
             if (r.Width == 0 || r.Height == 0 || checkerSize == 0) return;
 
-            var p = new Point3DCollection() { new Point3D(r.Left, r.Top, 0), new Point3D(r.Right, r.Top, 0), new Point3D(r.Left, r.Bottom, 0), new Point3D(r.Right, r.Bottom, 0) };
+            double z = currentGroundZ;
+            var p = new Point3DCollection() {
+                new Point3D(r.Left, r.Top, z),
+                new Point3D(r.Right, r.Top, z),
+                new Point3D(r.Left, r.Bottom, z),
+                new Point3D(r.Right, r.Bottom, z)
+            };
             var texcoord = new PointCollection() { new Point(0, 0), new Point(1, 0), new Point(0, 1), new Point(1, 1) };
             var i = new Int32Collection() { 0, 1, 2, 1, 3, 2 };
             var mesh = new MeshGeometry3D { Positions = p, TextureCoordinates = texcoord, TriangleIndices = i };
 
             var geomcoll = new GeometryCollection() { new RectangleGeometry(new Rect(0, 0, 50, 50)), new RectangleGeometry(new Rect(50, 50, 50, 50)) };
-            var coloredDrawing = new GeometryDrawing() { Brush = new SolidColorBrush(diffuseColor), Geometry = new GeometryGroup() { Children = geomcoll } };
+            var coloredDrawing = new GeometryDrawing() { Brush = new SolidColorBrush(lastGroundDiffuse), Geometry = new GeometryGroup() { Children = geomcoll } };
             var drawingBrush = new DrawingBrush { Viewport = new Rect(0, 0, 2 * checkerSize / r.Width, 2 * checkerSize / r.Height), TileMode = TileMode.Tile, Drawing = coloredDrawing };
             var diffuseMaterial = new DiffuseMaterial() { Brush = drawingBrush };
-            var emissiveMaterial = new EmissiveMaterial() { Brush = new SolidColorBrush(emissiveColor) };
             var materialGroup = new MaterialGroup();
             materialGroup.Children.Add(diffuseMaterial);
-            materialGroup.Children.Add(emissiveMaterial);
-            var backMaterial = new DiffuseMaterial() { Brush = new SolidColorBrush(Color.FromArgb(0x40, 0xFF, 0xA0, 0xA0)) };
+            if (lastGroundEmissive.A > 0)
+                materialGroup.Children.Add(new EmissiveMaterial() { Brush = new SolidColorBrush(lastGroundEmissive) });
 
             ground.Geometry = mesh;
             ground.Material = materialGroup;
-            ground.BackMaterial = backMaterial;
+            ground.BackMaterial = null;
         }
 
 
@@ -183,7 +215,9 @@ namespace SolidModelBrowser
                 double lum = 0.299 * modelDiffuseColor.R + 0.587 * modelDiffuseColor.G + 0.114 * modelDiffuseColor.B;
                 color = lum > 125 ? Color.FromRgb(18, 20, 24) : Color.FromRgb(242, 245, 250);
             }
-            wireframeMaterial.Brush = new SolidColorBrush(color);
+            var brush = new SolidColorBrush(color);
+            wireframeDiffuse.Brush = brush;
+            wireframeEmissive.Brush = brush;
         }
 
         public void UpdateWireframeColor(bool lightTheme)
@@ -204,7 +238,8 @@ namespace SolidModelBrowser
 
             if (showWireframe)
             {
-                if (!modelgroup.Children.Contains(wireframeGeometry)) modelgroup.Children.Add(wireframeGeometry);
+                if (modelgroup.Children.Contains(wireframeGeometry)) modelgroup.Children.Remove(wireframeGeometry);
+                modelgroup.Children.Add(wireframeGeometry);
             }
             else
             {
@@ -232,7 +267,12 @@ namespace SolidModelBrowser
             {
                 isGroundVisible = value;
                 if (modelgroup.Children.Contains(ground)) modelgroup.Children.Remove(ground);
-                if (isGroundVisible) modelgroup.Children.Add(ground);
+                if (isGroundVisible)
+                {
+                    int wfIdx = modelgroup.Children.IndexOf(wireframeGeometry);
+                    if (wfIdx >= 0) modelgroup.Children.Insert(wfIdx, ground);
+                    else modelgroup.Children.Add(ground);
+                }
             }
         }
 

@@ -184,8 +184,8 @@ namespace SolidModelBrowser
             if (diag < 1e-4) diag = 1.0;
 
             // Depth bias and half-width for CAD crease edge rendering without Z-fighting
-            double biasDist = Math.Max(diag * 0.0008, 0.02);
-            double halfWidth = Math.Max(diag * 0.0006 * Math.Max(0.5, edgeScale * 50.0), 0.015);
+            double biasDist = Math.Max(diag * 0.002, 0.05);
+            double halfWidth = Math.Max(diag * 0.0008 * Math.Max(0.5, edgeScale * 50.0), 0.02);
 
             // Quantize points to robustly detect shared vertices across disconnected face buffers
             var pointMap = new Dictionary<Tuple<long, long, long>, int>();
@@ -317,7 +317,7 @@ namespace SolidModelBrowser
                 Point3D b3 = bBiased + o3;
 
                 // 4 rectangular faces forming an opaque 3D tube with volume from all angles
-                Point3D[] tubeVerts = { a0, b0, b1, a1, a1, b1, b2, a2, a2, b2, b3, a3, a3, b3, b0, a0 };
+                Point3D[] tubeVerts = { a0, a1, b1, b0, a1, a2, b2, b1, a2, a3, b3, b2, a3, a0, b0, b3 };
                 Vector3D[] tubeNorms = { v, v, v, v, -u, -u, -u, -u, -v, -v, -v, -v, u, u, u, u };
 
                 for (int i = 0; i < 16; i++)
@@ -409,29 +409,35 @@ namespace SolidModelBrowser
         //public static Stopwatch sw;
         public static void SliceMesh(MeshGeometry3D src, MeshGeometry3D dest, double z)
         {
-            if (src == null) return;
-            //sw = Stopwatch.StartNew();
+            if (src == null || src.TriangleIndices == null || src.Positions == null) return;
             int q = src.TriangleIndices.Count;
-            Int32Collection indices = new Int32Collection(q);
+            if (q < 3 || src.Positions.Count == 0)
+            {
+                dest.TriangleIndices = new Int32Collection();
+                return;
+            }
 
-            var ti = new int[src.TriangleIndices.Count];
+            int[] ti = new int[src.TriangleIndices.Count];
             src.TriangleIndices.CopyTo(ti, 0);
-            var pos = new Point3D[src.Positions.Count];
+            Point3D[] pos = new Point3D[src.Positions.Count];
             src.Positions.CopyTo(pos, 0);
 
-            for (int c = 0; c < q; c += 3)
+            Int32Collection indices = new Int32Collection(q);
+
+            for (int c = 0; c + 2 < q; c += 3)
             {
-                int i1 = ti[c], i2 = ti[c+1], i3 = ti[c+2];
-                if (pos[i1].Z <= z && pos[i2].Z <= z && pos[i3].Z <= z)
+                int i1 = ti[c], i2 = ti[c + 1], i3 = ti[c + 2];
+                if (i1 >= 0 && i1 < pos.Length && i2 >= 0 && i2 < pos.Length && i3 >= 0 && i3 < pos.Length)
                 {
-                    indices.Add(i1);
-                    indices.Add(i2);
-                    indices.Add(i3);
+                    if (pos[i1].Z <= z && pos[i2].Z <= z && pos[i3].Z <= z)
+                    {
+                        indices.Add(i1);
+                        indices.Add(i2);
+                        indices.Add(i3);
+                    }
                 }
             }
             
-            //dest.Positions = new Point3DCollection(src.Positions.Count);
-            //foreach(var p in src.Positions) dest.Positions.Add(p);
             if (dest.Positions.Count != src.Positions.Count)
                 dest.Positions = src.Positions.Clone(); 
             dest.Normals = src.Normals.Clone();
