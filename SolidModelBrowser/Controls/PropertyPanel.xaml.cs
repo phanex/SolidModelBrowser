@@ -98,7 +98,7 @@ namespace SolidModelBrowser
                             btn.Content = mediaCol.ToString();
                         });
                     var pScreen = btn.PointToScreen(new System.Windows.Point(0, btn.ActualHeight + 2));
-                    flyout.Show(new System.Drawing.Point((int)pScreen.X, (int)pScreen.Y));
+                    flyout.ShowAt(new System.Drawing.Point((int)pScreen.X, (int)pScreen.Y));
                 };
 
                 StackPanel sp = new StackPanel() { Orientation = Orientation.Vertical, Margin = vmargin };

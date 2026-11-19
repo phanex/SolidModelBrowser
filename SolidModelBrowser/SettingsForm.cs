@@ -259,7 +259,9 @@ namespace SolidModelBrowser
                     {
                         item.CurrentColor = newCol;
                         btnSwatch.BackColor = newCol;
-                        txtHex.Text = $"{newCol.R:X2}{newCol.G:X2}{newCol.B:X2}";
+                        txtHex.Text = newCol.A == 255
+                            ? $"{newCol.R:X2}{newCol.G:X2}{newCol.B:X2}"
+                            : $"{newCol.A:X2}{newCol.R:X2}{newCol.G:X2}{newCol.B:X2}";
                         item.OnColorChanged?.Invoke(newCol);
                     });
                     flyout.ShowBelow(btnSwatch);
@@ -276,6 +278,21 @@ namespace SolidModelBrowser
                             int g = Convert.ToInt32(clean.Substring(2, 2), 16);
                             int b = Convert.ToInt32(clean.Substring(4, 2), 16);
                             var parsedCol = Color.FromArgb(item.CurrentColor.A, r, g, b);
+                            item.CurrentColor = parsedCol;
+                            btnSwatch.BackColor = parsedCol;
+                            item.OnColorChanged?.Invoke(parsedCol);
+                        }
+                        catch { }
+                    }
+                    else if (clean.Length == 8)
+                    {
+                        try
+                        {
+                            int a = Convert.ToInt32(clean.Substring(0, 2), 16);
+                            int r = Convert.ToInt32(clean.Substring(2, 2), 16);
+                            int g = Convert.ToInt32(clean.Substring(4, 2), 16);
+                            int b = Convert.ToInt32(clean.Substring(6, 2), 16);
+                            var parsedCol = Color.FromArgb(a, r, g, b);
                             item.CurrentColor = parsedCol;
                             btnSwatch.BackColor = parsedCol;
                             item.OnColorChanged?.Invoke(parsedCol);
