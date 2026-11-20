@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Media;
@@ -221,41 +223,116 @@ namespace SolidModelBrowser
             parseMesh(obj, mtr);
         }
 
+        void ExtractModelMetadata(string xml)
+        {
+            if (string.IsNullOrEmpty(xml)) return;
+            var matches = Regex.Matches(xml, @"<metadata\s+name=[""']([^""']+)[""']>([\s\S]*?)<\/metadata>", RegexOptions.IgnoreCase);
+            foreach (Match m in matches)
+            {
+                string name = m.Groups[1].Value;
+                string val = WebUtility.HtmlDecode(m.Groups[2].Value.Trim());
+                if (string.IsNullOrWhiteSpace(val) || val == "[]") continue;
+
+                if (name.Equals("Title", StringComparison.OrdinalIgnoreCase))
+                    Metadata["Title"] = val;
+                else if (name.Equals("Designer", StringComparison.OrdinalIgnoreCase) || name.Equals("ProfileUserName", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (!Metadata.ContainsKey("Designer")) Metadata["Designer"] = val;
+                }
+                else if (name.Equals("License", StringComparison.OrdinalIgnoreCase))
+                    Metadata["License"] = val;
+            }
+        }
+
+        void ExtractSliceInfo(string xml)
+        {
+            if (string.IsNullOrEmpty(xml)) return;
+            var predMatch = Regex.Match(xml, @"key=[""']prediction[""']\s+value=[""'](\d+)[""']", RegexOptions.IgnoreCase);
+            if (predMatch.Success && double.TryParse(predMatch.Groups[1].Value, NumberStyles.Float, CultureInfo.InvariantCulture, out double secs))
+            {
+                TimeSpan t = TimeSpan.FromSeconds(secs);
+                Metadata["PrintTime"] = t.TotalHours >= 1 ? $"{(int)t.TotalHours}h {t.Minutes}m" : $"{t.Minutes}m {t.Seconds}s";
+            }
+
+            var weightMatch = Regex.Match(xml, @"used_g=[""']([\d\.]+)[""']", RegexOptions.IgnoreCase);
+            var lengthMatch = Regex.Match(xml, @"used_m=[""']([\d\.]+)[""']", RegexOptions.IgnoreCase);
+            var typeMatch = Regex.Match(xml, @"type=[""']([^""']+)[""']", RegexOptions.IgnoreCase);
+
+            if (weightMatch.Success && lengthMatch.Success)
+            {
+                string typeStr = typeMatch.Success ? $"{typeMatch.Groups[1].Value} " : "";
+                Metadata["Filament"] = $"{typeStr}{weightMatch.Groups[1].Value} g ({lengthMatch.Groups[1].Value} m)";
+            }
+        }
+
         public override void Load(string filename)
         {
             componentCache.Clear();
             basepos = 0;
-            string model;
+            string model = null;
             using (var zfile = ZipFile.OpenRead(filename))
             {
-                model = readZipEntry(zfile, "3d/3dmodel.model");
+                // Check if this 3MF package contains sliced G-code (Bambu Studio / OrcaSlicer)
+                var gcodeEntry = zfile.Entries.FirstOrDefault(e => e.FullName.Equals("Metadata/plate_1.gcode", StringComparison.OrdinalIgnoreCase))
+                                 ?? zfile.Entries.FirstOrDefault(e => e.FullName.EndsWith(".gcode", StringComparison.OrdinalIgnoreCase));
 
-                string resources = getTag(model, "resources", false);
-                var objects = getTags(resources, "object", false);
-
-                string build = getTag(model, "build", false);
-                var items = getTags(build, "item", true);
-
-                initProgress(model);
-
-                foreach (string item in items)
+                // Read 3dmodel.model if present for metadata
+                var modelEntry = zfile.Entries.FirstOrDefault(e => e.FullName.Equals("3D/3dmodel.model", StringComparison.OrdinalIgnoreCase));
+                if (modelEntry != null)
                 {
-                    string id = getParam(item, "objectid");
-                    string tr = getParam(item, "transform");
-                    Matrix3D mtr = buildMatrix(tr);
+                    using (var sr = new StreamReader(modelEntry.Open(), Encoding.UTF8))
+                        model = sr.ReadToEnd();
+                    ExtractModelMetadata(model);
+                }
 
-                    string obj = objects.Where(o => o.Contains($" id=\"{id}\"")).FirstOrDefault();
+                // Also check Metadata/slice_info.config if present
+                var sliceInfoEntry = zfile.Entries.FirstOrDefault(e => e.FullName.Equals("Metadata/slice_info.config", StringComparison.OrdinalIgnoreCase));
+                if (sliceInfoEntry != null)
+                {
+                    using (var sr = new StreamReader(sliceInfoEntry.Open(), Encoding.UTF8))
+                        ExtractSliceInfo(sr.ReadToEnd());
+                }
 
-                    //if (obj.Contains("<components>")) ExceptionMessage = "3MF mesh with external components is not supported yet";
-                    string components = getTag(obj, "components", false);
-                    if (components != null)
+                string resources = model != null ? getTag(model, "resources", false) : null;
+                var objects = resources != null ? getTags(resources, "object", false) : new List<string>();
+
+                // If G-code is present and (no 3D mesh objects in model or explicitly .gcode.3mf), load G-code
+                if (gcodeEntry != null && (objects.Count == 0 || filename.EndsWith(".gcode.3mf", StringComparison.OrdinalIgnoreCase)))
+                {
+                    var gcodeImporter = new ImportGCODE();
+                    using (var stream = gcodeEntry.Open())
+                    using (var reader = new StreamReader(stream, Encoding.UTF8))
                     {
-                        var comps = getTags(components, "component", true);
-                        foreach (var comp in comps) loadComponent(comp, model, zfile, mtr);
+                        gcodeImporter.LoadStream(reader, gcodeEntry.Length);
                     }
+                    return;
+                }
 
-                    parseMesh(obj, mtr);
-                    if (StopFlag) return;
+                if (model != null)
+                {
+                    string build = getTag(model, "build", false);
+                    var items = getTags(build, "item", true);
+
+                    initProgress(model);
+
+                    foreach (string item in items)
+                    {
+                        string id = getParam(item, "objectid");
+                        string tr = getParam(item, "transform");
+                        Matrix3D mtr = buildMatrix(tr);
+
+                        string obj = objects.Where(o => o.Contains($" id=\"{id}\"")).FirstOrDefault();
+
+                        string components = getTag(obj, "components", false);
+                        if (components != null)
+                        {
+                            var comps = getTags(components, "component", true);
+                            foreach (var comp in comps) loadComponent(comp, model, zfile, mtr);
+                        }
+
+                        parseMesh(obj, mtr);
+                        if (StopFlag) return;
+                    }
                 }
             }
         }

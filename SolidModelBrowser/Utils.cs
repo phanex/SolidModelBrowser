@@ -467,6 +467,7 @@ namespace SolidModelBrowser
         {
             if (!unsmoothSetting) return false;
             if (string.IsNullOrEmpty(filename)) return true;
+            if (filename.EndsWith(".gcode.3mf", StringComparison.OrdinalIgnoreCase)) return false;
             string ext = Path.GetExtension(filename).TrimStart('.').ToLowerInvariant();
             return ext != "gcode" && ext != "gco";
         }
