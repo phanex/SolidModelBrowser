@@ -768,6 +768,8 @@ namespace SolidModelBrowser
         void updateMeshes(bool forceUpdateWireframe)
         {
             if (meshBase == null) return;
+            bool isGCode = !string.IsNullOrEmpty(lastFilename) && (lastFilename.EndsWith(".gcode", StringComparison.OrdinalIgnoreCase) || lastFilename.EndsWith(".gco", StringComparison.OrdinalIgnoreCase) || lastFilename.EndsWith(".gcode.3mf", StringComparison.OrdinalIgnoreCase));
+
             if (currentShadingMode == ShadingMode.Solid)
             {
                 scene.SetShadingVisibility(true, false);
@@ -778,14 +780,14 @@ namespace SolidModelBrowser
                 scene.SetShadingVisibility(true, true);
                 Utils.FillMesh(meshBase, scene.Mesh);
                 if (meshWireframe == null || forceUpdateWireframe)
-                    meshWireframe = Utils.ConvertToWireframe(meshBase, settings.WireframeEdgeScale);
+                    meshWireframe = isGCode ? meshBase : Utils.ConvertToWireframe(meshBase, settings.WireframeEdgeScale);
                 Utils.FillMesh(meshWireframe, scene.WireframeMesh);
             }
             else // Wireframe
             {
                 scene.SetShadingVisibility(false, true);
                 if (meshWireframe == null || forceUpdateWireframe)
-                    meshWireframe = Utils.ConvertToWireframe(meshBase, settings.WireframeEdgeScale);
+                    meshWireframe = isGCode ? meshBase : Utils.ConvertToWireframe(meshBase, settings.WireframeEdgeScale);
                 Utils.FillMesh(meshWireframe, scene.WireframeMesh);
             }
             slice();

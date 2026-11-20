@@ -47,9 +47,14 @@ namespace SolidModelBrowser
             double minX = double.MaxValue, minY = double.MaxValue, minZ = double.MaxValue;
             double maxX = double.MinValue, maxY = double.MinValue, maxZ = double.MinValue;
             double massX = 0.0, massY = 0.0, massZ = 0.0;
+            int validCount = 0;
             foreach (var p in mesh.Positions)
             {
                 double x = p.X, y = p.Y, z = p.Z;
+                if (double.IsNaN(x) || double.IsNaN(y) || double.IsNaN(z) ||
+                    double.IsInfinity(x) || double.IsInfinity(y) || double.IsInfinity(z))
+                    continue;
+
                 if (x < minX) minX = x;
                 if (x > maxX) maxX = x;
                 if (y < minY) minY = y;
@@ -57,11 +62,15 @@ namespace SolidModelBrowser
                 if (z < minZ) minZ = z;
                 if (z > maxZ) maxZ = z;
                 massX += x; massY += y; massZ += z;
+                validCount++;
             }
+            if (minX > maxX) minX = maxX = 0;
+            if (minY > maxY) minY = maxY = 0;
+            if (minZ > maxZ) minZ = maxZ = 0;
+
             size = new Vector3D(maxX - minX, maxY - minY, maxZ - minZ);
             center = new Point3D((minX + maxX) / 2, (minY + maxY) / 2, (minZ + maxZ) / 2);
-            int q = mesh.Positions.Count;
-            massCenter = new Point3D(massX / q, massY / q, massZ / q);
+            massCenter = validCount > 0 ? new Point3D(massX / validCount, massY / validCount, massZ / validCount) : center;
         }
 
         public static Vector3D GetShiftVectorInNormalSurface(Vector3D v, double dx, double dy)

@@ -70,6 +70,9 @@ namespace SolidModelBrowser
             Vector3D a = new Vector3D(src.X, src.Y, src.Z);
             Vector3D b = new Vector3D(dst.X, dst.Y, dst.Z);
             var r = b - a;
+            // Guard against zero-length or pure vertical moves (in-place extrusion/wipe)
+            if (Math.Abs(r.X) < 1e-6 && Math.Abs(r.Y) < 1e-6) return;
+
             if (settings.GCODELineExtensions != 0.0)
             {
                 var ext = r;
@@ -82,6 +85,7 @@ namespace SolidModelBrowser
                 }
             }
             var p = Vector3D.CrossProduct(r, rz);
+            if (p.LengthSquared < 1e-12) return;
             p.Normalize();
             p /= 2;
             p *= settings.GCODELineWidth; // line width
