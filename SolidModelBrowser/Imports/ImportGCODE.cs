@@ -25,8 +25,8 @@ namespace SolidModelBrowser
 
         struct GPosition
         {
-            public double X, Y, Z, E, F;
-            public bool fx, fy, fz, fe, ff;
+            public double X, Y, Z, E, F, I, J;
+            public bool fx, fy, fz, fe, ff, fi, fj;
             public void Add(GPosition p)
             {
                 X += p.X; Y += p.Y; Z += p.Z; E += p.E; F += p.F;
@@ -60,6 +60,8 @@ namespace SolidModelBrowser
                 else if (code == 'Z') { pos.Z = parseValue(p); pos.fz = true; }
                 else if (code == 'E') { pos.E = parseValue(p); pos.fe = true; }
                 else if (code == 'F') { pos.F = parseValue(p); pos.ff = true; }
+                else if (code == 'I') { pos.I = parseValue(p); pos.fi = true; }
+                else if (code == 'J') { pos.J = parseValue(p); pos.fj = true; }
             }
             return pos;
         }
@@ -114,6 +116,87 @@ namespace SolidModelBrowser
             Indices.Add(i + 4);
             Indices.Add(i + 5);
             Indices.Add(i);
+        }
+
+        void addArc(GPosition src, GPosition dst, bool clockwise, Vector3D offset)
+        {
+            if (!dst.fi && !dst.fj)
+            {
+                addLine(src, dst, offset);
+                return;
+            }
+
+            double cx = src.X + (dst.fi ? dst.I : 0.0);
+            double cy = src.Y + (dst.fj ? dst.J : 0.0);
+            double dx0 = src.X - cx;
+            double dy0 = src.Y - cy;
+            double dx1 = dst.X - cx;
+            double dy1 = dst.Y - cy;
+
+            double radius = Math.Sqrt(dx0 * dx0 + dy0 * dy0);
+            if (radius < 1e-4)
+            {
+                addLine(src, dst, offset);
+                return;
+            }
+
+            double a0 = Math.Atan2(dy0, dx0);
+            double a1 = Math.Atan2(dy1, dx1);
+            double da = a1 - a0;
+
+            if (clockwise)
+            {
+                if (da >= -1e-6) da -= 2.0 * Math.PI;
+            }
+            else
+            {
+                if (da <= 1e-6) da += 2.0 * Math.PI;
+            }
+
+            double absDa = Math.Abs(da);
+            double arcLen = radius * absDa;
+
+            // Keep tiny arcs as 1 segment; subdivide larger arcs coarsely (~1.5mm / 15 deg, max 32)
+            int segments;
+            if (arcLen <= 1.5 && absDa <= Math.PI / 9.0)
+            {
+                segments = 1;
+            }
+            else
+            {
+                int byLen = (int)Math.Ceiling(arcLen / 1.5);
+                int byAngle = (int)Math.Ceiling(absDa / (Math.PI / 12.0));
+                segments = Math.Max(2, Math.Min(32, Math.Max(byLen, byAngle)));
+            }
+
+            if (segments == 1)
+            {
+                addLine(src, dst, offset);
+                return;
+            }
+
+            GPosition prev = src;
+            for (int s = 1; s <= segments; s++)
+            {
+                double t = (double)s / segments;
+                GPosition cur;
+                if (s == segments)
+                {
+                    cur = dst;
+                }
+                else
+                {
+                    double ang = a0 + da * t;
+                    cur = new GPosition
+                    {
+                        X = cx + radius * Math.Cos(ang),
+                        Y = cy + radius * Math.Sin(ang),
+                        Z = src.Z + (dst.Z - src.Z) * t
+                    };
+                }
+                addLine(prev, cur, offset);
+                prev = cur;
+            }
         }
 
         public override void Load(string filename)
@@ -277,13 +360,17 @@ namespace SolidModelBrowser
                                 newpos.Z += pos.Z;
                             }
 
+                            bool isTravelOnly = (cmd == "G0");
+                            bool isArc = (cmd == "G2" || cmd == "G3");
+
                             if (isRelativeE)
                             {
-                                bool isExtruding = newpos.fe && newpos.E > 0;
+                                bool isExtruding = !isTravelOnly && newpos.fe && newpos.E > 0;
                                 if (isExtruding) sumRelativeE += newpos.E;
-                                if ((newpos.fx || newpos.fy) && isExtruding)
+                                if ((newpos.fx || newpos.fy || isArc) && isExtruding)
                                 {
-                                    addLine(pos, newpos, offset);
+                                    if (isArc) addArc(pos, newpos, cmd == "G2", offset);
+                                    else addLine(pos, newpos, offset);
                                 }
                                 newpos.E = pos.E + (newpos.fe ? newpos.E : 0);
                             }
@@ -291,10 +378,11 @@ namespace SolidModelBrowser
                             {
                                 if (!newpos.fe) newpos.E = pos.E;
                                 if (newpos.E > maxAbsoluteE) maxAbsoluteE = newpos.E;
-                                bool isExtruding = newpos.fe && newpos.E > pos.E;
-                                if ((newpos.fx || newpos.fy) && isExtruding)
+                                bool isExtruding = !isTravelOnly && newpos.fe && newpos.E > pos.E;
+                                if ((newpos.fx || newpos.fy || isArc) && isExtruding)
                                 {
-                                    addLine(pos, newpos, offset);
+                                    if (isArc) addArc(pos, newpos, cmd == "G2", offset);
+                                    else addLine(pos, newpos, offset);
                                 }
                             }
 
