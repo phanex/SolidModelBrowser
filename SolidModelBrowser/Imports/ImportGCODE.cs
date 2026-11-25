@@ -33,7 +33,7 @@ namespace SolidModelBrowser
             }
         }
 
-        static readonly char[] separator = { ' ' };
+        static readonly char[] separator = { ' ', '\t' };
 
         double parseValue(string value)
         {
@@ -64,11 +64,11 @@ namespace SolidModelBrowser
             return pos;
         }
 
-        void addLine(GPosition src, GPosition dst)
+        void addLine(GPosition src, GPosition dst, Vector3D offset)
         {
             Vector3D rz = new Vector3D(0.0, 0.0, settings.GCODELayerHeight);
-            Vector3D a = new Vector3D(src.X, src.Y, src.Z);
-            Vector3D b = new Vector3D(dst.X, dst.Y, dst.Z);
+            Vector3D a = new Vector3D(src.X + offset.X, src.Y + offset.Y, src.Z + offset.Z);
+            Vector3D b = new Vector3D(dst.X + offset.X, dst.Y + offset.Y, dst.Z + offset.Z);
             var r = b - a;
             // Guard against zero-length or pure vertical moves (in-place extrusion/wipe)
             if (Math.Abs(r.X) < 1e-6 && Math.Abs(r.Y) < 1e-6) return;
@@ -125,7 +125,7 @@ namespace SolidModelBrowser
             }
         }
 
-        public void LoadStream(TextReader reader, long totalEstimatedLength = 0)
+        public void LoadStream(TextReader reader, long totalEstimatedLength = 0, Vector3D offset = default(Vector3D))
         {
             bool absolutePos = true;
             bool isRelativeE = false;
@@ -283,7 +283,7 @@ namespace SolidModelBrowser
                                 if (isExtruding) sumRelativeE += newpos.E;
                                 if ((newpos.fx || newpos.fy) && isExtruding)
                                 {
-                                    addLine(pos, newpos);
+                                    addLine(pos, newpos, offset);
                                 }
                                 newpos.E = pos.E + (newpos.fe ? newpos.E : 0);
                             }
@@ -294,7 +294,7 @@ namespace SolidModelBrowser
                                 bool isExtruding = newpos.fe && newpos.E > pos.E;
                                 if ((newpos.fx || newpos.fy) && isExtruding)
                                 {
-                                    addLine(pos, newpos);
+                                    addLine(pos, newpos, offset);
                                 }
                             }
 

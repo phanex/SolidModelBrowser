@@ -312,7 +312,7 @@
                 </Border>
 
                 <!-- Z-Height Slicer (Vertical on Right, Circular Thumb) -->
-                <Slider x:Name="sliderSliceHeight" Grid.Column="1" Orientation="Vertical" HorizontalAlignment="Right" Width="32" Margin="10,16,-10,16" SnapsToDevicePixels="True" ClipToBounds="False"/>
+                <Slider x:Name="sliderSliceHeight" Grid.Column="1" Orientation="Vertical" HorizontalAlignment="Right" Width="32" Margin="2.5,16,-2.5,16" SnapsToDevicePixels="True" ClipToBounds="False"/>
             </Grid>
 
         </DockPanel>

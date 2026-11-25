@@ -318,6 +318,13 @@ namespace SolidModelBrowser
             textBlockInfo.Inlines.Add(new System.Windows.Documents.Run($"{modelSize.X:0.0} × {modelSize.Y:0.0} × {modelSize.Z:0.0} mm"));
             textBlockInfo.Inlines.Add(new System.Windows.Documents.LineBreak());
 
+            if (Import.Metadata.ContainsKey("Plates"))
+            {
+                textBlockInfo.Inlines.Add(new System.Windows.Documents.Bold(new System.Windows.Documents.Run("Plates: ")));
+                textBlockInfo.Inlines.Add(new System.Windows.Documents.Run(Import.Metadata["Plates"]));
+                textBlockInfo.Inlines.Add(new System.Windows.Documents.LineBreak());
+            }
+
             if (Import.Metadata.ContainsKey("PrintTime") || Import.Metadata.ContainsKey("Filament"))
             {
                 if (Import.Metadata.ContainsKey("PrintTime"))
