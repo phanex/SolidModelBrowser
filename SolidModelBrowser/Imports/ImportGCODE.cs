@@ -39,7 +39,7 @@ namespace SolidModelBrowser
             public Vector3D LastEnd;
             public Vector3D LastDirXY;
             public Vector3D LastNormal;
-            public int RightIdx, LeftIdx;
+            public int TopIdx, RightIdx, LeftIdx;
             public double LastZ;
         }
 
@@ -197,28 +197,38 @@ namespace SolidModelBrowser
                     double scale = cosHalf > 0.5 ? (halfWidth / cosHalf) : (halfWidth * 2.0);
                     Vector3D miter = m * scale;
 
-                    Positions[chain.RightIdx] = (Point3D)(a + rz + miter);
-                    Positions[chain.LeftIdx] = (Point3D)(a + rz - miter);
+                    Positions[chain.RightIdx] = (Point3D)(a + miter);
+                    Positions[chain.LeftIdx] = (Point3D)(a - miter);
                 }
 
+                int newTop = Positions.Count;
+                Positions.Add((Point3D)(b + rz));
                 int newRight = Positions.Count;
-                Positions.Add((Point3D)(b + rz + p));
+                Positions.Add((Point3D)(b + p));
                 int newLeft = Positions.Count;
-                Positions.Add((Point3D)(b + rz - p));
+                Positions.Add((Point3D)(b - p));
 
-                // 2 triangles (CCW facing +Z)
-                Indices.Add(chain.LeftIdx);
+                Indices.Add(chain.TopIdx);
                 Indices.Add(chain.RightIdx);
                 Indices.Add(newRight);
 
-                Indices.Add(chain.LeftIdx);
                 Indices.Add(newRight);
+                Indices.Add(newTop);
+                Indices.Add(chain.TopIdx);
+
+                Indices.Add(chain.TopIdx);
+                Indices.Add(newTop);
                 Indices.Add(newLeft);
+
+                Indices.Add(newLeft);
+                Indices.Add(chain.LeftIdx);
+                Indices.Add(chain.TopIdx);
 
                 chain.LastEnd = b;
                 chain.LastDirXY = dirXY;
                 chain.LastNormal = n;
                 chain.LastZ = b.Z;
+                chain.TopIdx = newTop;
                 chain.RightIdx = newRight;
                 chain.LeftIdx = newLeft;
                 return;
@@ -237,27 +247,37 @@ namespace SolidModelBrowser
             }
 
             int i = Positions.Count;
-            Positions.Add((Point3D)(a + rz + p));
-            Positions.Add((Point3D)(b + rz + p));
-            Positions.Add((Point3D)(b + rz - p));
-            Positions.Add((Point3D)(a + rz - p));
+            Positions.Add((Point3D)(a + rz));
+            Positions.Add((Point3D)(a + p));
+            Positions.Add((Point3D)(b + p));
+            Positions.Add((Point3D)(b + rz));
+            Positions.Add((Point3D)(b - p));
+            Positions.Add((Point3D)(a - p));
 
-            // 2 triangles (CCW facing +Z)
-            Indices.Add(i + 3);
             Indices.Add(i);
             Indices.Add(i + 1);
-
-            Indices.Add(i + 3);
-            Indices.Add(i + 1);
             Indices.Add(i + 2);
+
+            Indices.Add(i + 2);
+            Indices.Add(i + 3);
+            Indices.Add(i);
+
+            Indices.Add(i);
+            Indices.Add(i + 3);
+            Indices.Add(i + 4);
+
+            Indices.Add(i + 4);
+            Indices.Add(i + 5);
+            Indices.Add(i);
 
             chain.Active = true;
             chain.LastEnd = b;
             chain.LastDirXY = dirXY;
             chain.LastNormal = n;
             chain.LastZ = b.Z;
-            chain.RightIdx = i + 1;
-            chain.LeftIdx = i + 2;
+            chain.TopIdx = i + 3;
+            chain.RightIdx = i + 2;
+            chain.LeftIdx = i + 4;
         }
 
         void FlushPending(ref PendingSegment pending, Vector3D offset, ref RibbonChain chain, ref bool hasLayerZ, ref double currentLayerZ)
