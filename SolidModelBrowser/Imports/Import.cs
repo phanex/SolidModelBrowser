@@ -16,11 +16,19 @@ namespace SolidModelBrowser
 
         protected static Settings settings;
 
+        public struct LayerSlice
+        {
+            public double MaxZ;
+            public int IndexEnd;
+        }
+
         // static buffers are common for all importers
         public static List<Vector3D> Normals = new List<Vector3D>();
         public static List<Point3D> Positions = new List<Point3D>();
         public static List<int> Indices = new List<int>();
         public static Dictionary<string, string> Metadata = new Dictionary<string, string>();
+        public static List<LayerSlice> GCodeLayers = new List<LayerSlice>();
+        public static bool IsGCodeLayersMonotonic = false;
 
         // extensions should be in lower case
         public List<string> Extensions { get; protected set; } = new List<string>();
@@ -41,6 +49,8 @@ namespace SolidModelBrowser
             Positions.Clear();
             Indices.Clear();
             Metadata.Clear();
+            GCodeLayers.Clear();
+            IsGCodeLayersMonotonic = false;
         }
 
         public static void BindSettings(Settings s) => settings = s;

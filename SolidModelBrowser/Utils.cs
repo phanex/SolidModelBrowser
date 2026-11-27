@@ -428,21 +428,51 @@ namespace SolidModelBrowser
 
             int[] ti = new int[src.TriangleIndices.Count];
             src.TriangleIndices.CopyTo(ti, 0);
-            Point3D[] pos = new Point3D[src.Positions.Count];
-            src.Positions.CopyTo(pos, 0);
 
-            Int32Collection indices = new Int32Collection(q);
+            Int32Collection indices;
 
-            for (int c = 0; c + 2 < q; c += 3)
+            // Fast O(log L) slice path for monotonic G-code layer index
+            if (Import.IsGCodeLayersMonotonic && Import.GCodeLayers.Count > 0 && q == Import.Indices.Count)
             {
-                int i1 = ti[c], i2 = ti[c + 1], i3 = ti[c + 2];
-                if (i1 >= 0 && i1 < pos.Length && i2 >= 0 && i2 < pos.Length && i3 >= 0 && i3 < pos.Length)
+                var layers = Import.GCodeLayers;
+                int lo = 0, hi = layers.Count - 1, found = -1;
+                while (lo <= hi)
                 {
-                    if (pos[i1].Z <= z && pos[i2].Z <= z && pos[i3].Z <= z)
+                    int mid = lo + ((hi - lo) >> 1);
+                    if (layers[mid].MaxZ <= z)
                     {
-                        indices.Add(i1);
-                        indices.Add(i2);
-                        indices.Add(i3);
+                        found = mid;
+                        lo = mid + 1;
+                    }
+                    else
+                    {
+                        hi = mid - 1;
+                    }
+                }
+
+                int indexEnd = found >= 0 ? Math.Min(q, layers[found].IndexEnd) : 0;
+                indices = new Int32Collection(indexEnd);
+                for (int c = 0; c < indexEnd; c++)
+                    indices.Add(ti[c]);
+            }
+            else
+            {
+                Point3D[] pos = new Point3D[src.Positions.Count];
+                src.Positions.CopyTo(pos, 0);
+
+                indices = new Int32Collection(q);
+
+                for (int c = 0; c + 2 < q; c += 3)
+                {
+                    int i1 = ti[c], i2 = ti[c + 1], i3 = ti[c + 2];
+                    if (i1 >= 0 && i1 < pos.Length && i2 >= 0 && i2 < pos.Length && i3 >= 0 && i3 < pos.Length)
+                    {
+                        if (pos[i1].Z <= z && pos[i2].Z <= z && pos[i3].Z <= z)
+                        {
+                            indices.Add(i1);
+                            indices.Add(i2);
+                            indices.Add(i3);
+                        }
                     }
                 }
             }
