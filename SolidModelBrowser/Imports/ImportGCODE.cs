@@ -438,11 +438,11 @@ namespace SolidModelBrowser
 
             // Adaptive simplification for large G-code files (> 10 MB) to keep WPF 3D responsive
             bool isLarge = totalEstimatedLength > 10_000_000;
-            double decimateTol = isLarge ? 0.12 : 0.03;
-            double maxMergeLenSq = isLarge ? 25.0 : 4.0;
-            double arcChordStep = isLarge ? 3.0 : 1.5;
-            double arcAngleStep = isLarge ? (Math.PI / 6.0) : (Math.PI / 12.0);
-            int arcMaxSegments = isLarge ? 12 : 32;
+            double decimateTol = isLarge ? 0.08 : 0.03;
+            double maxMergeLenSq = isLarge ? 16.0 : 4.0;
+            double arcChordStep = isLarge ? 2.5 : 1.5;
+            double arcAngleStep = isLarge ? (Math.PI / 8.0) : (Math.PI / 12.0);
+            int arcMaxSegments = isLarge ? 16 : 32;
 
             long bytesRead = 0;
             string line;

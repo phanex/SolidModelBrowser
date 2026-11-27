@@ -29,9 +29,6 @@ namespace SolidModelBrowser
             foreach (var n in Import.Normals) normals.Add(n);
             foreach (var p in Import.Positions) positions.Add(p);
             foreach (var i in Import.Indices) indices.Add(i);
-            normals.Freeze();
-            positions.Freeze();
-            indices.Freeze();
             mesh.Normals = normals;
             mesh.Positions = positions;
             mesh.TriangleIndices = indices;
@@ -481,9 +478,8 @@ namespace SolidModelBrowser
             }
             
             if (dest.Positions.Count != src.Positions.Count)
-                dest.Positions = src.Positions;
-            dest.Normals = src.Normals;
-            indices.Freeze();
+                dest.Positions = src.Positions.Clone(); 
+            dest.Normals = src.Normals.Clone();
             dest.TriangleIndices = indices;
 
             //sw.Stop();
