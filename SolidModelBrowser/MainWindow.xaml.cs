@@ -152,7 +152,7 @@ namespace SolidModelBrowser
             MenuAxes.Click += (s, e) => { ButtonAxes.Toggle(); scene.IsAxesVisible = ButtonAxes.IsChecked.Value; };
             MenuFishEye.Click += (s, e) => setCameraProjection(CameraProjection.Fisheye);
             MenuSwapNormals.Click += (s, e) => { if (meshBase == null) return; Utils.InvertNormals(meshBase); updateMeshes(true); };
-            MenuRemoveNormals.Click += (s, e) => { if (meshBase == null) return; meshBase.Normals.Clear(); updateMeshes(true); };
+            MenuRemoveNormals.Click += (s, e) => { if (meshBase == null) return; meshBase.Normals = new Vector3DCollection(); updateMeshes(true); };
             MenuFlipFaces.Click += (s, e) => { if (meshBase == null) return; Utils.InvertVertexOrder(meshBase); updateMeshes(true); };
             MenuSettings.Click += (s, e) => runSettings();
 
@@ -165,7 +165,7 @@ namespace SolidModelBrowser
             ButtonFishEyeFOV.Click += (s, e) => updateCameraModes();
             ButtonAxes.Click += (s, e) => scene.IsAxesVisible = ButtonAxes.IsChecked.Value;
             ButtonSwapNormals.Click += (s, e) => { if (meshBase == null) return; Utils.InvertNormals(meshBase); updateMeshes(true); };
-            ButtonRemoveNormals.Click += (s, e) => { if (meshBase == null) return; meshBase.Normals.Clear(); updateMeshes(true); };
+            ButtonRemoveNormals.Click += (s, e) => { if (meshBase == null) return; meshBase.Normals = new Vector3DCollection(); updateMeshes(true); };
             ButtonChangeVerticesOrder.Click += (s, e) => { if (meshBase == null) return; Utils.InvertVertexOrder(meshBase); updateMeshes(true); };
             ButtonRecreateUnsmoothed.Click += (s, e) => { if (meshBase == null) return; meshBase = Utils.UnsmoothMesh(meshBase); updateMeshes(true); };
             ButtonSettings.Click += (s, e) => runSettings();
@@ -613,19 +613,14 @@ namespace SolidModelBrowser
         {
             textBlockTitle.Text = "Solid Model Browser";
             this.Title = "Solid Model Browser";
-            if (meshBase != null)
-            {
-                meshBase.TriangleIndices.Clear();
-                meshBase.Positions.Clear();
-                meshBase.Normals.Clear();
-            }
+            meshBase = null;
             meshWireframe = null;
-            scene.Mesh.Positions.Clear();
-            scene.Mesh.TriangleIndices.Clear();
-            scene.Mesh.Normals.Clear();
-            scene.WireframeMesh.Positions.Clear();
-            scene.WireframeMesh.TriangleIndices.Clear();
-            scene.WireframeMesh.Normals.Clear();
+            scene.Mesh.Positions = new Point3DCollection();
+            scene.Mesh.TriangleIndices = new Int32Collection();
+            scene.Mesh.Normals = new Vector3DCollection();
+            scene.WireframeMesh.Positions = new Point3DCollection();
+            scene.WireframeMesh.TriangleIndices = new Int32Collection();
+            scene.WireframeMesh.Normals = new Vector3DCollection();
             hideInfo();
         }
 
@@ -640,7 +635,8 @@ namespace SolidModelBrowser
         void applyMaterials()
         {
             if (!(ButtonDiffuseMaterial.IsChecked.Value || ButtonSpecularMaterial.IsChecked.Value || ButtonEmissiveMaterial.IsChecked.Value)) ButtonDiffuseMaterial.IsChecked = true;
-            scene.ApplyMaterials(ButtonDiffuseMaterial.IsChecked.Value, ButtonSpecularMaterial.IsChecked.Value, ButtonEmissiveMaterial.IsChecked.Value, ButtonBacksideDiffuseMaterial.IsChecked.Value, isGCodeFile());
+            bool isGCode = isGCodeFile();
+            scene.ApplyMaterials(ButtonDiffuseMaterial.IsChecked.Value, isGCode ? false : ButtonSpecularMaterial.IsChecked.Value, ButtonEmissiveMaterial.IsChecked.Value, ButtonBacksideDiffuseMaterial.IsChecked.Value, isGCode);
             scene.UpdateWireframeColor(currentShadingMode == ShadingMode.Wireframe, currentSessionLightTheme, settings.DiffuseColor.Color);
         }
 
