@@ -287,7 +287,7 @@ namespace SolidModelBrowser
             pending.Active = false;
         }
 
-        void QueueMove(GPosition src, GPosition dst, Vector3D offset, ref PendingSegment pending, ref RibbonChain chain, ref bool hasLayerZ, ref double currentLayerZ)
+        void QueueMove(GPosition src, GPosition dst, Vector3D offset, double decimateTol, double maxMergeLenSq, ref PendingSegment pending, ref RibbonChain chain, ref bool hasLayerZ, ref double currentLayerZ)
         {
             if (!pending.Active)
             {
@@ -307,7 +307,7 @@ namespace SolidModelBrowser
                 double vy = dst.Y - pending.Start.Y;
                 double totalLenSq = vx * vx + vy * vy;
 
-                if (totalLenSq > 1e-12 && totalLenSq < 4.0) // Keep merged span <= 2.0 mm
+                if (totalLenSq > 1e-12 && totalLenSq < maxMergeLenSq)
                 {
                     double px = pending.End.X - pending.Start.X;
                     double py = pending.End.Y - pending.Start.Y;
@@ -316,7 +316,7 @@ namespace SolidModelBrowser
                     {
                         double cross = Math.Abs(px * vy - py * vx);
                         double dev = cross / Math.Sqrt(totalLenSq);
-                        if (dev < 0.03)
+                        if (dev < decimateTol)
                         {
                             pending.End = dst;
                             return;
@@ -330,11 +330,11 @@ namespace SolidModelBrowser
             pending.End = dst;
         }
 
-        void QueueArc(GPosition src, GPosition dst, bool clockwise, Vector3D offset, ref PendingSegment pending, ref RibbonChain chain, ref bool hasLayerZ, ref double currentLayerZ)
+        void QueueArc(GPosition src, GPosition dst, bool clockwise, Vector3D offset, double decimateTol, double maxMergeLenSq, double arcChordStep, double arcAngleStep, int arcMaxSegments, ref PendingSegment pending, ref RibbonChain chain, ref bool hasLayerZ, ref double currentLayerZ)
         {
             if (!dst.fi && !dst.fj)
             {
-                QueueMove(src, dst, offset, ref pending, ref chain, ref hasLayerZ, ref currentLayerZ);
+                QueueMove(src, dst, offset, decimateTol, maxMergeLenSq, ref pending, ref chain, ref hasLayerZ, ref currentLayerZ);
                 return;
             }
 
@@ -348,7 +348,7 @@ namespace SolidModelBrowser
             double radius = Math.Sqrt(dx0 * dx0 + dy0 * dy0);
             if (radius < 1e-4)
             {
-                QueueMove(src, dst, offset, ref pending, ref chain, ref hasLayerZ, ref currentLayerZ);
+                QueueMove(src, dst, offset, decimateTol, maxMergeLenSq, ref pending, ref chain, ref hasLayerZ, ref currentLayerZ);
                 return;
             }
 
@@ -369,20 +369,20 @@ namespace SolidModelBrowser
             double arcLen = radius * absDa;
 
             int segments;
-            if (arcLen <= 1.5 && absDa <= Math.PI / 9.0)
+            if (arcLen <= arcChordStep && absDa <= arcAngleStep * 1.35)
             {
                 segments = 1;
             }
             else
             {
-                int byLen = (int)Math.Ceiling(arcLen / 1.5);
-                int byAngle = (int)Math.Ceiling(absDa / (Math.PI / 12.0));
-                segments = Math.Max(2, Math.Min(32, Math.Max(byLen, byAngle)));
+                int byLen = (int)Math.Ceiling(arcLen / arcChordStep);
+                int byAngle = (int)Math.Ceiling(absDa / arcAngleStep);
+                segments = Math.Max(2, Math.Min(arcMaxSegments, Math.Max(byLen, byAngle)));
             }
 
             if (segments == 1)
             {
-                QueueMove(src, dst, offset, ref pending, ref chain, ref hasLayerZ, ref currentLayerZ);
+                QueueMove(src, dst, offset, decimateTol, maxMergeLenSq, ref pending, ref chain, ref hasLayerZ, ref currentLayerZ);
                 return;
             }
 
@@ -405,7 +405,7 @@ namespace SolidModelBrowser
                         Z = src.Z + (dst.Z - src.Z) * t
                     };
                 }
-                QueueMove(prev, cur, offset, ref pending, ref chain, ref hasLayerZ, ref currentLayerZ);
+                QueueMove(prev, cur, offset, decimateTol, maxMergeLenSq, ref pending, ref chain, ref hasLayerZ, ref currentLayerZ);
                 prev = cur;
             }
         }
@@ -455,6 +455,14 @@ namespace SolidModelBrowser
             double currentLayerZ = 0.0;
             RibbonChain chain = new RibbonChain();
             PendingSegment pending = new PendingSegment();
+
+            // Adaptive simplification for large G-code files (> 10 MB) to keep WPF 3D responsive
+            bool isLarge = totalEstimatedLength > 10_000_000;
+            double decimateTol = isLarge ? 0.08 : 0.03;
+            double maxMergeLenSq = isLarge ? 16.0 : 4.0;
+            double arcChordStep = isLarge ? 2.5 : 1.5;
+            double arcAngleStep = isLarge ? (Math.PI / 8.0) : (Math.PI / 12.0);
+            int arcMaxSegments = isLarge ? 16 : 32;
 
             long bytesRead = 0;
             string line;
@@ -616,8 +624,8 @@ namespace SolidModelBrowser
 
                             if (isExtruding && (newpos.fx || newpos.fy || isArc))
                             {
-                                if (isArc) QueueArc(pos, newpos, c1 == '2', offset, ref pending, ref chain, ref hasLayerZ, ref currentLayerZ);
-                                else QueueMove(pos, newpos, offset, ref pending, ref chain, ref hasLayerZ, ref currentLayerZ);
+                                if (isArc) QueueArc(pos, newpos, c1 == '2', offset, decimateTol, maxMergeLenSq, arcChordStep, arcAngleStep, arcMaxSegments, ref pending, ref chain, ref hasLayerZ, ref currentLayerZ);
+                                else QueueMove(pos, newpos, offset, decimateTol, maxMergeLenSq, ref pending, ref chain, ref hasLayerZ, ref currentLayerZ);
                             }
                             else if (newpos.fx || newpos.fy || newpos.fz || isTravelOnly || (newpos.fe && !isExtruding))
                             {

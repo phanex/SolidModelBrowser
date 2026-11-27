@@ -7,7 +7,7 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <Border x:Name="viewport" Background="{DynamicResource WindowBack}" MouseDown="Viewport_MouseDown" MouseUp="Viewport_MouseUp" MouseMove="Viewport_MouseMove" MouseWheel="Viewport_MouseWheel">
-        <Viewport3D x:Name="viewport3D" ClipToBounds="True">
+        <Viewport3D x:Name="viewport3D" ClipToBounds="True" IsHitTestVisible="False">
             <ModelVisual3D x:Name="model">
                 <ModelVisual3D.Content>
                     <Model3DGroup x:Name="modelgroup" />

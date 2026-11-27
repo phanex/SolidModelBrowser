@@ -93,7 +93,7 @@ namespace SolidModelBrowser
 
         MaterialGroup materials = new MaterialGroup();
 
-        public void ApplyMaterials(bool diffuse, bool specular, bool emissive, bool backDiffuse)
+        public void ApplyMaterials(bool diffuse, bool specular, bool emissive, bool backDiffuse, bool sameBackMaterial = false)
         {
             materials.Children.Clear();
             if (diffuse) materials.Children.Add(matDiffuse);
@@ -101,7 +101,7 @@ namespace SolidModelBrowser
             if (emissive) materials.Children.Add(matEmissive);
             geometry.Material = materials;
 
-            geometry.BackMaterial = backDiffuse ? matBackDiffuse : null;
+            geometry.BackMaterial = sameBackMaterial ? (Material)materials : (backDiffuse ? matBackDiffuse : null);
         }
 
         // lights

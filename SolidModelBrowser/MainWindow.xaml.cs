@@ -408,6 +408,7 @@ namespace SolidModelBrowser
                 Utils.GetModelCenterAndSize(meshBase, out modelCenter, out modelPointsAvgCenter, out modelSize);
                 initSlicer();
                 updateMeshes(true);
+                applyMaterials();
                 scene.Camera.LookCenter = settings.DefaultLookAtModelPointsAvgCenter ? modelPointsAvgCenter : modelCenter;
                 scene.Camera.DefaultPosition(modelSize.Length, settings.CameraInitialShift);
 
@@ -628,10 +629,18 @@ namespace SolidModelBrowser
             hideInfo();
         }
 
+        bool isGCodeFile()
+        {
+            return !string.IsNullOrEmpty(lastFilename) &&
+                   (lastFilename.EndsWith(".gcode", StringComparison.OrdinalIgnoreCase) ||
+                    lastFilename.EndsWith(".gco", StringComparison.OrdinalIgnoreCase) ||
+                    lastFilename.EndsWith(".gcode.3mf", StringComparison.OrdinalIgnoreCase));
+        }
+
         void applyMaterials()
         {
             if (!(ButtonDiffuseMaterial.IsChecked.Value || ButtonSpecularMaterial.IsChecked.Value || ButtonEmissiveMaterial.IsChecked.Value)) ButtonDiffuseMaterial.IsChecked = true;
-            scene.ApplyMaterials(ButtonDiffuseMaterial.IsChecked.Value, ButtonSpecularMaterial.IsChecked.Value, ButtonEmissiveMaterial.IsChecked.Value, ButtonBacksideDiffuseMaterial.IsChecked.Value);
+            scene.ApplyMaterials(ButtonDiffuseMaterial.IsChecked.Value, ButtonSpecularMaterial.IsChecked.Value, ButtonEmissiveMaterial.IsChecked.Value, ButtonBacksideDiffuseMaterial.IsChecked.Value, isGCodeFile());
             scene.UpdateWireframeColor(currentShadingMode == ShadingMode.Wireframe, currentSessionLightTheme, settings.DiffuseColor.Color);
         }
 
@@ -775,7 +784,7 @@ namespace SolidModelBrowser
         void updateMeshes(bool forceUpdateWireframe)
         {
             if (meshBase == null) return;
-            bool isGCode = !string.IsNullOrEmpty(lastFilename) && (lastFilename.EndsWith(".gcode", StringComparison.OrdinalIgnoreCase) || lastFilename.EndsWith(".gco", StringComparison.OrdinalIgnoreCase) || lastFilename.EndsWith(".gcode.3mf", StringComparison.OrdinalIgnoreCase));
+            bool isGCode = isGCodeFile();
 
             if (currentShadingMode == ShadingMode.Solid)
             {
